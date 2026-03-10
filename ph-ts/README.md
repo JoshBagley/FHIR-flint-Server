@@ -33,7 +33,7 @@ make logs
 # - API: http://localhost:8000
 # - Web UI: http://localhost
 # - API Docs: http://localhost:8000/docs
-# - Grafana: http://localhost:3000
+# - Grafana: http://localhost:3001
 ```
 
 ## Documentation

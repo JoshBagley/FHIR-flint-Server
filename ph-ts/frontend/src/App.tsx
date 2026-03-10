@@ -230,7 +230,7 @@ const ModernPHINVADS = () => {
         setSelectedResource((prev: UiResource | null) => prev ? { ...prev, versionHistory: history } : prev);
       })
       .finally(() => setLoadingHistory(false));
-  }, [selectedResource?.id]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedResource?.id, selectedResource?.resourceType]);
 
   // Download a resource as JSON
   const handleDownloadJson = useCallback((resource: UiResource) => {
@@ -313,8 +313,8 @@ const ModernPHINVADS = () => {
         </div>
         <p className="text-xs text-gray-400 mt-4 flex items-center gap-1">
           <Clock className="w-3 h-3" /> Full usage metrics available in Grafana at{' '}
-          <a href="http://localhost:3000" target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">
-            localhost:3000
+          <a href="http://localhost:3001" target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">
+            localhost:3001
           </a>
         </p>
       </div>

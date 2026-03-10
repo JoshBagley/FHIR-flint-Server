@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ============================================================================
   # PostgreSQL Database
@@ -91,6 +89,7 @@ services:
       LOG_LEVEL: debug
       SECRET_KEY: ${SECRET_KEY:-change-this-secret-key-in-production}
       ENABLE_AUTH: ${ENABLE_AUTH:-false}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:3000,http://localhost:5173}
     ports:
       - "8000:8000"
     volumes:
@@ -184,7 +183,7 @@ services:
       - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
       - grafana_data:/var/lib/grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     networks:
       - phts-network
     restart: unless-stopped

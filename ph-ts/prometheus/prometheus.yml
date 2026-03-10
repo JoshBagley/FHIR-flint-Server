@@ -12,11 +12,18 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'elasticsearch'
-    static_configs:
-      - targets: ['elasticsearch:9200']
-    metrics_path: '/_prometheus/metrics'
+  # elasticsearch: native Prometheus metrics require the Prometheus exporter plugin.
+  # To enable, add 'elasticsearch-exporter' as a sidecar service in docker-compose.yml
+  # and uncomment the block below.
+  #
+  # - job_name: 'elasticsearch'
+  #   static_configs:
+  #     - targets: ['elasticsearch-exporter:9114']
 
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis:6379']
+  # redis: Prometheus metrics require redis_exporter sidecar.
+  # To enable, add 'redis_exporter' as a service in docker-compose.yml
+  # and uncomment the block below.
+  #
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']

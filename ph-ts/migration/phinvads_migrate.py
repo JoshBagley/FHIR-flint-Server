@@ -53,7 +53,7 @@ PAGE_SIZE = 100               # _count per PHIN VADS page
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
+    handlers=[logging.StreamHandler(stream=open(sys.stdout.fileno(), mode='w', encoding='utf-8', closefd=False))],
 )
 logger = logging.getLogger("phinvads_migrate")
 
@@ -207,6 +207,13 @@ async def _get_json(client: httpx.AsyncClient, url: str, params: Dict = None) ->
         try:
             resp = await client.get(url, params=params, timeout=REQUEST_TIMEOUT)
             resp.raise_for_status()
+            content_type = resp.headers.get("content-type", "")
+            if "html" in content_type or resp.text.lstrip().startswith("<"):
+                raise httpx.HTTPStatusError(
+                    f"Expected JSON but received HTML from {url} — WAF or redirect",
+                    request=resp.request,
+                    response=resp,
+                )
             return resp.json()
         except (httpx.HTTPStatusError, httpx.RequestError) as exc:
             if attempt == RETRY_ATTEMPTS:
@@ -294,7 +301,41 @@ async def fetch_by_oid(
     """
     oid = _normalise_oid(oid)
 
-    # Strategy 1: direct read by logical id
+    # Strategy 1: bare OID identifier search (most reliable against PHIN VADS WAF)
+    logger.info("Trying bare OID identifier search: GET /ValueSet?identifier=%s", oid)
+    try:
+        bundle = await _get_json(
+            client,
+            f"{PHINVADS_BASE}/ValueSet",
+            params={"identifier": oid, "_format": "json"},
+        )
+        entries = bundle.get("entry", [])
+        if entries:
+            resource = entries[0].get("resource")
+            if resource:
+                logger.info("Found ValueSet via bare OID search (total=%d)", bundle.get("total", 1))
+                return resource
+    except httpx.HTTPStatusError:
+        logger.debug("Bare OID search failed, trying urn:oid: prefix…")
+
+    # Strategy 2: identifier search with urn:oid: prefix
+    logger.info("Trying identifier search: GET /ValueSet?identifier=urn:oid:%s", oid)
+    try:
+        bundle = await _get_json(
+            client,
+            f"{PHINVADS_BASE}/ValueSet",
+            params={"identifier": f"urn:oid:{oid}", "_format": "json"},
+        )
+        entries = bundle.get("entry", [])
+        if entries:
+            resource = entries[0].get("resource")
+            if resource:
+                logger.info("Found ValueSet via urn:oid: identifier search (total=%d)", bundle.get("total", 1))
+                return resource
+    except httpx.HTTPStatusError:
+        logger.debug("urn:oid: search failed, trying direct read…")
+
+    # Strategy 3: direct read by logical id (may be blocked by WAF for OID paths)
     try:
         logger.info("Trying direct read: GET /ValueSet/%s", oid)
         data = await _get_json(client, f"{PHINVADS_BASE}/ValueSet/{oid}",
@@ -303,37 +344,7 @@ async def fetch_by_oid(
             logger.info("Found ValueSet via direct read (id=%s)", oid)
             return data
     except httpx.HTTPStatusError as exc:
-        if exc.response.status_code != 404:
-            raise
-        logger.debug("Direct read returned 404, trying identifier search…")
-
-    # Strategy 2: identifier search with urn:oid: prefix
-    logger.info("Trying identifier search: GET /ValueSet?identifier=urn:oid:%s", oid)
-    bundle = await _get_json(
-        client,
-        f"{PHINVADS_BASE}/ValueSet",
-        params={"identifier": f"urn:oid:{oid}", "_format": "json"},
-    )
-    entries = bundle.get("entry", [])
-    if entries:
-        resource = entries[0].get("resource")
-        if resource:
-            logger.info("Found ValueSet via identifier search (total=%d)", bundle.get("total", 1))
-            return resource
-
-    # Strategy 3: bare OID without urn:oid: prefix (some servers store it this way)
-    logger.info("Trying bare OID identifier search: GET /ValueSet?identifier=%s", oid)
-    bundle = await _get_json(
-        client,
-        f"{PHINVADS_BASE}/ValueSet",
-        params={"identifier": oid, "_format": "json"},
-    )
-    entries = bundle.get("entry", [])
-    if entries:
-        resource = entries[0].get("resource")
-        if resource:
-            logger.info("Found ValueSet via bare OID search (total=%d)", bundle.get("total", 1))
-            return resource
+        logger.debug("Direct read failed (%s)", exc)
 
     logger.error("ValueSet with OID %s not found in PHIN VADS", oid)
     return None
@@ -532,9 +543,10 @@ async def run(args: argparse.Namespace):
     checkpoint = _load_checkpoint(args.resume)
 
     # HTTP clients — separate for source and target
+    # PHIN VADS WAF blocks custom User-Agent strings and application/fhir+json Accept headers.
+    # Use a generic Accept header and let httpx supply its default User-Agent.
     phinvads_headers = {
-        "Accept": "application/fhir+json",
-        "User-Agent": "PH-TS-Migration/1.0",
+        "Accept": "application/json, */*",
     }
     target_headers = {
         "Accept": "application/fhir+json",

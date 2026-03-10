@@ -37,7 +37,7 @@ make start
 | **Web UI** | http://localhost | Main application |
 | **API** | http://localhost:8000 | REST API |
 | **API Docs** | http://localhost:8000/docs | Interactive API docs |
-| **Grafana** | http://localhost:3000 | Monitoring (admin/admin) |
+| **Grafana** | http://localhost:3001 | Monitoring (admin/admin) |
 | **Elasticsearch** | http://localhost:9200 | Search engine |
 | **pgAdmin** | http://localhost:5050 | Database admin |
 

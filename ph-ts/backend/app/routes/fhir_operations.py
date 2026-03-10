@@ -11,7 +11,7 @@ Implements FHIR R4 terminology operations:
 
 from fastapi import APIRouter, Query, HTTPException, Body
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 
 from app import state
@@ -88,7 +88,7 @@ async def _perform_expansion(
         filter_lower = filter_text.lower()
         all_concepts = [
             c for c in all_concepts
-            if filter_lower in c['code'].lower() or filter_lower in c['display'].lower()
+            if filter_lower in c['code'].lower() or filter_lower in (c.get('display') or '').lower()
         ]
 
     total = len(all_concepts)
@@ -103,7 +103,7 @@ async def _perform_expansion(
         'title': valueset.get('title'),
         'status': valueset.get('status'),
         'expansion': {
-            'identifier': hashlib.md5(f"{url}{version}{datetime.now()}".encode()).hexdigest(),
+            'identifier': hashlib.md5(f"{url}{version or ''}".encode()).hexdigest(),
             'timestamp': datetime.now().isoformat(),
             'total': total,
             'offset': offset,
@@ -251,6 +251,8 @@ async def _perform_lookup(
 
 @router.get("/ValueSet/{resource_id}/$diff")
 async def diff_versions(resource_id: str, from_version: int, to_version: int):
+    if from_version >= to_version:
+        raise HTTPException(status_code=400, detail="from_version must be less than to_version")
     v1_data = await state.db.get_resource(resource_id, from_version)
     v2_data = await state.db.get_resource(resource_id, to_version)
 

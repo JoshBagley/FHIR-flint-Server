@@ -1,0 +1,53 @@
+{
+  "resourceType": "ValueSet",
+  "url": "https://phinvads.cdc.gov/baseStu3/ValueSet/2.16.840.1.113883.1.11.1",
+  "version": "1",
+  "name": "PHVS_AdministrativeGender_HL7_V3",
+  "title": "Administrative Gender (HL7 V3)",
+  "status": "active",
+  "experimental": false,
+  "date": "2019-02-23",
+  "publisher": "HL7 (Health Level Seven, Inc., 3300 Washtenaw Avenue, Suite 227, Ann Arbor, MI 48104.  USA: (+1) 734-677-7777 (phone)  (+1) 734-677-6622 (fax). E-mail:  hq@hl7.org)",
+  "contact": [
+    {
+      "telecom": [
+        {
+          "system": "url",
+          "value": "https://www.hl7.org/"
+        }
+      ]
+    }
+  ],
+  "description": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Administrative Gender based upon HL7 V3 vocabulary. This value set contains only male, female and undifferentiated concepts.</div>",
+  "useContext": [],
+  "jurisdiction": [],
+  "identifier": [
+    {
+      "system": "https://phinvads.cdc.gov/vads/ViewValueSet.action?id=",
+      "value": "2.16.840.1.113883.1.11.1"
+    }
+  ],
+  "compose": {
+    "lockedDate": "2009-07-22",
+    "include": [
+      {
+        "system": "http://hl7projects.hl7.nscee.edu/frs/download.php/622/hl7_rimrepos-2.26.2.zip",
+        "version": "20090501",
+        "concept": [
+          {
+            "code": "F",
+            "display": "Female"
+          },
+          {
+            "code": "M",
+            "display": "Male"
+          },
+          {
+            "code": "UN",
+            "display": "Undifferentiated"
+          }
+        ]
+      }
+    ]
+  }
+}

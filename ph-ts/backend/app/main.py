@@ -177,7 +177,7 @@ class ValueSet(BaseModel):
     title: Optional[str] = None
     status: ResourceStatus
     experimental: Optional[bool] = None
-    date: Optional[datetime] = None
+    date: Optional[str] = None
     publisher: Optional[str] = None
     contact: Optional[List[ContactDetail]] = []
     description: Optional[str] = None
@@ -234,7 +234,7 @@ class CodeSystem(BaseModel):
     title: Optional[str] = None
     status: ResourceStatus
     experimental: Optional[bool] = None
-    date: Optional[datetime] = None
+    date: Optional[str] = None
     publisher: Optional[str] = None
     contact: Optional[List[ContactDetail]] = []
     description: Optional[str] = None
@@ -380,7 +380,9 @@ class DatabaseManager:
                 VALUES ($1, $2, $3, $4)
             """, resource_id, next_version, json.dumps(data), user)
 
-            return result == "UPDATE 1"
+            # asyncpg returns a status string like "UPDATE 1"; parse row count to be robust
+            affected = int(result.split()[-1]) if result and result.split() else 0
+            return affected > 0
 
     async def get_resource(self, resource_id: str, version: Optional[int] = None) -> Optional[Dict]:
         async with self.pool.acquire() as conn:
@@ -610,9 +612,15 @@ app = FastAPI(
 )
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+_cors_origins_env = os.getenv("CORS_ORIGINS", "")
+_cors_origins = (
+    [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
+    if _cors_origins_env
+    else ["http://localhost", "http://localhost:3000", "http://localhost:5173"]
+)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -671,6 +679,8 @@ async def root():
 async def health_check():
     status = {"status": "healthy", "services": {}}
     try:
+        if not state.db or not state.db.pool:
+            raise RuntimeError("Database not initialised")
         async with state.db.pool.acquire() as conn:
             await conn.fetchval("SELECT 1")
         status["services"]["database"] = "healthy"
@@ -678,12 +688,16 @@ async def health_check():
         status["services"]["database"] = f"unhealthy: {e}"
         status["status"] = "degraded"
     try:
+        if not state.search_engine or not state.search_engine.es:
+            raise RuntimeError("Search engine not initialised")
         await state.search_engine.es.cluster.health()
         status["services"]["search"] = "healthy"
     except Exception as e:
         status["services"]["search"] = f"unhealthy: {e}"
         status["status"] = "degraded"
     try:
+        if not state.cache or not state.cache.redis_client:
+            raise RuntimeError("Cache not initialised")
         await state.cache.redis_client.ping()
         status["services"]["cache"] = "healthy"
     except Exception as e:

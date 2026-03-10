@@ -49,7 +49,7 @@ curl http://localhost:9200/_cluster/health
 | FHIR Server | http://localhost:8000 | None |
 | API Docs (Swagger) | http://localhost:8000/docs | - |
 | Web UI | http://localhost | - |
-| Grafana | http://localhost:3000 | admin / admin |
+| Grafana | http://localhost:3001 | admin / admin |
 | Prometheus | http://localhost:9090 | None |
 | pgAdmin | http://localhost:5050 | admin@example.com / admin *(admin profile)* |
 | Kibana | http://localhost:5601 | None *(admin profile)* |
