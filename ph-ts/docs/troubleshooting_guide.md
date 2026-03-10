@@ -1,516 +1,286 @@
-# PH-TS Troubleshooting Guide
+# Troubleshooting Guide
 
-## 🔍 Diagnostic Flowchart
+## Quick Diagnostic
 
-```
-START: Is PH-TS not working?
-│
-├─→ Can't run `make start`?
-│   ├─→ Is Docker installed? → Install Docker Desktop
-│   ├─→ Is Docker running? → Start Docker Desktop
-│   └─→ Permission denied? → chmod +x scripts/*.sh
-│
-├─→ Services won't start?
-│   ├─→ Check: docker-compose ps
-│   │   ├─→ All "Up"? → Services are healthy ✓
-│   │   └─→ "Exit" or "Restarting"? → Check logs below
-│   │
-│   └─→ Port conflict?
-│       ├─→ Check: lsof -i :80 -i :8000 -i :5432
-│       ├─→ Kill conflicting process
-│       └─→ Or change ports in docker-compose.yml
-│
-├─→ Can't access http://localhost?
-│   ├─→ Is nginx running? → docker-compose ps nginx
-│   ├─→ Check nginx logs → docker-compose logs nginx
-│   └─→ Try direct URLs:
-│       ├─→ http://localhost:8000 (backend)
-│       └─→ http://localhost:3000 (frontend)
-│
-├─→ Backend errors?
-│   ├─→ Database connection failed?
-│   │   ├─→ Is postgres healthy? → docker-compose ps postgres
-│   │   ├─→ Wait 30s → docker-compose restart backend
-│   │   └─→ Check password → Verify POSTGRES_PASSWORD in .env
-│   │
-│   ├─→ Elasticsearch connection failed?
-│   │   ├─→ Is it healthy? → curl localhost:9200/_cluster/health
-│   │   ├─→ Yellow/Red status? → Increase Docker memory to 4GB+
-│   │   └─→ Restart: docker-compose restart elasticsearch
-│   │
-│   └─→ Redis connection failed?
-│       ├─→ Is it running? → docker-compose exec redis redis-cli ping
-│       └─→ Restart: docker-compose restart redis
-│
-├─→ Frontend errors?
-│   ├─→ Blank page?
-│   │   ├─→ Check console (F12) → Look for errors
-│   │   ├─→ Check frontend logs → docker-compose logs frontend
-│   │   └─→ Rebuild: docker-compose up -d --build frontend
-│   │
-│   └─→ API calls failing?
-│       ├─→ Check CORS → Backend should allow localhost:3000
-│       └─→ Check network tab → Verify API endpoint
-│
-└─→ Performance issues?
-    ├─→ Slow startup?
-    │   ├─→ First time? → Normal, pulling images takes time
-    │   ├─→ Low memory? → Increase Docker memory allocation
-    │   └─→ Check: docker stats → Look for high CPU/memory
-    │
-    └─→ Slow responses?
-        ├─→ Check logs for errors
-        ├─→ Check database connections
-        └─→ Enable caching in Redis
+```bash
+# 1. Are all containers running?
+docker compose ps
 
-SOLUTION FOUND? → Great! ✓
-STILL STUCK? → See detailed guide below ↓
+# 2. Is the stack healthy?
+curl http://localhost/health
+
+# 3. Any recent errors?
+docker compose logs --tail=50 backend
+docker compose logs --tail=50 nginx
 ```
 
 ---
 
-## 🔧 Detailed Troubleshooting
+## Common Issues
 
-### Problem 1: `make start` fails
+### Docker Desktop not running
 
-**Symptoms:**
+**Symptom:**
 ```
-make: docker-compose: Command not found
+open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
 ```
 
-**Solution:**
+**Fix:** Start Docker Desktop and wait ~30 seconds before retrying.
+
+---
+
+### 502 Bad Gateway
+
+**Symptoms:** Browser shows `502 Bad Gateway` when accessing http://localhost.
+
+**Diagnose:**
 ```bash
-# Install Docker Desktop
-# macOS/Windows: Download from docker.com
-# Linux:
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-# Log out and back in
+docker compose ps
+# Look for any service not in "Up (healthy)" state
+
+docker compose logs backend --tail=30
+docker compose logs nginx --tail=20
+```
+
+**Most common causes:**
+
+1. **Backend still starting** — wait 30–60 s after `docker compose up`. The backend waits for Postgres, Elasticsearch, and Redis to be healthy before starting.
+2. **Elasticsearch out of memory** — increase Docker Desktop memory allocation to 4 GB+ (Settings → Resources → Memory).
+3. **Backend crashed** — check `docker compose logs backend` for Python tracebacks.
+
+```bash
+# Force restart
+docker compose restart backend
 ```
 
 ---
 
-### Problem 2: Port conflicts
+### Postgres authentication failed
 
-**Symptoms:**
+**Symptom:**
 ```
-Error: port is already allocated
+FATAL: password authentication failed for user "phts"
 ```
 
-**Diagnosis:**
+**Fix:** Check the actual password in `.env`:
 ```bash
-# Find what's using the port
-lsof -i :80        # macOS/Linux
-lsof -i :8000
-lsof -i :5432
+cat .env | grep POSTGRES_PASSWORD
+```
 
+Use that value (not a hardcoded default) when connecting via Adminer or psql.
+
+**Adminer connection details:**
+| Field | Value |
+|-------|-------|
+| Server | `postgres` |
+| Username | `phts` |
+| Password | _(value from `.env`)_ |
+| Database | `phts` |
+
+If the password in `.env` was changed after the volume was first created, the volume still holds the old credentials. Reset:
+```bash
+docker compose down -v   # deletes all data
+docker compose up -d --build
+```
+
+---
+
+### Frontend shows stale code / HMR not working
+
+**Cause A — Vite HMR polling not active:**
+
+Check whether the container has the current `vite.config.ts`:
+```bash
+docker compose exec frontend cat vite.config.ts
+```
+
+It should contain `usePolling: true`. If not, the image needs a rebuild (the config is baked in, not volume-mounted):
+```bash
+docker compose up -d --build frontend
+```
+
+Then do a hard browser refresh: `Ctrl+Shift+R`.
+
+**Cause B — Change was made outside `frontend/src/`:**
+
+Files outside `src/` (e.g., `vite.config.ts`, `package.json`, `tailwind.config.js`) are not volume-mounted. Any change to them requires a rebuild:
+```bash
+docker compose up -d --build frontend
+```
+
+---
+
+### Port already in use
+
+**Symptom:**
+```
+Bind for 0.0.0.0:XXXX failed: port is already allocated
+```
+
+**Find the conflicting process:**
+```bash
 # Windows
-netstat -ano | findstr :80
-netstat -ano | findstr :8000
-```
+netstat -ano | findstr :8181
 
-**Solution A: Kill the process**
-```bash
 # macOS/Linux
-kill -9 <PID>
-
-# Windows
-taskkill /PID <PID> /F
+lsof -i :8181
 ```
 
-**Solution B: Change ports**
-Edit `docker-compose.yml`:
+Then either kill the process or change the host-side port in `docker-compose.yml`:
 ```yaml
-services:
-  nginx:
-    ports:
-      - "8080:80"  # Changed from 80:80
-  backend:
-    ports:
-      - "8001:8000"  # Changed from 8000:8000
+ports:
+  - "8282:8080"   # change 8181 to any free port
 ```
 
 ---
 
-### Problem 3: Database connection errors
+### Migration script — HTML response / WAF block
 
-**Symptoms:**
+**Symptom:**
 ```
-ERROR: connection to server failed
-could not connect to database
+JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+# or
+Received HTML response from PHIN VADS — WAF may be blocking
 ```
 
-**Check database health:**
+**Fix:** The PHIN VADS WAF blocks requests with non-standard User-Agent or Accept headers. Ensure the migration script is using the corrected headers (no custom User-Agent, `Accept: application/json, */*`).
+
+Run with debug logging to see raw responses:
 ```bash
-docker-compose ps postgres
-# Should show: Up (healthy)
-```
-
-**If not healthy:**
-```bash
-# View logs
-docker-compose logs postgres
-
-# Common issues:
-# 1. Still initializing → Wait 30 seconds
-# 2. Data directory corrupt → make clean && make start
-# 3. Password mismatch → Check .env file
-```
-
-**Force restart:**
-```bash
-docker-compose stop postgres
-docker-compose rm -f postgres
-docker-compose up -d postgres
-
-# Wait for "ready to accept connections"
-docker-compose logs postgres | grep "ready"
-
-# Then restart backend
-docker-compose restart backend
+python phinvads_migrate.py --oid <oid> --log-level DEBUG
 ```
 
 ---
 
-### Problem 4: Elasticsearch issues
+### Migration script — HTTP 422 on import
 
-**Symptoms:**
-```
-Elasticsearch cluster is not healthy
-Connection refused to elasticsearch:9200
-```
+**Symptom:** Resources fetch successfully but POST to the local server returns `422 Unprocessable Entity`.
 
-**Check health:**
+**Fix:** Run a dry-run and inspect the generated JSON:
 ```bash
+python phinvads_migrate.py --oid <oid> --dry-run --output-dir ./exported
+```
+
+Open the exported file and check for missing required fields. Common issues:
+- `date` field is a FHIR `date` type (e.g., `"2019-02-23"`) — ensure the server model accepts `Optional[str]`, not `Optional[datetime]`.
+- `status` not normalised — should be one of `active`, `draft`, `retired`, `unknown`.
+
+---
+
+### Migration script — Unicode error on Windows
+
+**Symptom:**
+```
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192'
+```
+
+**Cause:** Windows console defaults to cp1252, which cannot encode the arrow/check characters used in log messages.
+
+**Fix:** The script should already configure its stream handler with `encoding='utf-8'`. If you still see this, run:
+```bash
+set PYTHONIOENCODING=utf-8
+python phinvads_migrate.py ...
+```
+
+---
+
+### $expand returns empty or error
+
+**Symptom:** Clicking "View Expansion" shows "This ValueSet has no concepts" or an error.
+
+**Check:**
+```bash
+# Does the ValueSet exist?
+curl "http://localhost/ValueSet?name=<name>"
+
+# Does it expand?
+curl "http://localhost/ValueSet/\$expand?url=<url>&count=10"
+```
+
+**Common causes:**
+- The ValueSet uses `compose.include` with only a `system` reference and no inline `concept` list — expansion may not be fully supported for external code systems.
+- The URL parameter must exactly match the `url` field stored in the resource (case-sensitive).
+
+---
+
+### Elasticsearch index out of sync
+
+After a bulk import or crash, search results may not reflect the database contents.
+
+```bash
+# Check ES cluster health
 curl http://localhost:9200/_cluster/health?pretty
+
+# Check index stats
+curl http://localhost:9200/_cat/indices?v
 ```
 
-**Expected response:**
-```json
-{
-  "status": "green" or "yellow"  # yellow is OK for single node
-}
-```
-
-**If red or unreachable:**
+To rebuild the index, restart the backend (it re-indexes on startup if the index is missing):
 ```bash
-# Check logs
-docker-compose logs elasticsearch
-
-# Common issues:
-# 1. Out of memory → Increase Docker memory to 4GB+
-# 2. Disk space → Check: docker system df
-# 3. Java heap → Reduce ES_JAVA_OPTS in docker-compose.yml
-```
-
-**Fix memory issue:**
-Edit `docker-compose.yml`:
-```yaml
-elasticsearch:
-  environment:
-    - "ES_JAVA_OPTS=-Xms256m -Xmx256m"  # Reduced from 512m
+docker compose restart backend
 ```
 
 ---
 
-### Problem 5: Frontend blank page
+### Out of memory / Elasticsearch keeps crashing
 
-**Symptoms:**
-- Browser shows blank page
-- Console shows errors
+**Symptom:** `docker compose ps` shows `phts-elasticsearch` restarting repeatedly.
 
-**Check:**
+**Fix:**
+
+1. Increase Docker Desktop memory: Settings → Resources → Memory → set to **4 GB minimum, 8 GB recommended**
+2. Reduce Elasticsearch heap in `docker-compose.yml`:
+   ```yaml
+   environment:
+     - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+   ```
+3. Restart:
+   ```bash
+   docker compose up -d elasticsearch
+   ```
+
+---
+
+## Health Check Checklist
+
 ```bash
-# 1. Is frontend running?
-docker-compose ps frontend
+# Containers running?
+docker compose ps
 
-# 2. Check logs
-docker-compose logs frontend
+# Nginx / load balancer
+curl http://localhost/health
+# Expected: healthy
 
-# 3. Check browser console (F12)
-```
-
-**Common fixes:**
-```bash
-# Rebuild frontend
-docker-compose up -d --build frontend
-
-# Clear browser cache
-# Ctrl+Shift+R (hard refresh)
-
-# Check if API is accessible
+# Backend API
 curl http://localhost:8000/health
-```
+# Expected: {"status":"healthy","database":"connected","search":"connected","cache":"connected"}
 
----
+# FHIR metadata
+curl http://localhost/metadata
+# Expected: {"resourceType":"CapabilityStatement",...}
 
-### Problem 6: Out of memory
+# PostgreSQL
+docker compose exec postgres psql -U phts -d phts -c "SELECT count(*) FROM resources;"
 
-**Symptoms:**
-```
-Elasticsearch: OutOfMemoryError
-Container keeps restarting
-docker stats shows 90%+ memory usage
-```
-
-**Solution:**
-```bash
-# 1. Increase Docker memory
-# Docker Desktop → Settings → Resources → Memory
-# Set to at least 8GB for full stack
-
-# 2. Reduce individual service memory
-# Edit docker-compose.yml:
-
-elasticsearch:
-  environment:
-    - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
-
-# 3. Run minimal stack (no Elasticsearch)
-docker-compose up -d postgres redis backend
-```
-
----
-
-### Problem 7: Permission denied errors
-
-**Symptoms:**
-```
-bash: ./setup.sh: Permission denied
-mkdir: cannot create directory: Permission denied
-```
-
-**Solution:**
-```bash
-# Make scripts executable
-chmod +x scripts/*.sh
-
-# Fix file ownership
-sudo chown -R $USER:$USER .
-
-# If on Linux with SELinux
-sudo chcon -R -t container_file_t .
-```
-
----
-
-### Problem 8: Slow performance
-
-**Symptoms:**
-- Long startup times
-- Slow API responses
-- Browser lag
-
-**Diagnosis:**
-```bash
-# Check resource usage
-docker stats
-
-# Check disk space
-docker system df
-
-# Check for errors
-make logs | grep ERROR
-```
-
-**Solutions:**
-```bash
-# 1. Prune unused Docker resources
-docker system prune -a
-
-# 2. Optimize database
-docker-compose exec postgres vacuumdb -U phts -d phts
-
-# 3. Clear Redis cache
-docker-compose exec redis redis-cli FLUSHALL
-
-# 4. Restart everything
-make restart
-```
-
----
-
-### Problem 9: Cannot connect to API
-
-**Symptoms:**
-```
-Failed to fetch
-Network error
-CORS error
-```
-
-**Check:**
-```bash
-# 1. Is backend running?
-docker-compose ps backend
-
-# 2. Test directly
-curl http://localhost:8000/health
-
-# 3. Check CORS settings
-docker-compose logs backend | grep CORS
-```
-
-**Fix CORS:**
-Edit `backend/app/main.py`:
-```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-```
-
----
-
-### Problem 10: Docker Desktop not starting
-
-**macOS:**
-```bash
-# Reset Docker
-rm -rf ~/Library/Containers/com.docker.docker
-# Reinstall Docker Desktop
-```
-
-**Windows:**
-```powershell
-# Reset Docker
-Get-Process "*docker*" | Stop-Process
-# Restart Docker Desktop as Administrator
-```
-
-**Linux:**
-```bash
-# Restart Docker daemon
-sudo systemctl restart docker
-
-# If that fails
-sudo systemctl status docker
-# Check error messages
-```
-
----
-
-## 🚨 Emergency Recovery
-
-### Complete reset (nuclear option)
-
-```bash
-# 1. Stop everything
-docker-compose down -v
-
-# 2. Remove all containers
-docker container prune -f
-
-# 3. Remove all volumes
-docker volume prune -f
-
-# 4. Remove all images (optional)
-docker image prune -a -f
-
-# 5. Remove project data
-rm -rf data/*
-
-# 6. Fresh start
-./scripts/setup.sh
-make start
-```
-
----
-
-## 📋 Health Check Checklist
-
-Run these commands to verify everything:
-
-```bash
-# 1. Docker running?
-docker ps
-# ✓ Should show containers
-
-# 2. All services up?
-docker-compose ps
-# ✓ All should show "Up" or "Up (healthy)"
-
-# 3. Backend responding?
-curl http://localhost:8000/health
-# ✓ Should return: {"status":"healthy"}
-
-# 4. Database accessible?
-docker-compose exec postgres psql -U phts -d phts -c "SELECT 1"
-# ✓ Should return: 1
-
-# 5. Elasticsearch healthy?
+# Elasticsearch
 curl http://localhost:9200/_cluster/health
-# ✓ Should return: "status":"green" or "yellow"
+# Expected: "status":"green" or "yellow"
 
-# 6. Redis responding?
-docker-compose exec redis redis-cli ping
-# ✓ Should return: PONG
-
-# 7. Frontend loading?
-curl http://localhost:3000
-# ✓ Should return HTML
-
-# 8. Nginx routing?
-curl http://localhost/fhir/metadata
-# ✓ Should return JSON
+# Redis
+docker compose exec redis redis-cli ping
+# Expected: PONG
 ```
 
 ---
 
-## 📞 Getting Help
+## Nuclear Reset
 
-### Before asking for help, provide:
+If nothing else works, wipe all data and start fresh:
 
-1. **Your environment:**
-   ```bash
-   docker --version
-   docker-compose --version
-   uname -a  # or OS version
-   ```
+```bash
+docker compose down -v           # stop containers + delete volumes
+docker system prune -a -f        # remove all unused images (frees disk)
+docker compose up -d --build     # rebuild from scratch
+```
 
-2. **Service status:**
-   ```bash
-   docker-compose ps
-   ```
-
-3. **Relevant logs:**
-   ```bash
-   docker-compose logs backend > backend.log
-   docker-compose logs postgres > postgres.log
-   # Attach these files
-   ```
-
-4. **What you tried:**
-   - List all troubleshooting steps attempted
-   - Include any error messages
-
----
-
-## 🎓 Prevention Tips
-
-1. **Always use `make` commands** instead of raw docker commands
-2. **Check logs immediately** if something seems wrong
-3. **Wait for health checks** before accessing services
-4. **Keep Docker Desktop updated** to latest version
-5. **Allocate enough memory** (8GB recommended)
-6. **Don't modify .env** while services are running
-7. **Use `make clean`** before major updates
-
----
-
-## ✅ Success Indicators
-
-Your setup is working correctly when:
-
-- ✅ `docker-compose ps` shows all services as "Up (healthy)"
-- ✅ http://localhost loads without errors
-- ✅ http://localhost:8000/docs shows API documentation
-- ✅ `make logs` shows no ERROR messages
-- ✅ Database queries work
-- ✅ Search returns results
-- ✅ No constant container restarts
-
-**If all above are ✅, you're good to go!** 🎉
+> This permanently deletes all imported terminology data. Re-run the migration tool to reload.

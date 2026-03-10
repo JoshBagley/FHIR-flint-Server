@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Search, Download, FileCode, Layers, Grid, List,
-  GitBranch, Users, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2
+  GitBranch, Users, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2,
+  ChevronDown, ChevronUp, Copy, Check, ExternalLink, ChevronLeft
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -35,6 +36,12 @@ interface VersionEntry {
   summary?: string;
 }
 
+interface ExpansionConcept {
+  system?: string;
+  code: string;
+  display?: string;
+}
+
 interface UiResource {
   id: string;
   resourceType: 'ValueSet' | 'CodeSystem';
@@ -52,6 +59,10 @@ interface UiResource {
 // API helpers
 // ---------------------------------------------------------------------------
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 function countConcepts(resource: FhirResource): number {
   if (resource.resourceType === 'ValueSet') {
     return (resource.compose?.include ?? []).reduce(
@@ -68,7 +79,7 @@ function toUiResource(r: FhirResource): UiResource {
     url: r.url ?? '',
     name: r.name ?? r.title ?? r.id,
     title: r.title ?? r.name ?? r.id,
-    definition: r.description ?? '',
+    definition: r.description ? stripHtml(r.description) : '',
     status: r.status,
     version: r.version ?? '1',
     conceptCount: countConcepts(r),
@@ -99,6 +110,13 @@ async function fetchResources(
     .map(e => e.resource)
     .filter(Boolean)
     .map(toUiResource);
+}
+
+async function fetchExpansion(url: string): Promise<ExpansionConcept[]> {
+  const data = await apiFetch<{ expansion?: { contains?: ExpansionConcept[] } }>(
+    `/ValueSet/$expand?url=${encodeURIComponent(url)}&count=1000`
+  );
+  return data.expansion?.contains ?? [];
 }
 
 async function fetchVersionHistory(
@@ -170,6 +188,194 @@ const ErrorBanner = ({ message, onRetry }: { message: string; onRetry: () => voi
 );
 
 // ---------------------------------------------------------------------------
+// Expansion page
+// ---------------------------------------------------------------------------
+
+function exportCsv(concepts: ExpansionConcept[], filename: string) {
+  const header = 'code,display,system\n';
+  const rows = concepts
+    .map(c => `${c.code},${JSON.stringify(c.display ?? '')},${c.system ?? ''}`)
+    .join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+const ExpansionPage = ({ resource, onBack }: { resource: UiResource; onBack: () => void }) => {
+  const [concepts, setConcepts] = useState<ExpansionConcept[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState('');
+  const [page, setPage] = useState(0);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const PAGE = 50;
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    fetchExpansion(resource.url)
+      .then(setConcepts)
+      .catch(e => setError((e as Error).message))
+      .finally(() => setLoading(false));
+  }, [resource.url]);
+
+  const handleCopy = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 1500);
+  };
+
+  const hasSystem = concepts.some(c => c.system);
+  const filtered = concepts.filter(c => {
+    const q = filter.toLowerCase();
+    return !q || c.code.toLowerCase().includes(q) || (c.display ?? '').toLowerCase().includes(q);
+  });
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const paginated = filtered.slice(currentPage * PAGE, currentPage * PAGE + PAGE);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back
+          </button>
+          <div className="h-5 w-px bg-gray-300" />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="font-semibold text-gray-900 truncate">{resource.title || resource.name}</h1>
+              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                resource.status === 'active' ? 'bg-green-100 text-green-700' :
+                resource.status === 'draft'  ? 'bg-yellow-100 text-yellow-700' :
+                'bg-gray-100 text-gray-500'}`}>{resource.status}</span>
+              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">v{resource.version}</span>
+            </div>
+            <p className="text-xs text-gray-400 font-mono truncate mt-0.5">{resource.url}</p>
+          </div>
+          <button
+            onClick={() => exportCsv(filtered, `${resource.name}-expansion.csv`)}
+            disabled={loading || filtered.length === 0}
+            className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors"
+          >
+            <Download className="w-4 h-4" /> Export CSV
+          </button>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Stats bar */}
+        {!loading && !error && (
+          <div className="flex items-center gap-6 mb-4 text-sm text-gray-600">
+            <span><span className="font-semibold text-gray-900">{concepts.length}</span> total concepts</span>
+            {filter && <span><span className="font-semibold text-gray-900">{filtered.length}</span> matching</span>}
+          </div>
+        )}
+
+        {/* Search */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3 mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Filter by code or display…"
+              value={filter}
+              onChange={e => { setFilter(e.target.value); setPage(0); }}
+              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+            />
+          </div>
+        </div>
+
+        {/* Content */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-32 gap-3 text-gray-400">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            <p className="text-sm">Fetching expansion…</p>
+          </div>
+        ) : error ? (
+          <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-24 text-gray-400">
+            <p className="text-sm">{filter ? `No concepts match "${filter}"` : 'This ValueSet has no concepts.'}</p>
+          </div>
+        ) : (
+          <>
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500 uppercase text-xs tracking-wide w-44">Code</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500 uppercase text-xs tracking-wide">Display</th>
+                    {hasSystem && <th className="text-left px-4 py-3 font-medium text-gray-500 uppercase text-xs tracking-wide">System</th>}
+                    <th className="w-10" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {paginated.map((c, i) => (
+                    <tr key={`${c.code}-${i}`} className="hover:bg-blue-50 group transition-colors">
+                      <td className="px-4 py-3 font-mono text-blue-700 text-sm align-top whitespace-nowrap">{c.code}</td>
+                      <td className="px-4 py-3 text-gray-800 align-top">{c.display ?? <span className="italic text-gray-400">—</span>}</td>
+                      {hasSystem && <td className="px-4 py-3 text-gray-400 text-xs font-mono align-top truncate max-w-xs">{c.system}</td>}
+                      <td className="px-3 py-3 align-top">
+                        <button
+                          onClick={() => handleCopy(c.code)}
+                          title="Copy code"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-600"
+                        >
+                          {copiedCode === c.code
+                            ? <Check className="w-4 h-4 text-green-500" />
+                            : <Copy className="w-4 h-4" />}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
+                <button
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={currentPage === 0}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Previous
+                </button>
+                <span className="text-gray-500">
+                  Page <span className="font-semibold text-gray-900">{currentPage + 1}</span> of{' '}
+                  <span className="font-semibold text-gray-900">{totalPages}</span>
+                  <span className="text-gray-400 ml-2">({filtered.length} concepts)</span>
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={currentPage >= totalPages - 1}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Next <ExternalLink className="w-4 h-4 rotate-90" />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -179,6 +385,7 @@ const ModernPHINVADS = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResource, setSelectedResource] = useState<UiResource | null>(null);
+  const [expansionResource, setExpansionResource] = useState<UiResource | null>(null);
 
   const [resources, setResources] = useState<UiResource[]>([]);
   const [stats, setStats] = useState<ApiStats>({ total_valuesets: 0, total_codesystems: 0, total_versions: 0 });
@@ -322,95 +529,111 @@ const ModernPHINVADS = () => {
   );
 
   // Detail panel
-  const DetailPanel = ({ resource }: { resource: UiResource }) => (
-    <div className="fixed inset-y-0 right-0 w-[32rem] bg-white shadow-2xl border-l border-gray-200 z-50 overflow-y-auto">
-      <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900">Resource Details</h2>
-        <button onClick={() => setSelectedResource(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
-      </div>
-      <div className="p-6 space-y-6">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <StatusBadge status={resource.status} />
-            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
-              v{resource.version}
-            </span>
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-1">{resource.title || resource.name}</h3>
-          <p className="text-sm font-mono text-gray-500 break-all">{resource.url}</p>
+  const DetailPanel = ({ resource }: { resource: UiResource }) => {
+    return (
+      <div className="fixed inset-y-0 right-0 w-[36rem] bg-white shadow-2xl border-l border-gray-200 z-50 overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <h2 className="font-semibold text-gray-900">Resource Details</h2>
+          <button onClick={() => setSelectedResource(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
         </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          {[['Concepts', resource.conceptCount], ['Resource Type', resource.resourceType]].map(([label, val]) => (
-            <div key={String(label)} className="bg-gray-50 p-3 rounded-lg text-center">
-              <p className="text-2xl font-bold text-gray-900">{val}</p>
-              <p className="text-xs text-gray-500 mt-1">{label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="space-y-4">
-          {resource.definition && (
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase">Description</label>
-              <p className="text-sm text-gray-700 mt-1">{resource.definition}</p>
-            </div>
-          )}
+        <div className="p-6 space-y-6">
           <div>
-            <label className="text-xs font-medium text-gray-500 uppercase">ID</label>
-            <p className="text-sm font-mono bg-gray-50 p-2 rounded mt-1 break-all">{resource.id}</p>
+            <div className="flex items-center gap-2 mb-2">
+              <StatusBadge status={resource.status} />
+              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">v{resource.version}</span>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-1">{resource.title || resource.name}</h3>
+            <p className="text-sm font-mono text-gray-500 break-all">{resource.url}</p>
           </div>
-          <div>
-            <label className="text-xs font-medium text-gray-500 uppercase mb-2 block">
-              Version History
-              {loadingHistory && <Loader2 className="w-3 h-3 inline ml-2 animate-spin" />}
-            </label>
-            {resource.versionHistory.length === 0 && !loadingHistory && (
-              <p className="text-xs text-gray-400 italic">No version history recorded yet.</p>
+
+          <div className="grid grid-cols-2 gap-3">
+            {[['Concepts', resource.conceptCount], ['Resource Type', resource.resourceType]].map(([label, val]) => (
+              <div key={String(label)} className="bg-gray-50 p-3 rounded-lg text-center">
+                <p className="text-2xl font-bold text-gray-900">{val}</p>
+                <p className="text-xs text-gray-500 mt-1">{label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            {resource.definition && (
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Description</label>
+                <p className="text-sm text-gray-700 mt-1">{resource.definition}</p>
+              </div>
             )}
-            <div className="space-y-2">
-              {resource.versionHistory.map(v => (
-                <div key={v.version} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold text-sm flex-shrink-0">
-                    v{v.version}
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase">ID</label>
+              <p className="text-sm font-mono bg-gray-50 p-2 rounded mt-1 break-all">{resource.id}</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase mb-2 block">
+                Version History
+                {loadingHistory && <Loader2 className="w-3 h-3 inline ml-2 animate-spin" />}
+              </label>
+              {resource.versionHistory.length === 0 && !loadingHistory && (
+                <p className="text-xs text-gray-400 italic">No version history recorded yet.</p>
+              )}
+              <div className="space-y-2">
+                {resource.versionHistory.map(v => (
+                  <div key={v.version} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold text-sm flex-shrink-0">
+                      v{v.version}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{v.summary || 'Updated'}{v.author ? ` by ${v.author}` : ''}</p>
+                      <p className="text-xs text-gray-500">{new Date(v.timestamp).toLocaleDateString()}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{v.summary || 'Updated'}{v.author ? ` by ${v.author}` : ''}</p>
-                    <p className="text-xs text-gray-500">{new Date(v.timestamp).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="pt-4 border-t border-gray-200 space-y-2">
-          <a
-            href={`/${resource.resourceType}/${resource.id}/$expand`}
-            target="_blank"
-            rel="noreferrer"
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
-          >
-            <FileCode className="w-4 h-4" /> View Expansion ($expand)
-          </a>
-          <button
-            onClick={() => handleDownloadJson(resource)}
-            className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2"
-          >
-            <Download className="w-4 h-4" /> Download JSON
-          </button>
-          <a
-            href={`/${resource.resourceType}/${resource.id}/_history`}
-            target="_blank"
-            rel="noreferrer"
-            className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2"
-          >
-            <GitBranch className="w-4 h-4" /> Full History (FHIR)
-          </a>
+          {/* Expand button — opens full expansion page */}
+          {resource.resourceType === 'ValueSet' && (
+            <button
+              onClick={() => { setExpansionResource(resource); setSelectedResource(null); }}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
+            >
+              <FileCode className="w-4 h-4" /> View Expansion ($expand)
+            </button>
+          )}
+
+          <div className="pt-4 border-t border-gray-200 space-y-2">
+            <a
+              href={resource.resourceType === 'ValueSet'
+                ? `/ValueSet/$expand?url=${encodeURIComponent(resource.url)}`
+                : `/CodeSystem/$lookup?system=${encodeURIComponent(resource.url)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2"
+            >
+              <ExternalLink className="w-4 h-4" /> Raw {resource.resourceType === 'ValueSet' ? '$expand' : '$lookup'} JSON
+            </a>
+            <button
+              onClick={() => handleDownloadJson(resource)}
+              className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" /> Download JSON
+            </button>
+            <a
+              href={`/${resource.resourceType}/${resource.id}/_history`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2"
+            >
+              <GitBranch className="w-4 h-4" /> Full History (FHIR)
+            </a>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  if (expansionResource) {
+    return <ExpansionPage resource={expansionResource} onBack={() => setExpansionResource(null)} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

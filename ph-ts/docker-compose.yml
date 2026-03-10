@@ -189,6 +189,22 @@ services:
     restart: unless-stopped
 
   # ============================================================================
+  # Adminer — Database UI at http://localhost:8080
+  # ============================================================================
+  adminer:
+    image: adminer:latest
+    container_name: phts-adminer
+    depends_on:
+      - postgres
+    ports:
+      - "8181:8080"
+    networks:
+      - phts-network
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    restart: unless-stopped
+
+  # ============================================================================
   # pgAdmin — optional, start with: docker compose --profile admin up
   # ============================================================================
   pgadmin:

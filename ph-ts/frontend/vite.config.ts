@@ -5,8 +5,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true,
-    port: 3000,
+    port: 5173,
     allowedHosts: ['frontend', 'localhost'],
+    watch: {
+      usePolling: true,
+      interval: 500,
+    },
   },
   test: {
     environment: 'jsdom',
