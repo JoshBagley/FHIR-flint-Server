@@ -90,6 +90,16 @@ services:
       SECRET_KEY: ${SECRET_KEY:-change-this-secret-key-in-production}
       ENABLE_AUTH: ${ENABLE_AUTH:-false}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:3000,http://localhost:5173}
+      AI_PROVIDER: ${AI_PROVIDER:-anthropic}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-6}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      UMLS_API_KEY: ${UMLS_API_KEY:-}
+      LOINC_USERNAME: ${LOINC_USERNAME:-}
+      LOINC_PASSWORD: ${LOINC_PASSWORD:-}
     ports:
       - "8000:8000"
     volumes:

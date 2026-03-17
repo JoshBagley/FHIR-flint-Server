@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Search, Download, FileCode, Layers, Grid, List,
   GitBranch, Users, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2,
-  ChevronDown, ChevronUp, Copy, Check, ExternalLink, ChevronLeft
+  ChevronDown, ChevronUp, Copy, Check, ExternalLink, ChevronLeft, Plus, Settings, X
 } from 'lucide-react';
+import ValueSetBuilder from './ValueSetBuilder';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -40,6 +41,33 @@ interface ExpansionConcept {
   system?: string;
   code: string;
   display?: string;
+}
+
+interface ConceptMatch {
+  code: string;
+  display: string;
+  system: string;
+}
+
+interface ConceptSearchEntry {
+  valueset: UiResource;
+  matchedConcepts: ConceptMatch[];
+  totalMatched: number;
+}
+
+interface SdoResult {
+  code: string;
+  display: string;
+  description?: string;
+  system: string;
+  systemName: string;
+  sourceUrl?: string;
+}
+
+interface SdoSystem {
+  id: string;
+  name: string;
+  available: boolean;
 }
 
 interface UiResource {
@@ -131,6 +159,47 @@ async function fetchVersionHistory(
   } catch {
     return [];
   }
+}
+
+async function fetchConceptSearch(term: string, limit = 20, ids?: string[]): Promise<ConceptSearchEntry[]> {
+  let url = `/ValueSet/$concept-search?q=${encodeURIComponent(term)}&limit=${limit}`;
+  if (ids && ids.length > 0) url += `&ids=${ids.join(',')}`;
+  const data = await apiFetch<{
+    entry?: Array<{
+      resource: FhirResource & { resourceType: 'ValueSet' };
+      search: { matchedConcepts: ConceptMatch[]; totalMatched: number };
+    }>;
+  }>(url);
+  return (data.entry ?? []).map(e => ({
+    valueset: toUiResource(e.resource),
+    matchedConcepts: e.search?.matchedConcepts ?? [],
+    totalMatched: e.search?.totalMatched ?? 0,
+  }));
+}
+
+async function fetchSdoSystems(): Promise<SdoSystem[]> {
+  const data = await apiFetch<{ systems: SdoSystem[] }>('/sdo/systems');
+  return (data.systems ?? []).filter(s => s.available);
+}
+
+async function fetchExternalConceptSearch(
+  term: string,
+  systems: SdoSystem[]
+): Promise<Record<string, { systemName: string; results: SdoResult[] }>> {
+  const out: Record<string, { systemName: string; results: SdoResult[] }> = {};
+  await Promise.all(
+    systems.map(async s => {
+      try {
+        const data = await apiFetch<{ results: SdoResult[] }>(
+          `/sdo/search?system=${s.id}&q=${encodeURIComponent(term)}&limit=10`
+        );
+        out[s.id] = { systemName: s.name, results: data.results ?? [] };
+      } catch {
+        out[s.id] = { systemName: s.name, results: [] };
+      }
+    })
+  );
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -386,6 +455,7 @@ const ModernPHINVADS = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResource, setSelectedResource] = useState<UiResource | null>(null);
   const [expansionResource, setExpansionResource] = useState<UiResource | null>(null);
+  const [builderOpen, setBuilderOpen] = useState(false);
 
   const [resources, setResources] = useState<UiResource[]>([]);
   const [stats, setStats] = useState<ApiStats>({ total_valuesets: 0, total_codesystems: 0, total_versions: 0 });
@@ -394,6 +464,20 @@ const ModernPHINVADS = () => {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [errorResources, setErrorResources] = useState<string | null>(null);
   const [errorStats, setErrorStats] = useState<string | null>(null);
+
+  // Concept / Code search mode
+  const [searchMode, setSearchMode] = useState<'name' | 'concept'>('name');
+  const [conceptEntries, setConceptEntries] = useState<ConceptSearchEntry[]>([]);
+  const [externalResults, setExternalResults] = useState<Record<string, { systemName: string; results: SdoResult[] }>>({});
+  const [loadingConcept, setLoadingConcept] = useState(false);
+  const [loadingExternal, setLoadingExternal] = useState(false);
+  const [sdoSystems, setSdoSystems] = useState<SdoSystem[]>([]);
+  const [activeSdos, setActiveSdos] = useState<Set<string>>(new Set());
+  const [expandedExternal, setExpandedExternal] = useState<Record<string, boolean>>({});
+
+  // External search config
+  const [showSearchConfig, setShowSearchConfig] = useState(false);
+  const [externalSearchEnabled, setExternalSearchEnabled] = useState(true);
 
   const debouncedSearch = useDebounce(searchTerm, 350);
 
@@ -427,6 +511,41 @@ const ModernPHINVADS = () => {
   }, [activeTab, debouncedSearch]);
 
   useEffect(() => { loadResources(); }, [loadResources]);
+
+  // Load available SDO systems once on mount; initialise all as active
+  useEffect(() => {
+    fetchSdoSystems().then(systems => {
+      setSdoSystems(systems);
+      setActiveSdos(new Set(systems.map(s => s.id)));
+    }).catch(() => {});
+  }, []);
+
+  // Concept/code search — fires when in concept mode with a debounced term
+  useEffect(() => {
+    if (searchMode !== 'concept' || !debouncedSearch.trim()) {
+      setConceptEntries([]);
+      setExternalResults({});
+      return;
+    }
+    const term = debouncedSearch.trim();
+
+    setLoadingConcept(true);
+    fetchConceptSearch(term, 20)
+      .then(setConceptEntries)
+      .catch(() => setConceptEntries([]))
+      .finally(() => setLoadingConcept(false));
+
+    const activeSdoList = sdoSystems.filter(s => activeSdos.has(s.id));
+    if (externalSearchEnabled && activeSdoList.length > 0) {
+      setLoadingExternal(true);
+      fetchExternalConceptSearch(term, activeSdoList)
+        .then(setExternalResults)
+        .catch(() => {})
+        .finally(() => setLoadingExternal(false));
+    } else {
+      setExternalResults({});
+    }
+  }, [searchMode, debouncedSearch, sdoSystems, activeSdos, externalSearchEnabled]);
 
   // Fetch version history when a resource is selected
   useEffect(() => {
@@ -631,6 +750,10 @@ const ModernPHINVADS = () => {
     );
   };
 
+  if (builderOpen) {
+    return <ValueSetBuilder onBack={() => { setBuilderOpen(false); loadResources(); }} />;
+  }
+
   if (expansionResource) {
     return <ExpansionPage resource={expansionResource} onBack={() => setExpansionResource(null)} />;
   }
@@ -652,6 +775,12 @@ const ModernPHINVADS = () => {
                   <span className="flex items-center gap-1"><Database className="w-4 h-4" />{stats.total_codesystems} CodeSystems</span>
                 </div>
               )}
+              <button
+                onClick={() => setBuilderOpen(true)}
+                className="bg-green-500 hover:bg-green-400 px-4 py-2 rounded transition-colors text-sm font-medium flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" /> Create Value Set
+              </button>
               <a href="/docs" target="_blank" rel="noreferrer"
                 className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded transition-colors text-sm font-medium">
                 API Docs
@@ -687,26 +816,75 @@ const ModernPHINVADS = () => {
           <>
             {/* Search + filters */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <div className="flex gap-4 mb-4">
+              <div className="flex gap-3 mb-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     type="text"
-                    placeholder="Search by name…"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder={searchMode === 'concept' ? 'Search for a concept or code across all value sets…' : 'Search by name…'}
+                    className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                   />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      title="Clear search"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                {/* Search mode toggle */}
+                <div className="flex rounded-lg border border-gray-300 overflow-hidden flex-shrink-0">
+                  {(['name', 'concept'] as const).map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => { setSearchMode(mode); setSearchTerm(''); }}
+                      className={`px-4 py-2 text-sm font-medium transition-colors ${
+                        searchMode === mode
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {mode === 'name' ? 'Name' : 'Concept / Code'}
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex gap-2">
-                  {([['ValueSet', 'Value Sets', 'bg-blue-600'], ['CodeSystem', 'Code Systems', 'bg-purple-600']] as const).map(([id, label, active]) => (
+                  {searchMode === 'name' && ([['ValueSet', 'Value Sets', 'bg-blue-600'], ['CodeSystem', 'Code Systems', 'bg-purple-600']] as const).map(([id, label, active]) => (
                     <button key={id} onClick={() => setActiveTab(id)}
                       className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                         activeTab === id ? `${active} text-white` : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}>{label}</button>
                   ))}
+                  {searchMode === 'concept' && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={() => setExternalSearchEnabled(e => !e)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border font-medium transition-colors ${
+                          externalSearchEnabled
+                            ? 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100'
+                            : 'bg-gray-100 text-gray-500 border-gray-300 hover:bg-gray-200'
+                        }`}
+                        title="Toggle external vocabulary search"
+                      >
+                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${externalSearchEnabled ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        External search {externalSearchEnabled ? 'on' : 'off'}
+                      </button>
+                      <button
+                        onClick={() => setShowSearchConfig(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        title="Configure external code systems"
+                      >
+                        <Settings className="w-3.5 h-3.5" />
+                        {activeSdos.size === sdoSystems.length ? 'All systems' : `${activeSdos.size} of ${sdoSystems.length} systems`}
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => setViewMode('grid')}
@@ -721,37 +899,182 @@ const ModernPHINVADS = () => {
               </div>
             </div>
 
-            {/* Results */}
-            {errorResources ? (
-              <ErrorBanner message={errorResources} onRetry={loadResources} />
-            ) : loadingResources ? (
-              <LoadingSpinner message={`Loading ${activeTab}s…`} />
-            ) : (
-              <>
-                <div className="mb-4 flex items-center justify-between">
-                  <p className="text-sm text-gray-600">
-                    Showing <span className="font-semibold">{resources.length}</span> {activeTab}s
-                    {debouncedSearch && <span className="text-gray-400"> matching "{debouncedSearch}"</span>}
-                  </p>
-                </div>
-
-                {resources.length === 0 ? (
-                  <div className="text-center py-20 text-gray-400">
-                    <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p className="text-sm">
-                      {debouncedSearch
-                        ? `No ${activeTab}s found matching "${debouncedSearch}"`
-                        : `No ${activeTab}s found. Import data using the migration tool.`}
+            {/* Results — Name mode */}
+            {searchMode === 'name' && (
+              errorResources ? (
+                <ErrorBanner message={errorResources} onRetry={loadResources} />
+              ) : loadingResources ? (
+                <LoadingSpinner message={`Loading ${activeTab}s…`} />
+              ) : (
+                <>
+                  <div className="mb-4 flex items-center justify-between">
+                    <p className="text-sm text-gray-600">
+                      Showing <span className="font-semibold">{resources.length}</span> {activeTab}s
+                      {debouncedSearch && <span className="text-gray-400"> matching "{debouncedSearch}"</span>}
                     </p>
                   </div>
-                ) : (
-                  <div className={viewMode === 'grid'
-                    ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
-                    : 'flex flex-col gap-3'
-                  }>
-                    {resources.map((resource: UiResource) => (
-                      <ResourceCard key={resource.id} resource={resource} />
-                    ))}
+                  {resources.length === 0 ? (
+                    <div className="text-center py-20 text-gray-400">
+                      <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                      <p className="text-sm">
+                        {debouncedSearch
+                          ? `No ${activeTab}s found matching "${debouncedSearch}"`
+                          : `No ${activeTab}s found. Import data using the migration tool.`}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className={viewMode === 'grid'
+                      ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
+                      : 'flex flex-col gap-3'
+                    }>
+                      {resources.map((resource: UiResource) => (
+                        <ResourceCard key={resource.id} resource={resource} />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )
+            )}
+
+            {/* Results — Concept/Code mode */}
+            {searchMode === 'concept' && (
+              <>
+                {/* Server value set matches */}
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <h2 className="font-semibold text-gray-900">Server Value Sets</h2>
+                    {loadingConcept && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
+                    {!loadingConcept && debouncedSearch && (
+                      <span className="text-sm text-gray-400">
+                        {conceptEntries.length === 0 ? 'No matches' : `${conceptEntries.length} value set${conceptEntries.length !== 1 ? 's' : ''} contain this term`}
+                      </span>
+                    )}
+                  </div>
+                  {!debouncedSearch.trim() ? (
+                    <div className="text-center py-12 text-gray-400">
+                      <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                      <p className="text-sm">Enter a concept or code to search across all value sets</p>
+                    </div>
+                  ) : loadingConcept ? null : conceptEntries.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic">No stored value sets contain "{debouncedSearch}"</p>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {conceptEntries.map(entry => (
+                        <div
+                          key={entry.valueset.id}
+                          className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <Layers className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                              <StatusBadge status={entry.valueset.status} />
+                            </div>
+                            <button
+                              onClick={() => setSelectedResource(entry.valueset)}
+                              className="text-xs text-blue-600 hover:underline flex-shrink-0"
+                            >
+                              Details →
+                            </button>
+                          </div>
+                          <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-1">
+                            {entry.valueset.title || entry.valueset.name}
+                          </h3>
+                          <p className="text-xs text-gray-400 font-mono mb-3 truncate">{entry.valueset.url}</p>
+                          <div className="space-y-1">
+                            {entry.matchedConcepts.slice(0, 5).map(c => (
+                              <div key={c.code} className="flex items-center gap-2 bg-blue-50 rounded px-2 py-1">
+                                <span className="font-mono text-xs text-blue-700 font-medium flex-shrink-0">{c.code}</span>
+                                <span className="text-xs text-gray-600 truncate">{c.display}</span>
+                              </div>
+                            ))}
+                            {entry.totalMatched > 5 && (
+                              <p className="text-xs text-gray-400 italic px-1">+{entry.totalMatched - 5} more matches</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* External vocabulary results */}
+                {debouncedSearch.trim() && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <h2 className="font-semibold text-gray-900">External Vocabulary</h2>
+                      {loadingExternal && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
+                    </div>
+                    {!externalSearchEnabled ? (
+                      <p className="text-sm text-gray-400 italic">External vocabulary search is disabled. Use the toggle above to enable it.</p>
+                    ) : activeSdos.size === 0 ? (
+                      <p className="text-sm text-gray-400 italic">No code systems selected. Use <Settings className="w-3 h-3 inline" /> to configure.</p>
+                    ) : null}
+                    <div className="space-y-2">
+                      {sdoSystems.filter(sys => activeSdos.has(sys.id)).map(sys => {
+                        const sysData = externalResults[sys.id];
+                        const isExpanded = expandedExternal[sys.id] !== false;
+                        const results = sysData?.results ?? [];
+                        return (
+                          <div key={sys.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                            <button
+                              className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
+                              onClick={() => setExpandedExternal(prev => ({ ...prev, [sys.id]: !isExpanded }))}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm text-gray-900">{sys.name}</span>
+                                {sysData && (
+                                  <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                                    {results.length} result{results.length !== 1 ? 's' : ''}
+                                  </span>
+                                )}
+                                {!sysData && loadingExternal && (
+                                  <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
+                                )}
+                              </div>
+                              {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                            </button>
+                            {isExpanded && sysData && (
+                              results.length > 0 ? (
+                                <div className="border-t border-gray-100">
+                                  <table className="w-full text-sm">
+                                    <tbody className="divide-y divide-gray-50">
+                                      {results.map(r => (
+                                        <tr key={r.code} className="hover:bg-gray-50">
+                                          <td className="px-4 py-2 font-mono text-blue-700 text-xs w-40 flex-shrink-0 align-top">{r.code}</td>
+                                          <td className="px-4 py-2 text-gray-700 align-top">
+                                            <div>{r.display}</div>
+                                            {r.description && r.description !== r.display && (
+                                              <div className="text-xs text-gray-400 mt-0.5 line-clamp-2">{r.description}</div>
+                                            )}
+                                          </td>
+                                          <td className="px-3 py-2 align-top w-8">
+                                            {r.sourceUrl && (
+                                              <a
+                                                href={r.sourceUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-gray-400 hover:text-blue-600"
+                                                title={`View in ${r.systemName}`}
+                                              >
+                                                <ExternalLink className="w-3.5 h-3.5" />
+                                              </a>
+                                            )}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              ) : (
+                                <p className="px-4 py-3 text-xs text-gray-400 border-t border-gray-100 italic">
+                                  No results found in {sys.name}
+                                </p>
+                              )
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </>
@@ -761,6 +1084,77 @@ const ModernPHINVADS = () => {
       </div>
 
       {selectedResource && <DetailPanel resource={selectedResource} />}
+
+      {/* External Code System Search Config Modal */}
+      {showSearchConfig && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="font-semibold text-gray-900">External Code System Search</h2>
+              <button onClick={() => setShowSearchConfig(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {/* Master enable toggle */}
+            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-800">Enable external code search</p>
+                <p className="text-xs text-gray-400 mt-0.5">Search SNOMED CT, LOINC, and other external vocabularies</p>
+              </div>
+              <button
+                onClick={() => setExternalSearchEnabled(e => !e)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${externalSearchEnabled ? 'bg-blue-600' : 'bg-gray-300'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${externalSearchEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+            {/* Per-system checkboxes */}
+            <div className="p-3 border-b border-gray-100 flex items-center gap-2">
+              <button
+                onClick={() => setActiveSdos(new Set(sdoSystems.map(s => s.id)))}
+                className="text-xs px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50"
+              >
+                Select all
+              </button>
+              <button
+                onClick={() => setActiveSdos(new Set())}
+                className="text-xs px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50"
+              >
+                Clear all
+              </button>
+              <span className="ml-auto text-xs text-gray-400">{activeSdos.size} of {sdoSystems.length} selected</span>
+            </div>
+            <div className="p-3 space-y-0.5">
+              {sdoSystems.map(sys => (
+                <label key={sys.id} className="flex items-center gap-3 px-2 py-2 rounded hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={activeSdos.has(sys.id)}
+                    onChange={() => setActiveSdos(prev => {
+                      const next = new Set(prev);
+                      if (next.has(sys.id)) next.delete(sys.id);
+                      else next.add(sys.id);
+                      return next;
+                    })}
+                    className="rounded border-gray-300 text-blue-600 flex-shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-800">{sys.name}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="p-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowSearchConfig(false)}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -13,6 +13,7 @@ from fastapi import APIRouter, Query, HTTPException, Body
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 import hashlib
+import json
 
 from app import state
 
@@ -109,6 +110,109 @@ async def _perform_expansion(
             'offset': offset,
             'contains': paginated
         }
+    }
+
+
+# ============================================================================
+# ValueSet $concept-search Operation
+# ============================================================================
+
+@router.get("/ValueSet/$concept-search")
+async def concept_search(
+    q: str = Query(..., description="Term to search in concept codes and displays"),
+    limit: int = Query(20, ge=1, le=100),
+    ids: Optional[str] = Query(None, description="Comma-separated ValueSet IDs to restrict search to"),
+):
+    """
+    Search across stored ValueSets for concepts matching the query term.
+    Optionally restrict to a specific set of ValueSet IDs via the `ids` parameter.
+    """
+    if not q.strip():
+        raise HTTPException(status_code=400, detail="q parameter is required")
+
+    term = q.strip().lower()
+    id_list = [i.strip() for i in ids.split(",") if i.strip()] if ids else []
+
+    async with state.db.pool.acquire() as conn:
+        if id_list:
+            rows = await conn.fetch(
+                """
+                SELECT id, url, name, title, status, version, data
+                FROM fhir_resources
+                WHERE resource_type = 'ValueSet'
+                  AND lower(data::text) LIKE $1
+                  AND id = ANY($3::text[])
+                ORDER BY title NULLS LAST
+                LIMIT $2
+                """,
+                f"%{term}%",
+                limit * 5,
+                id_list,
+            )
+        else:
+            rows = await conn.fetch(
+                """
+                SELECT id, url, name, title, status, version, data
+                FROM fhir_resources
+                WHERE resource_type = 'ValueSet'
+                  AND lower(data::text) LIKE $1
+                ORDER BY title NULLS LAST
+                LIMIT $2
+                """,
+                f"%{term}%",
+                limit * 5,
+            )
+
+    entries = []
+    for row in rows:
+        raw = row["data"]
+        data = raw if isinstance(raw, dict) else json.loads(raw)
+        matched: List[Dict[str, Any]] = []
+
+        for include in data.get("compose", {}).get("include", []):
+            system = include.get("system", "")
+            for concept in include.get("concept", []):
+                code = concept.get("code", "")
+                display = concept.get("display", "")
+                if term in code.lower() or term in display.lower():
+                    matched.append({"code": code, "display": display, "system": system})
+
+        for concept in data.get("expansion", {}).get("contains", []):
+            code = concept.get("code", "")
+            display = concept.get("display", "")
+            system = concept.get("system", "")
+            if term in code.lower() or term in display.lower():
+                if not any(m["code"] == code for m in matched):
+                    matched.append({"code": code, "display": display, "system": system})
+
+        if not matched:
+            continue
+
+        entries.append({
+            "resource": {
+                "resourceType": "ValueSet",
+                "id": row["id"],
+                "url": row["url"],
+                "name": row["name"],
+                "title": row["title"],
+                "status": row["status"],
+                "version": row["version"],
+            },
+            "search": {
+                "matchedConcepts": matched[:20],
+                "totalMatched": len(matched),
+            },
+        })
+
+        if len(entries) >= limit:
+            break
+
+    return {
+        "resourceType": "Bundle",
+        "type": "searchset",
+        "total": len(entries),
+        "query": q,
+        "entry": entries,
     }
 
 

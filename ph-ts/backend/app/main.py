@@ -37,6 +37,8 @@ import logging
 import sys
 from app import state
 from app.routes.fhir_operations import router as fhir_operations_router
+from app.routes.sdo_search import router as sdo_router
+from app.routes.ai_assist import router as ai_router
 
 # Logging
 logging.basicConfig(
@@ -627,6 +629,8 @@ app.add_middleware(
 )
 
 app.include_router(fhir_operations_router)
+app.include_router(sdo_router)
+app.include_router(ai_router)
 
 
 @app.middleware("http")
