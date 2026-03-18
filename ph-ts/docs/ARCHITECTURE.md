@@ -46,9 +46,13 @@ Config: `infrastructure/docker/nginx/nginx.conf`
   - CRUD for `ValueSet` and `CodeSystem`
   - `$expand` — expands a ValueSet to its full list of concepts
   - `$validate-code` — checks whether a code belongs to a ValueSet/CodeSystem
+  - `$validate-batch` — validates up to 200 codes concurrently in one request (HL7 v2 message validation)
   - `$lookup` — looks up display name and properties for a code
   - `$diff` — compares two versions of a resource
   - `$stats` / `/analytics/summary` — aggregate counts
+- **HL7 v2 table support** — any `http://terminology.hl7.org/CodeSystem/v2-*` URL is
+  resolved locally (after running `migration/import_hl7_v2_tables.py`) or delegated
+  to `tx.fhir.org` as a fallback; no explicit routing entry needed per table
 - Versioning: every PUT creates a new version row; `/_history` returns all versions
 - Auth: optional JWT bearer token auth (controlled by `ENABLE_AUTH` env var)
 - Metrics: Prometheus client exposed at `/metrics`

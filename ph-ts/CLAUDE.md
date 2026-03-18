@@ -106,6 +106,7 @@ ph-ts/
 | LOINC | fhir.loinc.org (FHIR `$expand`/`$lookup`) | Basic auth: `LOINC_USERNAME`/`LOINC_PASSWORD`; falls back to NLM ClinicalTables if credentials absent |
 | RxNorm | NLM RxNav REST API | None |
 | VSAC | VSAC FHIR (cts.nlm.nih.gov/fhir) | Basic auth: `apikey:<UMLS_API_KEY>` |
+| HL7 v2 Tables | tx.fhir.org (fallback when not locally imported) | None |
 
 ---
 
@@ -172,6 +173,7 @@ Once registered, `$lookup` and `$expand` calls referencing that system URL will 
 | Script | Source | Content | Size |
 |---|---|---|---|
 | `migration/import_hl7_core.py` | packages.fhir.org (`hl7.fhir.r4.core 4.0.1`) | `complete` | ~981 small systems |
+| `migration/import_hl7_v2_tables.py` | packages.fhir.org (`hl7.terminology.r4 5.5.0`) | `complete` | ~200 v2 table CodeSystems |
 | `migration/import_icd9cm.py` | NLM ClinicalTables API | `complete` | ~14 k codes |
 | `migration/phinvads_migrate.py` | PHIN VADS STU3 API | `complete` / `fragment` | 300 CodeSystems, ~4 k ValueSets |
 
@@ -181,6 +183,12 @@ python migration/import_hl7_core.py --target-url http://localhost
 
 # Dry run — lists all resources without importing
 python migration/import_hl7_core.py --dry-run
+
+# Import HL7 v2 table CodeSystems (~80-120 MB download; enables offline v2 validation)
+python migration/import_hl7_v2_tables.py --target-url http://localhost
+
+# Dry run — lists all v2 tables without importing
+python migration/import_hl7_v2_tables.py --dry-run
 
 # Import ICD-9-CM (~14 k codes; takes ~10 min due to NLM rate limiting)
 python migration/import_icd9cm.py --target-url http://localhost
@@ -361,6 +369,51 @@ curl http://localhost:8000/sdo/systems
 # Run backend tests
 docker compose exec backend pytest
 ```
+
+---
+
+## Terminology Validation
+
+PH-TS supports code validation for FHIR resources, HL7 v2 messages, and any
+system that needs to confirm a code is valid in a given code system or ValueSet.
+
+**Key endpoints:**
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /ValueSet/$validate-code?url=&code=` | Validate one code against a ValueSet |
+| `GET /CodeSystem/$lookup?system=&code=` | Look up one code in a CodeSystem |
+| `POST /ValueSet/$validate-batch` | Validate up to 200 codes concurrently |
+
+**Quick validation examples:**
+
+```bash
+# Validate a code against a ValueSet
+curl "http://localhost/ValueSet/\$validate-code?url=http://hl7.org/fhir/ValueSet/administrative-gender&code=M"
+
+# Look up a LOINC code
+curl "http://localhost/CodeSystem/\$lookup?system=http://loinc.org&code=94500-6"
+
+# Look up an HL7 v2 Table 0001 code (Administrative Sex)
+curl "http://localhost/CodeSystem/\$lookup?system=http://terminology.hl7.org/CodeSystem/v2-0001&code=M"
+
+# Batch validate coded fields from an HL7 v2 message
+curl -X POST http://localhost/ValueSet/\$validate-batch \
+  -H "Content-Type: application/json" \
+  -d '{"items":[
+    {"code":"M",       "system":"http://terminology.hl7.org/CodeSystem/v2-0001"},
+    {"code":"94500-6", "system":"http://loinc.org"},
+    {"code":"J12.82",  "system":"http://hl7.org/fhir/sid/icd-10-cm"}
+  ]}'
+```
+
+**Load HL7 v2 tables for offline validation (run once):**
+
+```bash
+python migration/import_hl7_v2_tables.py --target-url http://localhost
+```
+
+Full documentation: `docs/validation_guide.md`
 
 ---
 

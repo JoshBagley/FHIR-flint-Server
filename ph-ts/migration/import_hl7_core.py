@@ -97,6 +97,10 @@ def post_resource(client: httpx.Client, base_url: str, resource: dict) -> str:
     api_url = f"{base_url.rstrip('/')}/CodeSystem"
     # Remove the id so the server assigns a fresh one — avoids duplicate key on re-run
     resource_copy = {k: v for k, v in resource.items() if k != "id"}
+    resource_copy["extension"] = [
+        *[e for e in resource_copy.get("extension", []) if e.get("url") != "http://phts.local/StructureDefinition/source"],
+        {"url": "http://phts.local/StructureDefinition/source", "valueCode": "hl7"},
+    ]
     try:
         resp = client.post(
             api_url,

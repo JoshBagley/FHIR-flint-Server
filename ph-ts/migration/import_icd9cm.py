@@ -118,6 +118,10 @@ def build_codesystem(concepts: list[dict]) -> dict:
 def post_codesystem(client: httpx.Client, base_url: str, resource: dict) -> None:
     url = f"{base_url.rstrip('/')}/CodeSystem"
     print(f"\nPOSTing CodeSystem to {url} …", flush=True)
+    resource = {**resource, "extension": [
+        *[e for e in resource.get("extension", []) if e.get("url") != "http://phts.local/StructureDefinition/source"],
+        {"url": "http://phts.local/StructureDefinition/source", "valueCode": "icd9cm"},
+    ]}
     resp = client.post(
         url,
         json=resource,

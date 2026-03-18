@@ -107,6 +107,78 @@ def _complete(prompt: str, max_tokens: int = 2048) -> str:
     )
 
 
+def _complete_chat(system: str, messages: list[dict], max_tokens: int = 2048) -> str:
+    """
+    Multi-turn chat completion with a system prompt.
+    messages: list of {"role": "user"|"assistant", "content": str}
+    """
+    provider = _provider()
+
+    if provider == "anthropic":
+        key = os.getenv("ANTHROPIC_API_KEY", "")
+        if not key:
+            raise HTTPException(status_code=503, detail="AI provider 'anthropic' requires ANTHROPIC_API_KEY in your .env file.")
+        import anthropic
+        model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
+        client = anthropic.Anthropic(api_key=key)
+        try:
+            msg = client.messages.create(
+                model=model,
+                max_tokens=max_tokens,
+                system=system,
+                messages=messages,
+            )
+            return msg.content[0].text
+        except anthropic.APIError as e:
+            raise HTTPException(status_code=502, detail=f"Anthropic API error: {e.message}") from e
+
+    if provider == "openai":
+        key = os.getenv("OPENAI_API_KEY", "")
+        if not key:
+            raise HTTPException(status_code=503, detail="AI provider 'openai' requires OPENAI_API_KEY in your .env file.")
+        from openai import OpenAI
+        import openai as _openai
+        model = os.getenv("OPENAI_MODEL", "gpt-4o")
+        client = OpenAI(api_key=key)
+        try:
+            resp = client.chat.completions.create(
+                model=model,
+                max_tokens=max_tokens,
+                messages=[{"role": "system", "content": system}] + messages,
+            )
+            return resp.choices[0].message.content or ""
+        except _openai.APIError as e:
+            raise HTTPException(status_code=502, detail=f"OpenAI API error: {e.message}") from e
+
+    if provider == "gemini":
+        key = os.getenv("GEMINI_API_KEY", "")
+        if not key:
+            raise HTTPException(status_code=503, detail="AI provider 'gemini' requires GEMINI_API_KEY in your .env file.")
+        from google import genai
+        from google.genai import types as gtypes
+        model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+        client = genai.Client(api_key=key)
+        try:
+            # Gemini uses "model" instead of "assistant" for the role
+            gemini_contents = [
+                gtypes.Content(
+                    role="model" if m["role"] == "assistant" else "user",
+                    parts=[gtypes.Part(text=m["content"])],
+                )
+                for m in messages
+            ]
+            resp = client.models.generate_content(
+                model=model,
+                contents=gemini_contents,
+                config=gtypes.GenerateContentConfig(system_instruction=system),
+            )
+            return resp.text
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Gemini API error: {e}") from e
+
+    raise HTTPException(status_code=400, detail=f"Unknown AI_PROVIDER '{provider}'. Valid values: anthropic, openai, gemini.")
+
+
 def _parse_json_response(raw: str) -> dict:
     """Strip markdown fences if present, then parse JSON."""
     text = raw.strip()
@@ -137,6 +209,16 @@ class MapRequest(BaseModel):
     codes: list[dict]
     source_system: str
     target_system: str
+
+
+class ChatTurn(BaseModel):
+    role: str   # "user" | "assistant"
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatTurn]
+    valueset_context: Optional[dict] = None
 
 
 # ---------------------------------------------------------------------------
@@ -354,3 +436,99 @@ Respond ONLY with valid JSON (no markdown, no explanation outside the JSON):
     except Exception as e:
         logger.error("Unexpected error in /ai/map: %s", e, exc_info=True)
         raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e
+
+
+@router.post("/chat")
+async def chat_sme(req: ChatRequest):
+    """
+    Free-form multi-turn conversation with an AI Assistant acting as an expert vocabulary specialist.
+    Maintains full conversation history. ValueSet context (description, purpose,
+    selected codes) is injected into the system prompt so the AI can give
+    contextually relevant guidance.
+
+    When the AI recommends specific codes it wraps them in <suggested_codes>[...]
+    </suggested_codes> — these are parsed out and returned as structured data
+    so the frontend can render them as addable code cards.
+    """
+    # Build context block from the current ValueSet state
+    ctx = req.valueset_context or {}
+    context_lines = []
+    if ctx.get("title") or ctx.get("name"):
+        context_lines.append(f"Name/title: {ctx.get('title') or ctx.get('name')}")
+    if ctx.get("description"):
+        context_lines.append(f"Description: {ctx['description']}")
+    if ctx.get("purpose"):
+        context_lines.append(f"Purpose: {ctx['purpose']}")
+    codes = ctx.get("codes", [])
+    if codes:
+        summary = ", ".join(
+            f"{c.get('display') or c.get('code', '')} [{c.get('systemName') or c.get('system', '')}]"
+            for c in codes[:20]
+        )
+        context_lines.append(f"Codes selected so far ({len(codes)}): {summary}")
+
+    context_block = "\n".join(context_lines) if context_lines else "No ValueSet context provided yet — the user has not filled in details or selected codes."
+
+    system_prompt = f"""You are an AI Assistant with deep expertise in FHIR R4 terminology and vocabulary, \
+embedded in a public health FHIR Terminology Server. You are assisting a public health informaticist \
+who is building FHIR R4 ValueSets.
+
+Your expertise covers:
+- SNOMED CT: clinical concept hierarchies, pre/post-coordinated expressions, ECL queries, \
+  US Edition vs International, preferred terms vs synonyms
+- LOINC: lab tests, clinical observations, panels, surveys, radiology, LOINC parts and hierarchy
+- ICD-10-CM / ICD-9-CM: diagnosis coding, HCC risk adjustment, public health surveillance, \
+  code specificity and laterality
+- RxNorm: normalized drug names, clinical drug components, prescribable drugs, ingredient/product distinction
+- HL7 v2/v3 code systems: administrative gender, race/ethnicity, marital status, observation status
+- PHIN VADS / CDC public health vocabularies: PHIN, PHVS, notifiable conditions, syndromic surveillance
+- CVX/MVX: immunization vaccine and manufacturer codes
+- CPT / HCPCS: procedure coding (license-aware — advise on usage without reproducing code lists)
+- NDC: National Drug Codes
+- ISO 3166: country/territory codes
+- FHIR R4 ValueSet design: intensional vs extensional definitions, use of filters and \
+  hierarchy operators, versioning strategy, canonical URL conventions
+
+When you recommend specific codes and are confident in them, emit them in a structured block \
+so the user can add them to the ValueSet with one click:
+
+<suggested_codes>
+[{{"code": "263495000", "display": "Gender", "system": "http://snomed.info/sct", "systemName": "SNOMED CT"}}]
+</suggested_codes>
+
+Only use this format when you are confident in the specific code values. For exploratory \
+suggestions where the user should verify, describe them in prose and recommend they search manually.
+
+Be concise and practical. Cite specific codes, systems, and hierarchy paths where helpful. \
+Flag licensing constraints (SNOMED affiliate license, LOINC free account, CPT AMA license) \
+when the user is asking about restricted systems. When there are multiple valid options, \
+explain the trade-offs so the user can make an informed choice.
+
+Current ValueSet being built:
+{context_block}"""
+
+    conversation = [{"role": m.role, "content": m.content} for m in req.messages]
+
+    try:
+        raw = _complete_chat(system_prompt, conversation, max_tokens=2048)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Unexpected error in /ai/chat: %s", e, exc_info=True)
+        raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e
+
+    # Extract and strip <suggested_codes> blocks
+    import re
+    suggested_codes: list[dict] = []
+    code_block_re = re.compile(r"<suggested_codes>\s*(.*?)\s*</suggested_codes>", re.DOTALL)
+    for match in code_block_re.finditer(raw):
+        try:
+            parsed = json.loads(match.group(1))
+            if isinstance(parsed, list):
+                suggested_codes.extend(parsed)
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    reply_text = code_block_re.sub("", raw).strip()
+
+    return {"reply": reply_text, "suggested_codes": suggested_codes}

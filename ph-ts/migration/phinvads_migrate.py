@@ -410,6 +410,12 @@ async def _post_resource(
     if dry_run:
         return True, "dry-run"
 
+    # Tag with provenance source so the server can record where this resource came from
+    resource = {**resource, "extension": [
+        *[e for e in resource.get("extension", []) if e.get("url") != "http://phts.local/StructureDefinition/source"],
+        {"url": "http://phts.local/StructureDefinition/source", "valueCode": "phinvads"},
+    ]}
+
     url = f"{target_base}/{resource_type}"
     try:
         resp = await client.post(

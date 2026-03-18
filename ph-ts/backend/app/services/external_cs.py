@@ -2,7 +2,7 @@
 External Code System connector service.
 
 Provides unified search and lookup across standard SDOs:
-  - SNOMED CT    (Snowstorm public FHIR — no key required)
+  - SNOMED CT    (HL7 tx.fhir.org public FHIR — no key required)
   - ICD-10-CM    (NLM ClinicalTables API — no key required)
   - LOINC        (fhir.loinc.org FHIR server when LOINC_USERNAME+LOINC_PASSWORD set,
                   falls back to NLM ClinicalTables if credentials absent)
@@ -30,7 +30,7 @@ SYSTEMS: dict = {
         "name": "SNOMED CT",
         "url": "http://snomed.info/sct",
         "publisher": "SNOMED International",
-        "description": "Systematized Nomenclature of Medicine — Clinical Terms. Comprehensive clinical terminology.",
+        "description": "Systematized Nomenclature of Medicine — Clinical Terms. Comprehensive clinical terminology. Delegated to HL7 tx.fhir.org.",
         "requires_key": False,
         "category": "clinical",
     },
@@ -71,6 +71,15 @@ SYSTEMS: dict = {
         "key_vars": ["UMLS_API_KEY"],
         "category": "multi",
     },
+    "hl7v2": {
+        "id": "hl7v2",
+        "name": "HL7 v2 Tables",
+        "url": "http://terminology.hl7.org/CodeSystem/v2-",
+        "publisher": "HL7 International",
+        "description": "HL7 Version 2.x code tables (e.g., Table 0001 Administrative Sex, Table 0076 Message Type). Delegated to tx.fhir.org when not stored locally.",
+        "requires_key": False,
+        "category": "hl7",
+    },
 }
 
 
@@ -99,51 +108,52 @@ async def _get(session: aiohttp.ClientSession, url: str, **kwargs) -> dict | lis
 
 
 # ---------------------------------------------------------------------------
-# SNOMED CT (Snowstorm public server — no auth)
+# SNOMED CT (HL7 tx.fhir.org public FHIR server — no auth)
 # ---------------------------------------------------------------------------
 
-_SNOWSTORM = "https://snowstorm.ihtsdotools.org/snowstorm/snomed-ct"
+_TX_FHIR = "https://tx.fhir.org/r4"
 
 
 async def search_snomed(query: str, limit: int) -> list:
-    url = f"{_SNOWSTORM}/MAIN/concepts"
+    url = f"{_TX_FHIR}/ValueSet/$expand"
     params = {
-        "term": query,
-        "limit": limit,
-        "activeFilter": "true",
-        "language": "en",
+        "url": "http://snomed.info/sct?fhir_vs",
+        "filter": query,
+        "count": limit,
+        "_format": "json",
     }
     async with aiohttp.ClientSession() as session:
         data = await _get(session, url, params=params)
     results = []
-    for item in data.get("items", []):
-        pt = item.get("pt", {}).get("term") or item.get("fsn", {}).get("term", "")
-        fsn = item.get("fsn", {}).get("term", "")
-        cid = item["conceptId"]
+    for item in data.get("expansion", {}).get("contains", []):
+        code = item.get("code", "")
         results.append({
-            "code": cid,
-            "display": pt,
-            "description": fsn if fsn != pt else "",
+            "code": code,
+            "display": item.get("display", ""),
             "system": "http://snomed.info/sct",
             "systemName": "SNOMED CT",
-            "sourceUrl": f"https://browser.ihtsdotools.org/?perspective=full&conceptId1={cid}",
+            "sourceUrl": f"https://browser.ihtsdotools.org/?perspective=full&conceptId1={code}",
         })
     return results
 
 
 async def lookup_snomed(code: str) -> Optional[dict]:
-    url = f"{_SNOWSTORM}/MAIN/concepts/{code}"
+    url = f"{_TX_FHIR}/CodeSystem/$lookup"
+    params = {"system": "http://snomed.info/sct", "code": code, "_format": "json"}
     async with aiohttp.ClientSession() as session:
-        data = await _get(session, url)
+        data = await _get(session, url, params=params)
     if not data:
         return None
-    pt = data.get("pt", {}).get("term") or data.get("fsn", {}).get("term", "")
+    display = next(
+        (p.get("valueString", "") for p in data.get("parameter", []) if p.get("name") == "display"),
+        "",
+    )
     return {
-        "code": data["conceptId"],
-        "display": pt,
+        "code": code,
+        "display": display,
         "system": "http://snomed.info/sct",
         "systemName": "SNOMED CT",
-        "active": data.get("active", True),
+        "active": True,
     }
 
 
@@ -326,6 +336,81 @@ async def search_vsac(query: str, limit: int) -> list:
             "sourceUrl": f"https://vsac.nlm.nih.gov/valueset/{vs_id}/expansion" if vs_id else "",
         })
     return results
+
+
+# ---------------------------------------------------------------------------
+# HL7 v2 Tables (tx.fhir.org public FHIR server — no auth)
+# Used as fallback when v2 table concepts are not stored locally after running
+# migration/import_hl7_v2_tables.py.
+# ---------------------------------------------------------------------------
+
+def _v2_system_name(system_url: str) -> str:
+    """Derive a human-readable name from an HL7 v2 table URL."""
+    if "v2-" in system_url:
+        table_num = system_url.rsplit("v2-", 1)[-1]
+        return f"HL7 Table {table_num}"
+    return "HL7 v2 Table"
+
+
+async def search_hl7v2(system_url: str, query: str, limit: int) -> list:
+    """Expand an HL7 v2 table CodeSystem via tx.fhir.org and optionally filter."""
+    # Convert CodeSystem URL to implicit ValueSet URL for $expand
+    vs_url = system_url.replace(
+        "http://terminology.hl7.org/CodeSystem/v2-",
+        "http://terminology.hl7.org/ValueSet/v2-",
+    )
+    url = f"{_TX_FHIR}/ValueSet/$expand"
+    params: dict = {"url": vs_url, "count": limit, "_format": "json"}
+    if query:
+        params["filter"] = query
+    async with aiohttp.ClientSession() as session:
+        data = await _get(session, url, params=params)
+    system_name = _v2_system_name(system_url)
+    results = []
+    for item in data.get("expansion", {}).get("contains", []):
+        results.append({
+            "code": item.get("code", ""),
+            "display": item.get("display", ""),
+            "system": system_url,
+            "systemName": system_name,
+        })
+    return results
+
+
+async def lookup_hl7v2(system_url: str, code: str) -> Optional[dict]:
+    """Lookup a single code in an HL7 v2 table via tx.fhir.org $lookup."""
+    url = f"{_TX_FHIR}/CodeSystem/$lookup"
+    params = {"system": system_url, "code": code, "_format": "json"}
+    async with aiohttp.ClientSession() as session:
+        data = await _get(session, url, params=params)
+    display = next(
+        (p.get("valueString", "") for p in data.get("parameter", []) if p.get("name") == "display"),
+        "",
+    )
+    if not display:
+        return None
+    return {
+        "code": code,
+        "display": display,
+        "system": system_url,
+        "systemName": _v2_system_name(system_url),
+        "active": True,
+    }
+
+
+async def lookup_by_system_url(system_url: str, code: str) -> Optional[dict]:
+    """
+    Lookup a code using the full system URL.
+
+    Used by fhir_operations for HL7 v2/v3 terminology table URLs that cannot
+    be mapped to a fixed connector ID in _SYSTEM_URL_TO_SDO. Delegates to
+    tx.fhir.org for any http://terminology.hl7.org/CodeSystem/* URL.
+    """
+    try:
+        return await lookup_hl7v2(system_url, code)
+    except Exception as e:
+        logger.warning("HL7 terminology lookup failed [%s/%s]: %s", system_url, code, e)
+        return None
 
 
 # ---------------------------------------------------------------------------

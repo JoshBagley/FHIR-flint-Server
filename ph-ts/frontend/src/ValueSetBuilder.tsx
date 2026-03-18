@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Search, Plus, Trash2, Save, Sparkles, ChevronLeft, Loader2,
   AlertCircle, CheckCircle, BookOpen, ArrowRightLeft, Info, X,
-  RefreshCw, ChevronDown,
+  RefreshCw, ChevronDown, MessageSquare, Send,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -19,6 +19,22 @@ interface SdoSystem {
   category: string;
 }
 
+/** Unified entry for both external SDO connectors and locally stored CodeSystems. */
+interface UnifiedSystem {
+  /** Selector key — SDO short-id (e.g. "snomed") or local resource id (UUID). */
+  id: string;
+  source: 'sdo' | 'local';
+  name: string;
+  url: string;
+  description: string;
+  available: boolean;
+  /** SDO-only fields */
+  category?: string;
+  /** Local CodeSystem fields */
+  content?: string;
+  conceptCount?: number;
+}
+
 interface SdoResult {
   code: string;
   display: string;
@@ -30,16 +46,17 @@ interface SelectedCode extends SdoResult {
   key: string; // code + system for uniqueness
 }
 
-interface AiSuggestion extends SdoResult {
-  rationale: string;
-  confidence: 'high' | 'medium' | 'low';
-  caveats?: string | null;
+
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  suggested_codes?: SdoResult[];
 }
 
-interface AiSuggestResponse {
-  suggestions: AiSuggestion[];
-  additional_search_terms: string[];
-  notes?: string;
+interface ChatResponse {
+  reply: string;
+  suggested_codes: SdoResult[];
 }
 
 interface AiDescribeResponse {
@@ -99,11 +116,6 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   return resp.json() as Promise<T>;
 }
 
-const CONFIDENCE_COLOURS: Record<string, string> = {
-  high: 'bg-green-100 text-green-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-gray-100 text-gray-500',
-};
 
 const EQUIV_COLOURS: Record<string, string> = {
   equivalent: 'bg-green-100 text-green-700',
@@ -158,9 +170,9 @@ const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 
 // ---------------------------------------------------------------------------
 
 export default function ValueSetBuilder({ onBack }: Props) {
-  // Systems
-  const [systems, setSystems] = useState<SdoSystem[]>([]);
-  const [selectedSystem, setSelectedSystem] = useState('snomed');
+  // Systems — unified list of external SDOs + local CodeSystems
+  const [systems, setSystems] = useState<UnifiedSystem[]>([]);
+  const [selectedSystem, setSelectedSystem] = useState('__local_all__');
 
   // Code search (left panel)
   const [searchQuery, setSearchQuery] = useState('');
@@ -180,12 +192,12 @@ export default function ValueSetBuilder({ onBack }: Props) {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  // AI panel (right panel)
-  const [aiQuery, setAiQuery] = useState('');
-  const [aiSystems, setAiSystems] = useState<string[]>(['snomed', 'icd10cm']);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [aiSuggestions, setAiSuggestions] = useState<AiSuggestResponse | null>(null);
+  // Chat SME panel (right panel)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
   const [describeLoading, setDescribeLoading] = useState(false);
 
   // Map panel
@@ -196,29 +208,73 @@ export default function ValueSetBuilder({ onBack }: Props) {
 
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load available systems on mount
+  // Load available systems on mount — merge external SDOs + local CodeSystems
   useEffect(() => {
-    apiFetch<{ systems: SdoSystem[] }>('/sdo/systems')
-      .then(d => setSystems(d.systems))
-      .catch(() => {/* silently fail — systems list is non-critical */});
+    Promise.all([
+      apiFetch<{ systems: SdoSystem[] }>('/sdo/systems').catch(() => ({ systems: [] as SdoSystem[] })),
+      apiFetch<{ entry?: Array<{ resource: { id: string; url?: string; name?: string; title?: string; content?: string; concept?: unknown[] } }> }>(
+        '/CodeSystem?_count=500'
+      ).catch(() => ({ entry: [] })),
+    ]).then(([sdoData, csBundle]) => {
+      const sdoSystems: UnifiedSystem[] = (sdoData.systems ?? []).map(s => ({
+        id: s.id,
+        source: 'sdo' as const,
+        name: s.name,
+        url: s.url,
+        description: s.description,
+        available: s.available || !s.requires_key,
+        category: s.category,
+      }));
+
+      const localSystems: UnifiedSystem[] = (csBundle.entry ?? [])
+        .map(e => e.resource)
+        .filter(r => r?.id && r.url && r.content !== 'not-present')
+        .map(r => ({
+          id: r.id,
+          source: 'local' as const,
+          name: r.title || r.name || r.url || r.id,
+          url: r.url ?? '',
+          description: `Local · ${r.content ?? 'complete'} · ${Array.isArray(r.concept) ? r.concept.length.toLocaleString() : '?'} concepts`,
+          available: true,
+          content: r.content,
+          conceptCount: Array.isArray(r.concept) ? r.concept.length : undefined,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      const allLocalSentinel: UnifiedSystem = {
+        id: '__local_all__',
+        source: 'local',
+        name: 'All Local Code Systems',
+        url: '',
+        description: 'Search concepts across every locally stored code system at once',
+        available: true,
+      };
+      setSystems([...sdoSystems, ...(localSystems.length > 0 ? [allLocalSentinel, ...localSystems] : [])]);
+    });
   }, []);
 
-  // Debounced search
+  // Debounced search — routes to SDO connector or local CodeSystem based on source
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     if (!searchQuery.trim()) {
       setSearchResults([]);
       return;
     }
+    const system = systems.find(s => s.id === selectedSystem);
     searchDebounceRef.current = setTimeout(() => {
       setSearchLoading(true);
       setSearchError(null);
-      apiFetch<{ results: SdoResult[] }>(`/sdo/search?system=${selectedSystem}&q=${encodeURIComponent(searchQuery)}&limit=25`)
+      const url = selectedSystem === '__local_all__'
+        ? `/CodeSystem/$search-all-concepts?q=${encodeURIComponent(searchQuery)}&count=25`
+        : system?.source === 'local'
+          ? `/CodeSystem/$search-concepts?url=${encodeURIComponent(system.url)}&q=${encodeURIComponent(searchQuery)}&count=25`
+          : `/sdo/search?system=${selectedSystem}&q=${encodeURIComponent(searchQuery)}&limit=25`;
+      apiFetch<{ results: SdoResult[] }>(url)
         .then(d => setSearchResults(d.results))
         .catch(e => setSearchError((e as Error).message))
         .finally(() => setSearchLoading(false));
     }, 400);
-  }, [searchQuery, selectedSystem]);
+  }, [searchQuery, selectedSystem, systems]);
 
   const addCode = useCallback((code: SdoResult) => {
     const k = codeKey(code.code, code.system);
@@ -277,21 +333,49 @@ export default function ValueSetBuilder({ onBack }: Props) {
     }
   };
 
-  const handleAiSuggest = async () => {
-    if (!aiQuery.trim()) return;
-    setAiLoading(true);
-    setAiError(null);
-    setAiSuggestions(null);
+  // Auto-scroll chat to latest message (scroll within panel, not the page)
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  const handleChatSend = async () => {
+    const text = chatInput.trim();
+    if (!text || chatLoading) return;
+    const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', content: text };
+    const nextMessages = [...chatMessages, userMsg];
+    setChatMessages(nextMessages);
+    setChatInput('');
+    setChatLoading(true);
     try {
-      const result = await apiFetch<AiSuggestResponse>('/ai/suggest', {
+      const result = await apiFetch<ChatResponse>('/ai/chat', {
         method: 'POST',
-        body: JSON.stringify({ description: aiQuery, systems: aiSystems, limit: 10 }),
+        body: JSON.stringify({
+          messages: nextMessages.map(m => ({ role: m.role, content: m.content })),
+          valueset_context: {
+            name: meta.name,
+            title: meta.title,
+            description: meta.description,
+            purpose: meta.purpose,
+            codes: selectedCodes,
+          },
+        }),
       });
-      setAiSuggestions(result);
+      setChatMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: result.reply,
+        suggested_codes: result.suggested_codes,
+      }]);
     } catch (e) {
-      setAiError((e as Error).message);
+      setChatMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `Error: ${(e as Error).message}`,
+      }]);
     } finally {
-      setAiLoading(false);
+      setChatLoading(false);
     }
   };
 
@@ -346,8 +430,9 @@ export default function ValueSetBuilder({ onBack }: Props) {
     }
   };
 
-  const availableSystems = systems.filter(s => s.available || !s.requires_key);
   const currentSystem = systems.find(s => s.id === selectedSystem);
+  const sdoSystems = systems.filter(s => s.source === 'sdo');
+  const localSystems = systems.filter(s => s.source === 'local' && s.id !== '__local_all__');
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -399,12 +484,28 @@ export default function ValueSetBuilder({ onBack }: Props) {
                   className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 appearance-none bg-white focus:ring-2 focus:ring-blue-400 pr-8"
                 >
                   {systems.length === 0
-                    ? <option value="snomed">SNOMED CT</option>
-                    : systems.map(s => (
-                      <option key={s.id} value={s.id} disabled={s.requires_key && !s.available}>
-                        {s.name}{s.requires_key && !s.available ? ' (key required)' : ''}
-                      </option>
-                    ))
+                    ? <option value="__local_all__">All Local Code Systems</option>
+                    : <>
+                      {sdoSystems.length > 0 && (
+                        <optgroup label="External Vocabularies">
+                          {sdoSystems.map(s => (
+                            <option key={s.id} value={s.id} disabled={!s.available}>
+                              {s.name}{!s.available ? ' (key required)' : ''}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {localSystems.length > 0 && (
+                        <optgroup label="Local Code Systems">
+                          <option value="__local_all__">All Local Code Systems</option>
+                          {localSystems.map(s => (
+                            <option key={s.id} value={s.id}>
+                              {s.name}{s.conceptCount != null ? ` (${s.conceptCount.toLocaleString()})` : ''}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </>
                   }
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -475,15 +576,30 @@ export default function ValueSetBuilder({ onBack }: Props) {
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3">
               <p className="text-xs font-medium text-gray-500 uppercase mb-2">Available Systems</p>
               <div className="flex flex-col gap-1">
-                {systems.map(s => (
+                {sdoSystems.map(s => (
                   <div key={s.id} className="flex items-center gap-2 text-xs">
-                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${s.available || !s.requires_key ? 'bg-green-400' : 'bg-gray-300'}`} />
+                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${s.available ? 'bg-green-400' : 'bg-gray-300'}`} />
                     <span className="font-medium text-gray-700">{s.name}</span>
-                    <span className={`ml-auto px-1.5 py-0.5 rounded text-xs ${CATEGORY_BADGE[s.category] ?? 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`ml-auto px-1.5 py-0.5 rounded text-xs ${CATEGORY_BADGE[s.category ?? ''] ?? 'bg-gray-100 text-gray-500'}`}>
                       {s.category}
                     </span>
                   </div>
                 ))}
+                {localSystems.length > 0 && (
+                  <>
+                    <div className="border-t border-gray-100 my-1" />
+                    <p className="text-xs text-gray-400 font-medium mb-0.5">Local</p>
+                    {localSystems.map(s => (
+                      <div key={s.id} className="flex items-center gap-2 text-xs">
+                        <span className="w-2 h-2 rounded-full flex-shrink-0 bg-purple-400" />
+                        <span className="font-medium text-gray-700 truncate flex-1">{s.name}</span>
+                        <span className="ml-auto px-1.5 py-0.5 rounded text-xs bg-purple-50 text-purple-600 flex-shrink-0">
+                          {s.content ?? 'complete'}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -660,7 +776,7 @@ export default function ValueSetBuilder({ onBack }: Props) {
                         onChange={e => setMapTarget(e.target.value)}
                         className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 appearance-none bg-white focus:ring-2 focus:ring-purple-400 pr-8"
                       >
-                        {(systems.length > 0 ? systems : [{ id: 'icd10cm', name: 'ICD-10-CM' }, { id: 'snomed', name: 'SNOMED CT' }, { id: 'rxnorm', name: 'RxNorm' }]).map((s: any) => (
+                        {(sdoSystems.length > 0 ? sdoSystems : [{ id: 'icd10cm', name: 'ICD-10-CM' }, { id: 'snomed', name: 'SNOMED CT' }, { id: 'rxnorm', name: 'RxNorm' }]).map(s => (
                           <option key={s.id} value={s.id}>{s.name}</option>
                         ))}
                       </select>
@@ -723,140 +839,110 @@ export default function ValueSetBuilder({ onBack }: Props) {
           </div>
         </div>
 
-        {/* ───── RIGHT: AI Assistant ───── */}
-        <div className="flex flex-col gap-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 100px)' }}>
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-yellow-500" /> AI Code Assistant
-            </h2>
-            <p className="text-xs text-gray-500 mb-3">
-              Describe the clinical concept you're looking for. The AI assistant will search the selected code
-              systems and rank the best matches with clinical rationale.
-            </p>
+        {/* ───── RIGHT: AI Assistant Chat ───── */}
+        <div className="flex flex-col gap-3 sticky top-4 self-start">
 
-            {/* AI system checkboxes */}
-            <div className="mb-3">
-              <label className="text-xs font-medium text-gray-500 uppercase block mb-1.5">Search in</label>
-              <div className="flex flex-wrap gap-2">
-                {(systems.length > 0 ? systems.filter(s => !s.requires_key || s.available) : [
-                  { id: 'snomed', name: 'SNOMED CT' },
-                  { id: 'icd10cm', name: 'ICD-10-CM' },
-                  { id: 'rxnorm', name: 'RxNorm' },
-                ]).map((s: any) => (
-                  <label key={s.id} className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={aiSystems.includes(s.id)}
-                      onChange={e => setAiSystems(prev =>
-                        e.target.checked ? [...prev, s.id] : prev.filter(x => x !== s.id)
-                      )}
-                      className="rounded border-gray-300 text-blue-600"
-                    />
-                    <span className="text-gray-700">{s.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <textarea
-              rows={3}
-              placeholder="e.g. 'codes for measuring blood pressure in outpatient settings' or 'diagnoses related to type 2 diabetes complications'"
-              value={aiQuery}
-              onChange={e => setAiQuery(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleAiSuggest(); }}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 resize-none mb-2"
-            />
-
-            <button
-              onClick={handleAiSuggest}
-              disabled={aiLoading || !aiQuery.trim() || aiSystems.length === 0}
-              className="w-full flex items-center justify-center gap-2 bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 disabled:opacity-40 transition-colors text-sm font-medium"
-            >
-              {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              {aiLoading ? 'Searching & analysing…' : 'Ask AI (Ctrl+Enter)'}
-            </button>
-
-            {aiError && (
-              <div className="mt-3 flex items-start gap-2 text-xs text-red-600 bg-red-50 rounded-lg p-3">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <span>{aiError}</span>
-              </div>
-            )}
-          </div>
-
-          {/* AI Suggestions */}
-          {aiSuggestions && (
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-gray-700">
-                  {aiSuggestions.suggestions.length} Suggestions
-                </h3>
-                <button onClick={() => setAiSuggestions(null)} className="text-gray-300 hover:text-gray-500">
-                  <X className="w-4 h-4" />
+          {/* Chat card */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col" style={{ height: chatMessages.length > 0 ? 'calc(100vh - 220px)' : '50vh', minHeight: '250px', transition: 'height 0.3s ease' }}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
+              <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-yellow-500" /> Vocabulary AI Assistant
+              </h2>
+              {chatMessages.length > 0 && (
+                <button
+                  onClick={() => setChatMessages([])}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  Clear
                 </button>
-              </div>
-
-              <div className="space-y-3">
-                {aiSuggestions.suggestions.map((s, i) => {
-                  const key = codeKey(s.code, s.system);
-                  const added = selectedCodes.some(c => c.key === key);
-                  return (
-                    <div key={i} className="border border-gray-100 rounded-lg p-3 hover:border-blue-200 transition-colors">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                            <span className="font-mono text-blue-600 text-xs">{s.code}</span>
-                            <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${CONFIDENCE_COLOURS[s.confidence] ?? ''}`}>
-                              {s.confidence}
-                            </span>
-                            <span className="text-xs text-gray-400">{s.systemName}</span>
-                          </div>
-                          <p className="text-sm text-gray-800 font-medium">{s.display}</p>
-                        </div>
-                        <button
-                          onClick={() => addCode(s)}
-                          disabled={added}
-                          className={`flex-shrink-0 p-1.5 rounded-full transition-colors ${added
-                            ? 'bg-green-100 text-green-600 cursor-default'
-                            : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                          }`}
-                        >
-                          {added ? <CheckCircle className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                        </button>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">{s.rationale}</p>
-                      {s.caveats && (
-                        <p className="text-xs text-amber-600 mt-1 bg-amber-50 px-2 py-1 rounded">
-                          ⚠ {s.caveats}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {aiSuggestions.additional_search_terms?.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-xs font-medium text-gray-500 mb-2">Try also searching for:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {aiSuggestions.additional_search_terms.map((term, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setSearchQuery(term)}
-                        className="text-xs bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-700 px-2 py-1 rounded transition-colors"
-                      >
-                        {term}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {aiSuggestions.notes && (
-                <p className="mt-2 text-xs text-gray-400 italic">{aiSuggestions.notes}</p>
               )}
             </div>
-          )}
+
+            {/* Message thread */}
+            <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+              {chatMessages.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center px-4">
+                  <Sparkles className="w-8 h-8 mb-3 text-gray-200" />
+                  <p className="text-sm font-medium text-gray-500 mb-1">Vocabulary AI Assistant</p>
+                  <p className="text-xs text-gray-400">
+                    Ask about code systems, ValueSet design, or public health vocabulary.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {chatMessages.map(msg => (
+                    <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[88%] rounded-lg px-3 py-2 text-sm ${
+                        msg.role === 'user'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
+                        {/* Suggested code cards */}
+                        {msg.suggested_codes && msg.suggested_codes.length > 0 && (
+                          <div className="mt-2 space-y-1.5">
+                            {msg.suggested_codes.map((code, i) => {
+                              const k = codeKey(code.code, code.system);
+                              const added = selectedCodes.some(c => c.key === k);
+                              return (
+                                <div key={i} className="bg-white border border-gray-200 rounded-lg px-2.5 py-2 flex items-center justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="font-mono text-blue-600 text-xs">{code.code}</span>
+                                      <span className="text-xs text-gray-400">{code.systemName}</span>
+                                    </div>
+                                    <p className="text-xs text-gray-700 font-medium truncate">{code.display}</p>
+                                  </div>
+                                  <button
+                                    onClick={() => addCode(code)}
+                                    disabled={added}
+                                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                                      added ? 'bg-green-100 text-green-600 cursor-default' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                                    }`}
+                                  >
+                                    {added ? <CheckCircle className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {chatLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-gray-100 rounded-lg px-4 py-3">
+                        <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </>
+              )}
+            </div>
+
+            {/* Input area */}
+            <div className="border-t border-gray-100 p-3 flex gap-2 flex-shrink-0">
+              <textarea
+                rows={3}
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); } }}
+                placeholder="Ask a question… (Enter to send, Shift+Enter for newline)"
+                disabled={chatLoading}
+                className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-400 resize-none"
+              />
+              <button
+                onClick={handleChatSend}
+                disabled={chatLoading || !chatInput.trim()}
+                className="flex-shrink-0 p-2.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 disabled:opacity-40 transition-colors self-end"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
 
           {/* Generate Metadata */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">

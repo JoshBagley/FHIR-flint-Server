@@ -190,6 +190,7 @@ class ValueSet(BaseModel):
     copyright: Optional[str] = None
     compose: Optional[ValueSetCompose] = None
     expansion: Optional[ValueSetExpansion] = None
+    extension: Optional[List[Dict[str, Any]]] = []
 
 
 class CodeSystemProperty(BaseModel):
@@ -255,6 +256,7 @@ class CodeSystem(BaseModel):
     filter: Optional[List[Dict[str, Any]]] = []
     property: Optional[List[CodeSystemProperty]] = []
     concept: Optional[List[CodeSystemConcept]] = []
+    extension: Optional[List[Dict[str, Any]]] = []
 
 
 # ============================================================================
@@ -365,24 +367,58 @@ class DatabaseManager:
 
                 CREATE INDEX IF NOT EXISTS idx_analytics_timestamp ON usage_analytics(timestamp);
                 CREATE INDEX IF NOT EXISTS idx_analytics_resource ON usage_analytics(resource_id);
+
+                -- Archive support
+                ALTER TABLE fhir_resources ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE NOT NULL;
+                CREATE INDEX IF NOT EXISTS idx_archived ON fhir_resources(archived);
+
+                -- Source / provenance
+                ALTER TABLE fhir_resources ADD COLUMN IF NOT EXISTS source VARCHAR(50) DEFAULT 'internal';
+                CREATE INDEX IF NOT EXISTS idx_source ON fhir_resources(source);
+
+                -- Audit log
+                CREATE TABLE IF NOT EXISTS audit_log (
+                    id SERIAL PRIMARY KEY,
+                    resource_id VARCHAR(64) NOT NULL,
+                    resource_type VARCHAR(50) NOT NULL,
+                    action VARCHAR(20) NOT NULL,
+                    actor VARCHAR(100),
+                    timestamp TIMESTAMP DEFAULT NOW(),
+                    summary TEXT
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_audit_resource ON audit_log(resource_id);
+                CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_log(timestamp);
             """)
+
+    def _extract_source(self, data: Dict[str, Any]) -> str:
+        for ext in data.get('extension', []):
+            if ext.get('url') == 'http://phts.local/StructureDefinition/source':
+                return ext.get('valueCode', 'internal')
+        return 'internal'
 
     async def create_resource(self, resource_type: str, data: Dict[str, Any], user: str = "system") -> str:
         resource_id = data.get('id', str(uuid.uuid4()))
         data['id'] = resource_id
+        source = self._extract_source(data)
 
         async with self.pool.acquire() as conn:
             await conn.execute("""
-                INSERT INTO fhir_resources (id, resource_type, url, version, status, name, title, data, created_by, updated_by)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                INSERT INTO fhir_resources (id, resource_type, url, version, status, name, title, data, source, created_by, updated_by)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             """, resource_id, resource_type, data.get('url'), data.get('version'),
                 data.get('status'), data.get('name'), data.get('title'),
-                json.dumps(data), user, user)
+                json.dumps(data), source, user, user)
 
             await conn.execute("""
                 INSERT INTO resource_versions (resource_id, version_number, data, created_by)
                 VALUES ($1, 1, $2, $3)
             """, resource_id, json.dumps(data), user)
+
+            await conn.execute("""
+                INSERT INTO audit_log (resource_id, resource_type, action, actor, summary)
+                VALUES ($1, $2, 'create', $3, $4)
+            """, resource_id, resource_type, user, f"Created {resource_type}/{resource_id}")
 
         return resource_id
 
@@ -408,16 +444,62 @@ class DatabaseManager:
                 VALUES ($1, $2, $3, $4)
             """, resource_id, next_version, json.dumps(data), user)
 
+            await conn.execute("""
+                INSERT INTO audit_log (resource_id, resource_type, action, actor, summary)
+                VALUES ($1, $2, 'update', $3, $4)
+            """, resource_id, data.get('resourceType', 'Unknown'), user, f"Updated to version {next_version}")
+
             # asyncpg returns a status string like "UPDATE 1"; parse row count to be robust
             affected = int(result.split()[-1]) if result and result.split() else 0
             return affected > 0
 
-    async def delete_resource(self, resource_id: str) -> bool:
+    async def delete_resource(self, resource_id: str, user: str = "system") -> bool:
         async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("SELECT resource_type FROM fhir_resources WHERE id = $1", resource_id)
+            resource_type = row['resource_type'] if row else 'Unknown'
+            await conn.execute("""
+                INSERT INTO audit_log (resource_id, resource_type, action, actor, summary)
+                VALUES ($1, $2, 'delete', $3, $4)
+            """, resource_id, resource_type, user, f"Permanently deleted {resource_type}/{resource_id}")
             await conn.execute("DELETE FROM resource_versions WHERE resource_id = $1", resource_id)
             result = await conn.execute("DELETE FROM fhir_resources WHERE id = $1", resource_id)
             affected = int(result.split()[-1]) if result and result.split() else 0
             return affected > 0
+
+    async def archive_resource(self, resource_id: str, archived: bool = True, user: str = "system") -> bool:
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("SELECT resource_type FROM fhir_resources WHERE id = $1", resource_id)
+            if not row:
+                return False
+            resource_type = row['resource_type']
+            result = await conn.execute(
+                "UPDATE fhir_resources SET archived = $1, updated_at = NOW(), updated_by = $2 WHERE id = $3",
+                archived, user, resource_id
+            )
+            action = 'archive' if archived else 'unarchive'
+            label = 'Archived' if archived else 'Restored'
+            await conn.execute("""
+                INSERT INTO audit_log (resource_id, resource_type, action, actor, summary)
+                VALUES ($1, $2, $3, $4, $5)
+            """, resource_id, resource_type, action, user, f"{label} {resource_type}/{resource_id}")
+            affected = int(result.split()[-1]) if result and result.split() else 0
+            return affected > 0
+
+    async def get_audit_log(self, resource_id: str) -> List[Dict]:
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch("""
+                SELECT id, resource_id, resource_type, action, actor, timestamp, summary
+                FROM audit_log WHERE resource_id = $1 ORDER BY timestamp DESC
+            """, resource_id)
+            return [{
+                'id': row['id'],
+                'resourceId': row['resource_id'],
+                'resourceType': row['resource_type'],
+                'action': row['action'],
+                'actor': row['actor'],
+                'timestamp': row['timestamp'].isoformat(),
+                'summary': row['summary'],
+            } for row in rows]
 
     async def get_resource(self, resource_id: str, version: Optional[int] = None) -> Optional[Dict]:
         async with self.pool.acquire() as conn:
@@ -431,7 +513,7 @@ class DatabaseManager:
             return json.loads(row['data']) if row else None
 
     async def search_resources(self, resource_type: str, params: Dict[str, Any]) -> List[Dict]:
-        conditions = ["resource_type = $1"]
+        conditions = ["resource_type = $1", "archived = FALSE"]
         values = [resource_type]
         param_idx = 2
 
@@ -762,12 +844,14 @@ async def metrics():
 @app.get("/analytics/summary")
 async def analytics_summary():
     async with state.db.pool.acquire() as conn:
-        vs_count = await conn.fetchval("SELECT COUNT(*) FROM fhir_resources WHERE resource_type = 'ValueSet'")
-        cs_count = await conn.fetchval("SELECT COUNT(*) FROM fhir_resources WHERE resource_type = 'CodeSystem'")
+        vs_count = await conn.fetchval("SELECT COUNT(*) FROM fhir_resources WHERE resource_type = 'ValueSet' AND archived = FALSE")
+        cs_count = await conn.fetchval("SELECT COUNT(*) FROM fhir_resources WHERE resource_type = 'CodeSystem' AND archived = FALSE")
+        archived_count = await conn.fetchval("SELECT COUNT(*) FROM fhir_resources WHERE archived = TRUE")
         version_count = await conn.fetchval("SELECT COUNT(*) FROM resource_versions")
     return {
         "total_valuesets": vs_count or 0,
         "total_codesystems": cs_count or 0,
+        "archived_resources": archived_count or 0,
         "total_versions": version_count or 0,
     }
 
@@ -891,6 +975,29 @@ async def get_value_set_history(resource_id: str):
     if not history:
         raise HTTPException(status_code=404, detail=f"ValueSet/{resource_id} not found")
     return {"resourceType": "Bundle", "type": "history", "total": len(history), "entry": history}
+
+
+@app.patch("/ValueSet/{resource_id}/$archive", status_code=200)
+async def archive_value_set(resource_id: str, restore: bool = Query(False)):
+    existing = await state.db.get_resource(resource_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"ValueSet/{resource_id} not found")
+    archived = not restore
+    success = await state.db.archive_resource(resource_id, archived=archived)
+    if not success:
+        raise HTTPException(status_code=500, detail="Archive operation failed")
+    await state.cache.invalidate_pattern(f"ValueSet:{resource_id}:*")
+    await state.cache.invalidate_pattern("ValueSet:*")
+    return {"resourceId": resource_id, "archived": archived}
+
+
+@app.get("/ValueSet/{resource_id}/$audit")
+async def get_value_set_audit(resource_id: str):
+    existing = await state.db.get_resource(resource_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"ValueSet/{resource_id} not found")
+    entries = await state.db.get_audit_log(resource_id)
+    return {"resourceId": resource_id, "total": len(entries), "entries": entries}
 
 
 # ============================================================================

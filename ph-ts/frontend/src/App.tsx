@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Search, Download, FileCode, Layers,
   GitBranch, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2,
-  ChevronDown, ChevronUp, Copy, Check, ExternalLink, ChevronLeft, ChevronRight, Plus, Settings, X, Filter, Pencil, Trash2
+  ChevronDown, ChevronUp, Copy, Check, ExternalLink, ChevronLeft, ChevronRight, Plus, Settings, X, Filter, Pencil, Trash2,
+  Archive, ScrollText
 } from 'lucide-react';
 import ValueSetBuilder from './ValueSetBuilder';
+import AppLogo from './components/AppLogo';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -23,12 +25,24 @@ interface FhirResource {
   compose?: { include: Array<{ concept?: Array<{ code: string; display?: string }> }> };
   concept?: Array<{ code: string; display?: string }>;
   identifier?: Array<{ system?: string; value?: string }>;
+  extension?: Array<{ url: string; valueCode?: string; [key: string]: unknown }>;
 }
 
 interface ApiStats {
   total_valuesets: number;
   total_codesystems: number;
+  archived_resources: number;
   total_versions: number;
+}
+
+interface AuditEntry {
+  id: number;
+  resourceId: string;
+  resourceType: string;
+  action: string;
+  actor?: string;
+  timestamp: string;
+  summary?: string;
 }
 
 interface VersionEntry {
@@ -40,6 +54,7 @@ interface VersionEntry {
 
 interface ExpansionConcept {
   system?: string;
+  systemName?: string;
   code: string;
   display?: string;
 }
@@ -81,6 +96,7 @@ interface UiResource {
   status: string;
   version: string;
   content?: string;
+  source?: string;
   conceptCount: number;
   versionHistory: VersionEntry[];
 }
@@ -102,7 +118,10 @@ function countConcepts(resource: FhirResource): number {
   return resource.concept?.length ?? 0;
 }
 
+const SOURCE_EXT_URL = 'http://phts.local/StructureDefinition/source';
+
 function toUiResource(r: FhirResource): UiResource {
+  const sourceExt = r.extension?.find(e => e.url === SOURCE_EXT_URL);
   return {
     id: r.id,
     resourceType: r.resourceType,
@@ -113,6 +132,7 @@ function toUiResource(r: FhirResource): UiResource {
     status: r.status,
     version: r.version ?? '1',
     content: r.content,
+    source: sourceExt?.valueCode,
     conceptCount: countConcepts(r),
     versionHistory: [],
   };
@@ -163,6 +183,16 @@ async function updateResource(resourceType: 'ValueSet' | 'CodeSystem', id: strin
 async function deleteResource(resourceType: 'ValueSet' | 'CodeSystem', id: string): Promise<void> {
   const resp = await fetch(`/${resourceType}/${id}`, { method: 'DELETE' });
   if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
+}
+
+async function archiveResource(id: string, restore = false): Promise<void> {
+  const resp = await fetch(`/ValueSet/${id}/$archive${restore ? '?restore=true' : ''}`, { method: 'PATCH' });
+  if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
+}
+
+async function fetchAuditLog(id: string): Promise<AuditEntry[]> {
+  const data = await apiFetch<{ entries: AuditEntry[] }>(`/ValueSet/${id}/$audit`);
+  return data.entries ?? [];
 }
 
 async function fetchExpansion(url: string): Promise<ExpansionConcept[]> {
@@ -274,6 +304,22 @@ const ContentBadge = ({ content }: { content?: string }) => {
   );
 };
 
+const SourceBadge = ({ source }: { source?: string }) => {
+  if (!source || source === 'internal') return null;
+  const colours: Record<string, string> = {
+    phinvads: 'bg-orange-100 text-orange-700',
+    vsac:     'bg-teal-100 text-teal-700',
+    hl7:      'bg-indigo-100 text-indigo-700',
+    icd9cm:   'bg-gray-100 text-gray-600',
+    icd10cm:  'bg-gray-100 text-gray-600',
+  };
+  return (
+    <span className={`px-2 py-0.5 rounded text-xs font-medium ${colours[source] ?? 'bg-gray-100 text-gray-500'}`}>
+      {source}
+    </span>
+  );
+};
+
 const LoadingSpinner = ({ message = 'Loading…' }: { message?: string }) => (
   <div className="flex flex-col items-center justify-center py-24 gap-3 text-gray-500">
     <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
@@ -339,7 +385,7 @@ const ExpansionPage = ({ resource, onBack }: { resource: UiResource; onBack: () 
     setTimeout(() => setCopiedCode(null), 1500);
   };
 
-  const hasSystem = concepts.some(c => c.system);
+  const hasSystem = concepts.some(c => c.system || c.systemName);
   const filtered = concepts.filter(c => {
     const q = filter.toLowerCase();
     return !q || c.code.toLowerCase().includes(q) || (c.display ?? '').toLowerCase().includes(q);
@@ -436,7 +482,11 @@ const ExpansionPage = ({ resource, onBack }: { resource: UiResource; onBack: () 
                     <tr key={`${c.code}-${i}`} className="hover:bg-blue-50 group transition-colors">
                       <td className="px-4 py-3 font-mono text-blue-700 text-sm align-top whitespace-nowrap">{c.code}</td>
                       <td className="px-4 py-3 text-gray-800 align-top">{c.display ?? <span className="italic text-gray-400">—</span>}</td>
-                      {hasSystem && <td className="px-4 py-3 text-gray-400 text-xs font-mono align-top truncate max-w-xs">{c.system}</td>}
+                      {hasSystem && (
+                      <td className="px-4 py-3 text-gray-600 text-xs align-top truncate max-w-xs" title={c.system}>
+                        {c.systemName ?? c.system}
+                      </td>
+                    )}
                       <td className="px-3 py-3 align-top">
                         <button
                           onClick={() => handleCopy(c.code)}
@@ -498,7 +548,7 @@ const ModernPHINVADS = () => {
   const [builderOpen, setBuilderOpen] = useState(false);
 
   const [resources, setResources] = useState<UiResource[]>([]);
-  const [stats, setStats] = useState<ApiStats>({ total_valuesets: 0, total_codesystems: 0, total_versions: 0 });
+  const [stats, setStats] = useState<ApiStats>({ total_valuesets: 0, total_codesystems: 0, archived_resources: 0, total_versions: 0 });
   const [loadingResources, setLoadingResources] = useState(true);
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -519,9 +569,13 @@ const ModernPHINVADS = () => {
   const [showSearchConfig, setShowSearchConfig] = useState(false);
   const [externalSearchEnabled, setExternalSearchEnabled] = useState(true);
 
-  // Edit / delete
+  // Edit / delete / archive / audit
   const [editingResource, setEditingResource] = useState<UiResource | null>(null);
   const [deletingResource, setDeletingResource] = useState<UiResource | null>(null);
+  const [archivingResource, setArchivingResource] = useState<UiResource | null>(null);
+  const [auditResource, setAuditResource] = useState<UiResource | null>(null);
+  const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
 
   // CodeSystem table filters and pagination
   const [csStatusFilter, setCsStatusFilter] = useState('');
@@ -629,10 +683,11 @@ const ModernPHINVADS = () => {
   const AnalyticsDashboard = () => (
     <div className="space-y-6">
       {errorStats && <ErrorBanner message={errorStats} onRetry={loadStats} />}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { icon: Layers, value: loadingStats ? '…' : stats.total_valuesets.toLocaleString(), label: 'Value Sets', from: 'from-blue-500', to: 'to-blue-600', muted: 'text-blue-100' },
           { icon: Database, value: loadingStats ? '…' : stats.total_codesystems.toLocaleString(), label: 'Code Systems', from: 'from-purple-500', to: 'to-purple-600', muted: 'text-purple-100' },
+          { icon: Archive, value: loadingStats ? '…' : stats.archived_resources.toLocaleString(), label: 'Archived', from: 'from-amber-500', to: 'to-amber-600', muted: 'text-amber-100' },
           { icon: GitBranch, value: loadingStats ? '…' : stats.total_versions.toLocaleString(), label: 'Total Versions', from: 'from-green-500', to: 'to-green-600', muted: 'text-green-100' },
         ].map(({ icon: Icon, value, label, from, to, muted }) => (
           <div key={label} className={`bg-gradient-to-br ${from} ${to} text-white rounded-lg p-6`}>
@@ -682,9 +737,10 @@ const ModernPHINVADS = () => {
         </div>
         <div className="p-6 space-y-6">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <StatusBadge status={resource.status} />
               <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">v{resource.version}</span>
+              <SourceBadge source={resource.source} />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-1">{resource.title || resource.name}</h3>
             <p className="text-sm font-mono text-gray-500 break-all">{resource.url}</p>
@@ -744,22 +800,40 @@ const ModernPHINVADS = () => {
             </button>
           )}
 
-          {/* Edit / Delete — ValueSet only */}
+          {/* Edit / Archive / Delete — ValueSet only */}
           {resource.resourceType === 'ValueSet' && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => setEditingResource(resource)}
-                className="flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg border border-blue-300 text-blue-700 text-sm font-medium hover:bg-blue-50 transition-colors"
-              >
-                <Pencil className="w-4 h-4" /> Edit
-              </button>
+            <>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setEditingResource(resource)}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg border border-blue-300 text-blue-700 text-sm font-medium hover:bg-blue-50 transition-colors"
+                >
+                  <Pencil className="w-4 h-4" /> Edit
+                </button>
+                <button
+                  onClick={() => setArchivingResource(resource)}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg border border-amber-300 text-amber-700 text-sm font-medium hover:bg-amber-50 transition-colors"
+                >
+                  <Archive className="w-4 h-4" /> Archive
+                </button>
+              </div>
               <button
                 onClick={() => setDeletingResource(resource)}
-                className="flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg border border-red-300 text-red-600 text-sm font-medium hover:bg-red-50 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-1.5 px-4 rounded-lg border border-red-200 text-red-500 text-xs font-medium hover:bg-red-50 transition-colors"
               >
-                <Trash2 className="w-4 h-4" /> Delete
+                <Trash2 className="w-3.5 h-3.5" /> Permanently delete
               </button>
-            </div>
+            </>
+          )}
+
+          {/* Edit — CodeSystem */}
+          {resource.resourceType === 'CodeSystem' && (
+            <button
+              onClick={() => setEditingResource(resource)}
+              className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg border border-purple-300 text-purple-700 text-sm font-medium hover:bg-purple-50 transition-colors"
+            >
+              <Pencil className="w-4 h-4" /> Edit Display Name / Details
+            </button>
           )}
 
           <div className="pt-4 border-t border-gray-200 space-y-2">
@@ -787,6 +861,21 @@ const ModernPHINVADS = () => {
             >
               <GitBranch className="w-4 h-4" /> Full History (FHIR)
             </a>
+            {resource.resourceType === 'ValueSet' && (
+              <button
+                onClick={async () => {
+                  setAuditLoading(true);
+                  setAuditResource(resource);
+                  setAuditLog([]);
+                  try { setAuditLog(await fetchAuditLog(resource.id)); }
+                  catch { setAuditLog([]); }
+                  finally { setAuditLoading(false); }
+                }}
+                className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2"
+              >
+                <ScrollText className="w-4 h-4" /> Audit Log
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -877,6 +966,91 @@ const ModernPHINVADS = () => {
   };
 
   // -------------------------------------------------------------------------
+  // Edit CodeSystem modal
+  // -------------------------------------------------------------------------
+  const EditCodeSystemModal = ({ resource, onClose, onSaved }: {
+    resource: UiResource;
+    onClose: () => void;
+    onSaved: () => void;
+  }) => {
+    const [fullResource, setFullResource] = useState<FhirResource | null>(null);
+    const [loadingFull, setLoadingFull] = useState(true);
+    const [form, setForm] = useState({ name: resource.name, title: resource.title, description: resource.definition, status: resource.status, version: resource.version });
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+      fetchFullResource('CodeSystem', resource.id)
+        .then(r => { setFullResource(r); setForm({ name: r.name ?? resource.name, title: r.title ?? resource.title, description: r.description ?? resource.definition, status: r.status, version: r.version ?? resource.version }); })
+        .catch(e => setError((e as Error).message))
+        .finally(() => setLoadingFull(false));
+    }, [resource.id]);
+
+    const handleSave = async () => {
+      if (!fullResource) return;
+      setSaving(true); setError(null);
+      try {
+        await updateResource('CodeSystem', resource.id, { ...fullResource, name: form.name, title: form.title, description: form.description, status: form.status, version: form.version });
+        onSaved();
+      } catch (e) { setError((e as Error).message); }
+      finally { setSaving(false); }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <h2 className="text-base font-semibold text-gray-900">Edit Code System</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+          </div>
+          {loadingFull ? (
+            <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
+          ) : (
+            <div className="px-6 py-4 space-y-4">
+              {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">{error}</p>}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Display Name / Title <span className="text-gray-400 font-normal">(shown as system name in ValueSet expansions)</span>
+                </label>
+                <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Name <span className="text-gray-400 font-normal">(machine-readable)</span></label>
+                <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
+                    <option value="active">Active</option>
+                    <option value="draft">Draft</option>
+                    <option value="retired">Retired</option>
+                    <option value="unknown">Unknown</option>
+                  </select>
+                </div>
+                <div className="w-32">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Version</label>
+                  <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500" value={form.version} onChange={e => setForm(f => ({ ...f, version: e.target.value }))} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                <textarea rows={4} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 resize-none" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+            <button onClick={handleSave} disabled={saving || loadingFull} className="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2">
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />} Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // -------------------------------------------------------------------------
   // Delete confirmation dialog
   // -------------------------------------------------------------------------
   const DeleteConfirmDialog = ({ resource, onClose, onDeleted }: {
@@ -921,6 +1095,106 @@ const ModernPHINVADS = () => {
     );
   };
 
+  // -------------------------------------------------------------------------
+  // Archive confirmation dialog
+  // -------------------------------------------------------------------------
+  const ArchiveConfirmDialog = ({ resource, onClose, onArchived }: {
+    resource: UiResource;
+    onClose: () => void;
+    onArchived: () => void;
+  }) => {
+    const [archiving, setArchiving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleArchive = async () => {
+      setArchiving(true); setError(null);
+      try {
+        await archiveResource(resource.id);
+        onArchived();
+      } catch (e) { setError((e as Error).message); setArchiving(false); }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+          <div className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Archive className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-base font-semibold text-gray-900 mb-1">Archive Value Set</h2>
+                <p className="text-sm text-gray-600">Archive <span className="font-medium">"{resource.title || resource.name}"</span>? It will be hidden from search but kept in the database and can be restored later.</p>
+                {error && <p className="text-sm text-red-600 mt-3 bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>}
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 px-6 pb-5">
+            <button onClick={onClose} disabled={archiving} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">Cancel</button>
+            <button onClick={handleArchive} disabled={archiving} className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 flex items-center gap-2">
+              {archiving && <Loader2 className="w-4 h-4 animate-spin" />} Archive
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // -------------------------------------------------------------------------
+  // Audit log modal
+  // -------------------------------------------------------------------------
+  const AuditLogModal = ({ resource, entries, loading, onClose }: {
+    resource: UiResource;
+    entries: AuditEntry[];
+    loading: boolean;
+    onClose: () => void;
+  }) => {
+    const actionColours: Record<string, string> = {
+      create:    'bg-green-100 text-green-700',
+      update:    'bg-blue-100 text-blue-700',
+      delete:    'bg-red-100 text-red-600',
+      archive:   'bg-amber-100 text-amber-700',
+      unarchive: 'bg-teal-100 text-teal-700',
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[80vh]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">Audit Log</h2>
+              <p className="text-xs text-gray-400 mt-0.5 truncate">{resource.title || resource.name}</p>
+            </div>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+          </div>
+          <div className="overflow-y-auto flex-1 p-4">
+            {loading ? (
+              <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
+            ) : entries.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-8 italic">No audit entries found.</p>
+            ) : (
+              <div className="space-y-2">
+                {entries.map(entry => (
+                  <div key={entry.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium flex-shrink-0 mt-0.5 ${actionColours[entry.action] ?? 'bg-gray-100 text-gray-600'}`}>
+                      {entry.action}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-800">{entry.summary || `${entry.action} by ${entry.actor ?? 'system'}`}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {new Date(entry.timestamp).toLocaleString()}{entry.actor ? ` · ${entry.actor}` : ''}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (builderOpen) {
     return <ValueSetBuilder onBack={() => { setBuilderOpen(false); loadResources(); }} />;
   }
@@ -932,28 +1206,31 @@ const ModernPHINVADS = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+      <header className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">PH-TS</h1>
-              <p className="text-blue-100 text-sm mt-1">Public Health Terminology Service</p>
+            <div className="flex items-center gap-3">
+              <AppLogo size={40} className="rounded-xl shadow-sm flex-shrink-0" />
+              <div>
+                <h1 className="text-xl font-bold tracking-tight text-gray-900">PH-TS</h1>
+                <p className="text-gray-400 text-xs font-medium tracking-wide uppercase">Public Health Terminology Service</p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               {!loadingStats && (
-                <div className="hidden md:flex items-center gap-4 text-sm text-blue-100">
-                  <span className="flex items-center gap-1"><Layers className="w-4 h-4" />{stats.total_valuesets} ValueSets</span>
-                  <span className="flex items-center gap-1"><Database className="w-4 h-4" />{stats.total_codesystems} CodeSystems</span>
+                <div className="hidden md:flex items-center gap-4 text-sm text-gray-500">
+                  <span className="flex items-center gap-1.5"><Layers className="w-4 h-4 text-blue-500" />{stats.total_valuesets} ValueSets</span>
+                  <span className="flex items-center gap-1.5"><Database className="w-4 h-4 text-purple-500" />{stats.total_codesystems} CodeSystems</span>
                 </div>
               )}
               <button
                 onClick={() => setBuilderOpen(true)}
-                className="bg-green-500 hover:bg-green-400 px-4 py-2 rounded transition-colors text-sm font-medium flex items-center gap-2"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 shadow-sm"
               >
                 <Plus className="w-4 h-4" /> Create Value Set
               </button>
-              <a href="/docs" target="_blank" rel="noreferrer"
-                className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded transition-colors text-sm font-medium">
+              <a href="http://localhost:8000/docs" target="_blank" rel="noreferrer"
+                className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg transition-colors text-sm font-medium">
                 API Docs
               </a>
             </div>
@@ -1139,13 +1416,13 @@ const ModernPHINVADS = () => {
                           <table className="w-full text-sm">
                             <thead className="bg-gray-50 border-b border-gray-200">
                               <tr>
-                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Name / Title</th>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Display Name / Title</th>
                                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden lg:table-cell">URL</th>
                                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</th>
                                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Content</th>
                                 <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Concepts</th>
                                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden sm:table-cell">Version</th>
-                                <th className="px-4 py-3 w-8" />
+                                <th className="px-4 py-3 w-16" />
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -1179,13 +1456,22 @@ const ModernPHINVADS = () => {
                                     {cs.version && <span className="text-xs text-purple-600 font-medium">v{cs.version}</span>}
                                   </td>
                                   <td className="px-4 py-3">
-                                    <button
-                                      className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-purple-600"
-                                      onClick={e => { e.stopPropagation(); handleDownloadJson(cs); }}
-                                      title="Download JSON"
-                                    >
-                                      <Download className="w-4 h-4" />
-                                    </button>
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={e => { e.stopPropagation(); setEditingResource(cs); }}
+                                        title="Edit display name / details"
+                                        className="text-gray-400 hover:text-purple-600"
+                                      >
+                                        <Pencil className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={e => { e.stopPropagation(); handleDownloadJson(cs); }}
+                                        title="Download JSON"
+                                        className="text-gray-400 hover:text-purple-600"
+                                      >
+                                        <Download className="w-4 h-4" />
+                                      </button>
+                                    </div>
                                   </td>
                                 </tr>
                               ))}
@@ -1311,8 +1597,11 @@ const ModernPHINVADS = () => {
                                   onClick={() => setSelectedResource(vs)}
                                 >
                                   <td className="px-4 py-3">
-                                    <div className="font-medium text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-1">
-                                      {vs.title || vs.name}
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="font-medium text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-1">
+                                        {vs.title || vs.name}
+                                      </span>
+                                      <SourceBadge source={vs.source} />
                                     </div>
                                     {vs.definition && (
                                       <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{vs.definition}</div>
@@ -1542,11 +1831,19 @@ const ModernPHINVADS = () => {
       {selectedResource && <DetailPanel resource={selectedResource} />}
 
       {editingResource && (
-        <EditValueSetModal
-          resource={editingResource}
-          onClose={() => setEditingResource(null)}
-          onSaved={() => { setEditingResource(null); setSelectedResource(null); loadResources(); }}
-        />
+        editingResource.resourceType === 'CodeSystem' ? (
+          <EditCodeSystemModal
+            resource={editingResource}
+            onClose={() => setEditingResource(null)}
+            onSaved={() => { setEditingResource(null); setSelectedResource(null); loadResources(); }}
+          />
+        ) : (
+          <EditValueSetModal
+            resource={editingResource}
+            onClose={() => setEditingResource(null)}
+            onSaved={() => { setEditingResource(null); setSelectedResource(null); loadResources(); }}
+          />
+        )
       )}
 
       {deletingResource && (
@@ -1554,6 +1851,23 @@ const ModernPHINVADS = () => {
           resource={deletingResource}
           onClose={() => setDeletingResource(null)}
           onDeleted={() => { setDeletingResource(null); setSelectedResource(null); loadResources(); }}
+        />
+      )}
+
+      {archivingResource && (
+        <ArchiveConfirmDialog
+          resource={archivingResource}
+          onClose={() => setArchivingResource(null)}
+          onArchived={() => { setArchivingResource(null); setSelectedResource(null); loadResources(); loadStats(); }}
+        />
+      )}
+
+      {auditResource && (
+        <AuditLogModal
+          resource={auditResource}
+          entries={auditLog}
+          loading={auditLoading}
+          onClose={() => { setAuditResource(null); setAuditLog([]); }}
         />
       )}
 
