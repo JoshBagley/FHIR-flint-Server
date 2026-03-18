@@ -54,12 +54,15 @@ def _complete(prompt: str, max_tokens: int = 2048) -> str:
         import anthropic
         model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
         client = anthropic.Anthropic(api_key=key)
-        msg = client.messages.create(
-            model=model,
-            max_tokens=max_tokens,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return msg.content[0].text
+        try:
+            msg = client.messages.create(
+                model=model,
+                max_tokens=max_tokens,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return msg.content[0].text
+        except anthropic.APIError as e:
+            raise HTTPException(status_code=502, detail=f"Anthropic API error: {e.message}") from e
 
     if provider == "openai":
         key = os.getenv("OPENAI_API_KEY", "")
@@ -69,14 +72,18 @@ def _complete(prompt: str, max_tokens: int = 2048) -> str:
                 detail="AI provider 'openai' requires OPENAI_API_KEY in your .env file.",
             )
         from openai import OpenAI
+        import openai as _openai
         model = os.getenv("OPENAI_MODEL", "gpt-4o")
         client = OpenAI(api_key=key)
-        resp = client.chat.completions.create(
-            model=model,
-            max_tokens=max_tokens,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return resp.choices[0].message.content or ""
+        try:
+            resp = client.chat.completions.create(
+                model=model,
+                max_tokens=max_tokens,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return resp.choices[0].message.content or ""
+        except _openai.APIError as e:
+            raise HTTPException(status_code=502, detail=f"OpenAI API error: {e.message}") from e
 
     if provider == "gemini":
         key = os.getenv("GEMINI_API_KEY", "")
@@ -88,8 +95,11 @@ def _complete(prompt: str, max_tokens: int = 2048) -> str:
         from google import genai
         model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
         client = genai.Client(api_key=key)
-        resp = client.models.generate_content(model=model, contents=prompt)
-        return resp.text
+        try:
+            resp = client.models.generate_content(model=model, contents=prompt)
+            return resp.text
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Gemini API error: {e}") from e
 
     raise HTTPException(
         status_code=400,
@@ -227,6 +237,9 @@ Respond ONLY with valid JSON in this exact structure (no markdown, no explanatio
             "additional_search_terms": [],
             "notes": "AI response parse error — returning raw search results.",
         }
+    except Exception as e:
+        logger.error("Unexpected error in /ai/suggest: %s", e, exc_info=True)
+        raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e
 
 
 @router.post("/describe")
@@ -268,6 +281,9 @@ Respond ONLY with valid JSON (no markdown, no explanation outside the JSON):
     except (json.JSONDecodeError, IndexError, KeyError) as e:
         logger.warning("Failed to parse AI describe response: %s", e)
         return {"notes": "AI response parse error."}
+    except Exception as e:
+        logger.error("Unexpected error in /ai/describe: %s", e, exc_info=True)
+        raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e
 
 
 @router.post("/map")
@@ -335,3 +351,6 @@ Respond ONLY with valid JSON (no markdown, no explanation outside the JSON):
     except (json.JSONDecodeError, IndexError, KeyError) as e:
         logger.warning("Failed to parse AI map response: %s", e)
         return {"mappings": [], "notes": "AI response parse error."}
+    except Exception as e:
+        logger.error("Unexpected error in /ai/map: %s", e, exc_info=True)
+        raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e

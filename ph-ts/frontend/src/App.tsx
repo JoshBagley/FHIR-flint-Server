@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Search, Download, FileCode, Layers, Grid, List,
-  GitBranch, Users, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2,
-  ChevronDown, ChevronUp, Copy, Check, ExternalLink, ChevronLeft, Plus, Settings, X
+  Search, Download, FileCode, Layers,
+  GitBranch, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2,
+  ChevronDown, ChevronUp, Copy, Check, ExternalLink, ChevronLeft, ChevronRight, Plus, Settings, X, Filter, Pencil, Trash2
 } from 'lucide-react';
 import ValueSetBuilder from './ValueSetBuilder';
 
@@ -19,6 +19,7 @@ interface FhirResource {
   description?: string;
   status: string;
   version?: string;
+  content?: string;
   compose?: { include: Array<{ concept?: Array<{ code: string; display?: string }> }> };
   concept?: Array<{ code: string; display?: string }>;
   identifier?: Array<{ system?: string; value?: string }>;
@@ -79,6 +80,7 @@ interface UiResource {
   definition: string;
   status: string;
   version: string;
+  content?: string;
   conceptCount: number;
   versionHistory: VersionEntry[];
 }
@@ -110,6 +112,7 @@ function toUiResource(r: FhirResource): UiResource {
     definition: r.description ? stripHtml(r.description) : '',
     status: r.status,
     version: r.version ?? '1',
+    content: r.content,
     conceptCount: countConcepts(r),
     versionHistory: [],
   };
@@ -127,10 +130,14 @@ async function fetchStats(): Promise<ApiStats> {
 
 async function fetchResources(
   resourceType: 'ValueSet' | 'CodeSystem',
-  search: string
+  search: string,
+  status?: string,
+  content?: string
 ): Promise<UiResource[]> {
   const params = new URLSearchParams();
   if (search.trim()) params.set('name', search.trim());
+  if (status) params.set('status', status);
+  if (content) params.set('content', content);
   const bundle = await apiFetch<{ entry?: Array<{ resource: FhirResource }> }>(
     `/${resourceType}?${params}`
   );
@@ -138,6 +145,24 @@ async function fetchResources(
     .map(e => e.resource)
     .filter(Boolean)
     .map(toUiResource);
+}
+
+async function fetchFullResource(resourceType: 'ValueSet' | 'CodeSystem', id: string): Promise<FhirResource> {
+  return apiFetch<FhirResource>(`/${resourceType}/${id}`);
+}
+
+async function updateResource(resourceType: 'ValueSet' | 'CodeSystem', id: string, data: FhirResource): Promise<void> {
+  const resp = await fetch(`/${resourceType}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/fhir+json', Accept: 'application/fhir+json' },
+    body: JSON.stringify(data),
+  });
+  if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
+}
+
+async function deleteResource(resourceType: 'ValueSet' | 'CodeSystem', id: string): Promise<void> {
+  const resp = await fetch(`/${resourceType}/${id}`, { method: 'DELETE' });
+  if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
 }
 
 async function fetchExpansion(url: string): Promise<ExpansionConcept[]> {
@@ -229,6 +254,22 @@ const StatusBadge = ({ status }: { status: string }) => {
   return (
     <span className={`px-2 py-0.5 rounded text-xs font-medium ${colours[status] ?? colours.unknown}`}>
       {status}
+    </span>
+  );
+};
+
+const ContentBadge = ({ content }: { content?: string }) => {
+  const colours: Record<string, string> = {
+    complete:    'bg-purple-100 text-purple-700',
+    fragment:    'bg-blue-100 text-blue-700',
+    'not-present': 'bg-gray-100 text-gray-500',
+    example:     'bg-orange-100 text-orange-700',
+    supplement:  'bg-teal-100 text-teal-700',
+  };
+  const label = content ?? 'complete';
+  return (
+    <span className={`px-2 py-0.5 rounded text-xs font-medium ${colours[label] ?? 'bg-gray-100 text-gray-500'}`}>
+      {label}
     </span>
   );
 };
@@ -451,7 +492,6 @@ const ExpansionPage = ({ resource, onBack }: { resource: UiResource; onBack: () 
 const ModernPHINVADS = () => {
   const [activeTab, setActiveTab] = useState<'ValueSet' | 'CodeSystem'>('ValueSet');
   const [activeView, setActiveView] = useState('browse');
-  const [viewMode, setViewMode] = useState('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResource, setSelectedResource] = useState<UiResource | null>(null);
   const [expansionResource, setExpansionResource] = useState<UiResource | null>(null);
@@ -479,6 +519,21 @@ const ModernPHINVADS = () => {
   const [showSearchConfig, setShowSearchConfig] = useState(false);
   const [externalSearchEnabled, setExternalSearchEnabled] = useState(true);
 
+  // Edit / delete
+  const [editingResource, setEditingResource] = useState<UiResource | null>(null);
+  const [deletingResource, setDeletingResource] = useState<UiResource | null>(null);
+
+  // CodeSystem table filters and pagination
+  const [csStatusFilter, setCsStatusFilter] = useState('');
+  const [csContentFilter, setCsContentFilter] = useState('');
+  const [csPage, setCsPage] = useState(0);
+  const CS_PAGE_SIZE = 25;
+
+  // ValueSet table filters and pagination
+  const [vsStatusFilter, setVsStatusFilter] = useState('');
+  const [vsPage, setVsPage] = useState(0);
+  const VS_PAGE_SIZE = 25;
+
   const debouncedSearch = useDebounce(searchTerm, 350);
 
   // Load stats once on mount
@@ -496,19 +551,21 @@ const ModernPHINVADS = () => {
 
   useEffect(() => { loadStats(); }, [loadStats]);
 
-  // Load resources when tab or debounced search changes
+  // Load resources when tab, debounced search, or active filters change
   const loadResources = useCallback(async () => {
     setLoadingResources(true);
     setErrorResources(null);
     setSelectedResource(null);
     try {
-      setResources(await fetchResources(activeTab, debouncedSearch));
+      const status = activeTab === 'CodeSystem' ? csStatusFilter : vsStatusFilter;
+      const content = activeTab === 'CodeSystem' ? csContentFilter : undefined;
+      setResources(await fetchResources(activeTab, debouncedSearch, status, content));
     } catch (e) {
       setErrorResources((e as Error).message);
     } finally {
       setLoadingResources(false);
     }
-  }, [activeTab, debouncedSearch]);
+  }, [activeTab, debouncedSearch, csStatusFilter, csContentFilter, vsStatusFilter]);
 
   useEffect(() => { loadResources(); }, [loadResources]);
 
@@ -567,38 +624,6 @@ const ModernPHINVADS = () => {
     a.click();
   }, []);
 
-  // ResourceCard
-  const ResourceCard = useCallback(({ resource }: { resource: UiResource }) => (
-    <div
-      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-xl transition-all cursor-pointer hover:border-blue-400 group"
-      onClick={() => setSelectedResource(resource)}
-    >
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Layers className="w-5 h-5 text-blue-600" />
-          <StatusBadge status={resource.status} />
-        </div>
-        <button
-          className="text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={e => { e.stopPropagation(); handleDownloadJson(resource); }}
-          title="Download JSON"
-        >
-          <Download className="w-4 h-4" />
-        </button>
-      </div>
-      <h3 className="font-semibold text-gray-900 mb-1 text-sm group-hover:text-blue-600 transition-colors line-clamp-1">
-        {resource.title || resource.name}
-      </h3>
-      <p className="text-xs text-gray-500 mb-2 font-mono truncate">{resource.url || resource.id}</p>
-      <p className="text-xs text-gray-600 mb-3 line-clamp-2">{resource.definition || 'No description available.'}</p>
-      <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1"><FileCode className="w-3 h-3" />{resource.conceptCount} concepts</span>
-        </div>
-        <span className="text-blue-600 font-medium">v{resource.version}</span>
-      </div>
-    </div>
-  ), [handleDownloadJson]);
 
   // Analytics dashboard
   const AnalyticsDashboard = () => (
@@ -719,6 +744,24 @@ const ModernPHINVADS = () => {
             </button>
           )}
 
+          {/* Edit / Delete — ValueSet only */}
+          {resource.resourceType === 'ValueSet' && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEditingResource(resource)}
+                className="flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg border border-blue-300 text-blue-700 text-sm font-medium hover:bg-blue-50 transition-colors"
+              >
+                <Pencil className="w-4 h-4" /> Edit
+              </button>
+              <button
+                onClick={() => setDeletingResource(resource)}
+                className="flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg border border-red-300 text-red-600 text-sm font-medium hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" /> Delete
+              </button>
+            </div>
+          )}
+
           <div className="pt-4 border-t border-gray-200 space-y-2">
             <a
               href={resource.resourceType === 'ValueSet'
@@ -744,6 +787,134 @@ const ModernPHINVADS = () => {
             >
               <GitBranch className="w-4 h-4" /> Full History (FHIR)
             </a>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // -------------------------------------------------------------------------
+  // Edit ValueSet modal
+  // -------------------------------------------------------------------------
+  const EditValueSetModal = ({ resource, onClose, onSaved }: {
+    resource: UiResource;
+    onClose: () => void;
+    onSaved: () => void;
+  }) => {
+    const [fullResource, setFullResource] = useState<FhirResource | null>(null);
+    const [loadingFull, setLoadingFull] = useState(true);
+    const [form, setForm] = useState({ name: resource.name, title: resource.title, description: resource.definition, status: resource.status, version: resource.version });
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+      fetchFullResource('ValueSet', resource.id)
+        .then(r => { setFullResource(r); setForm({ name: r.name ?? resource.name, title: r.title ?? resource.title, description: r.description ?? resource.definition, status: r.status, version: r.version ?? resource.version }); })
+        .catch(e => setError((e as Error).message))
+        .finally(() => setLoadingFull(false));
+    }, [resource.id]);
+
+    const handleSave = async () => {
+      if (!fullResource) return;
+      setSaving(true); setError(null);
+      try {
+        await updateResource('ValueSet', resource.id, { ...fullResource, name: form.name, title: form.title, description: form.description, status: form.status, version: form.version });
+        onSaved();
+      } catch (e) { setError((e as Error).message); }
+      finally { setSaving(false); }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <h2 className="text-base font-semibold text-gray-900">Edit Value Set</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+          </div>
+          {loadingFull ? (
+            <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
+          ) : (
+            <div className="px-6 py-4 space-y-4">
+              {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">{error}</p>}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
+                <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Name <span className="text-gray-400 font-normal">(machine-readable)</span></label>
+                <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
+                    <option value="active">Active</option>
+                    <option value="draft">Draft</option>
+                    <option value="retired">Retired</option>
+                    <option value="unknown">Unknown</option>
+                  </select>
+                </div>
+                <div className="w-32">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Version</label>
+                  <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" value={form.version} onChange={e => setForm(f => ({ ...f, version: e.target.value }))} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                <textarea rows={4} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 resize-none" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+            <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+            <button onClick={handleSave} disabled={saving || loadingFull} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />} Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // -------------------------------------------------------------------------
+  // Delete confirmation dialog
+  // -------------------------------------------------------------------------
+  const DeleteConfirmDialog = ({ resource, onClose, onDeleted }: {
+    resource: UiResource;
+    onClose: () => void;
+    onDeleted: () => void;
+  }) => {
+    const [deleting, setDeleting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleDelete = async () => {
+      setDeleting(true); setError(null);
+      try {
+        await deleteResource(resource.resourceType, resource.id);
+        onDeleted();
+      } catch (e) { setError((e as Error).message); setDeleting(false); }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+          <div className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-base font-semibold text-gray-900 mb-1">Delete Value Set</h2>
+                <p className="text-sm text-gray-600">Are you sure you want to delete <span className="font-medium">"{resource.title || resource.name}"</span>? This will permanently remove the resource and all its version history.</p>
+                {error && <p className="text-sm text-red-600 mt-3 bg-red-50 border border-red-200 rounded-lg p-2">{error}</p>}
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 px-6 pb-5">
+            <button onClick={onClose} disabled={deleting} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">Cancel</button>
+            <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2">
+              {deleting && <Loader2 className="w-4 h-4 animate-spin" />} Delete
+            </button>
           </div>
         </div>
       </div>
@@ -886,16 +1057,6 @@ const ModernPHINVADS = () => {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:bg-gray-100'}`}>
-                    <Grid className="w-5 h-5" />
-                  </button>
-                  <button onClick={() => setViewMode('list')}
-                    className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:bg-gray-100'}`}>
-                    <List className="w-5 h-5" />
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -905,35 +1066,330 @@ const ModernPHINVADS = () => {
                 <ErrorBanner message={errorResources} onRetry={loadResources} />
               ) : loadingResources ? (
                 <LoadingSpinner message={`Loading ${activeTab}s…`} />
-              ) : (
-                <>
-                  <div className="mb-4 flex items-center justify-between">
-                    <p className="text-sm text-gray-600">
-                      Showing <span className="font-semibold">{resources.length}</span> {activeTab}s
-                      {debouncedSearch && <span className="text-gray-400"> matching "{debouncedSearch}"</span>}
-                    </p>
-                  </div>
-                  {resources.length === 0 ? (
-                    <div className="text-center py-20 text-gray-400">
-                      <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p className="text-sm">
-                        {debouncedSearch
-                          ? `No ${activeTab}s found matching "${debouncedSearch}"`
-                          : `No ${activeTab}s found. Import data using the migration tool.`}
+              ) : activeTab === 'CodeSystem' ? (() => {
+                // --- CodeSystem table view with filters + pagination ---
+                // Filtering is handled server-side; resources is already filtered
+                const csTotalPages = Math.max(1, Math.ceil(resources.length / CS_PAGE_SIZE));
+                const csPageClamped = Math.min(csPage, csTotalPages - 1);
+                const csPaginated = resources.slice(csPageClamped * CS_PAGE_SIZE, csPageClamped * CS_PAGE_SIZE + CS_PAGE_SIZE);
+                const pageWindow = Math.max(0, Math.min(csTotalPages - 5, csPageClamped - 2));
+
+                return (
+                  <>
+                    {/* Filter bar */}
+                    <div className="mb-4 flex flex-wrap items-center gap-3">
+                      <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Status</label>
+                        <select
+                          value={csStatusFilter}
+                          onChange={e => { setCsStatusFilter(e.target.value); setCsPage(0); }}
+                          className="text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                        >
+                          <option value="">All statuses</option>
+                          <option value="active">Active</option>
+                          <option value="draft">Draft</option>
+                          <option value="retired">Retired</option>
+                          <option value="unknown">Unknown</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Content</label>
+                        <select
+                          value={csContentFilter}
+                          onChange={e => { setCsContentFilter(e.target.value); setCsPage(0); }}
+                          className="text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                        >
+                          <option value="">All types</option>
+                          <option value="complete">Complete</option>
+                          <option value="fragment">Fragment</option>
+                          <option value="not-present">Not Present</option>
+                          <option value="example">Example</option>
+                          <option value="supplement">Supplement</option>
+                        </select>
+                      </div>
+                      {(csStatusFilter || csContentFilter) && (
+                        <button
+                          onClick={() => { setCsStatusFilter(''); setCsContentFilter(''); setCsPage(0); }}
+                          className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md px-2 py-1.5 hover:bg-gray-50 transition-colors"
+                        >
+                          <X className="w-3 h-3" /> Clear filters
+                        </button>
+                      )}
+                      <p className="ml-auto text-sm text-gray-600">
+                        Showing <span className="font-semibold">{resources.length}</span>
+                        <span className="text-gray-400"> code systems</span>
+                        {debouncedSearch && <span className="text-gray-400"> matching "{debouncedSearch}"</span>}
                       </p>
                     </div>
-                  ) : (
-                    <div className={viewMode === 'grid'
-                      ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
-                      : 'flex flex-col gap-3'
-                    }>
-                      {resources.map((resource: UiResource) => (
-                        <ResourceCard key={resource.id} resource={resource} />
-                      ))}
+
+                    {resources.length === 0 ? (
+                      <div className="text-center py-20 text-gray-400">
+                        <Database className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                        <p className="text-sm">
+                          {debouncedSearch || csStatusFilter || csContentFilter
+                            ? 'No code systems match the current filters.'
+                            : 'No code systems found. Import data using the migration tool.'}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Table */}
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                              <tr>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Name / Title</th>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden lg:table-cell">URL</th>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</th>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Content</th>
+                                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Concepts</th>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden sm:table-cell">Version</th>
+                                <th className="px-4 py-3 w-8" />
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                              {csPaginated.map(cs => (
+                                <tr
+                                  key={cs.id}
+                                  className="hover:bg-purple-50 cursor-pointer transition-colors group"
+                                  onClick={() => setSelectedResource(cs)}
+                                >
+                                  <td className="px-4 py-3">
+                                    <div className="font-medium text-gray-900 group-hover:text-purple-700 transition-colors line-clamp-1">
+                                      {cs.title || cs.name}
+                                    </div>
+                                    {cs.definition && (
+                                      <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{cs.definition}</div>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3 hidden lg:table-cell max-w-xs">
+                                    <span className="text-xs font-mono text-gray-400 truncate block">{cs.url}</span>
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    <StatusBadge status={cs.status} />
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    <ContentBadge content={cs.content} />
+                                  </td>
+                                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                                    <span className="text-xs text-gray-500">{cs.conceptCount.toLocaleString()}</span>
+                                  </td>
+                                  <td className="px-4 py-3 hidden sm:table-cell whitespace-nowrap">
+                                    {cs.version && <span className="text-xs text-purple-600 font-medium">v{cs.version}</span>}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <button
+                                      className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-purple-600"
+                                      onClick={e => { e.stopPropagation(); handleDownloadJson(cs); }}
+                                      title="Download JSON"
+                                    >
+                                      <Download className="w-4 h-4" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Pagination */}
+                        {csTotalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between gap-2 flex-wrap">
+                            <p className="text-xs text-gray-500">
+                              Page {csPageClamped + 1} of {csTotalPages} · {resources.length} results
+                            </p>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => setCsPage(p => Math.max(0, p - 1))}
+                                disabled={csPageClamped === 0}
+                                className="p-1.5 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </button>
+                              {Array.from({ length: Math.min(5, csTotalPages) }, (_, i) => {
+                                const p = pageWindow + i;
+                                return (
+                                  <button
+                                    key={p}
+                                    onClick={() => setCsPage(p)}
+                                    className={`px-3 py-1.5 text-xs border rounded-md transition-colors ${
+                                      p === csPageClamped
+                                        ? 'bg-purple-600 text-white border-purple-600'
+                                        : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                  >
+                                    {p + 1}
+                                  </button>
+                                );
+                              })}
+                              <button
+                                onClick={() => setCsPage(p => Math.min(csTotalPages - 1, p + 1))}
+                                disabled={csPageClamped >= csTotalPages - 1}
+                                className="p-1.5 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                );
+              })() : (() => {
+                // --- ValueSet table view with status filter + pagination ---
+                // Filtering is handled server-side; resources is already filtered
+                const vsTotalPages = Math.max(1, Math.ceil(resources.length / VS_PAGE_SIZE));
+                const vsPageClamped = Math.min(vsPage, vsTotalPages - 1);
+                const vsPaginated = resources.slice(vsPageClamped * VS_PAGE_SIZE, vsPageClamped * VS_PAGE_SIZE + VS_PAGE_SIZE);
+                const vsPageWindow = Math.max(0, Math.min(vsTotalPages - 5, vsPageClamped - 2));
+
+                return (
+                  <>
+                    {/* Filter bar */}
+                    <div className="mb-4 flex flex-wrap items-center gap-3">
+                      <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Status</label>
+                        <select
+                          value={vsStatusFilter}
+                          onChange={e => { setVsStatusFilter(e.target.value); setVsPage(0); }}
+                          className="text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                        >
+                          <option value="">All statuses</option>
+                          <option value="active">Active</option>
+                          <option value="draft">Draft</option>
+                          <option value="retired">Retired</option>
+                          <option value="unknown">Unknown</option>
+                        </select>
+                      </div>
+                      {vsStatusFilter && (
+                        <button
+                          onClick={() => { setVsStatusFilter(''); setVsPage(0); }}
+                          className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md px-2 py-1.5 hover:bg-gray-50 transition-colors"
+                        >
+                          <X className="w-3 h-3" /> Clear filters
+                        </button>
+                      )}
+                      <p className="ml-auto text-sm text-gray-600">
+                        Showing <span className="font-semibold">{resources.length}</span>
+                        <span className="text-gray-400"> value sets</span>
+                        {debouncedSearch && <span className="text-gray-400"> matching "{debouncedSearch}"</span>}
+                      </p>
                     </div>
-                  )}
-                </>
-              )
+
+                    {resources.length === 0 ? (
+                      <div className="text-center py-20 text-gray-400">
+                        <Layers className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                        <p className="text-sm">
+                          {debouncedSearch || vsStatusFilter
+                            ? 'No value sets match the current filters.'
+                            : 'No value sets found. Import data using the migration tool.'}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Table */}
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                              <tr>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Name / Title</th>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden lg:table-cell">URL</th>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</th>
+                                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Concepts</th>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden sm:table-cell">Version</th>
+                                <th className="px-4 py-3 w-8" />
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                              {vsPaginated.map(vs => (
+                                <tr
+                                  key={vs.id}
+                                  className="hover:bg-blue-50 cursor-pointer transition-colors group"
+                                  onClick={() => setSelectedResource(vs)}
+                                >
+                                  <td className="px-4 py-3">
+                                    <div className="font-medium text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-1">
+                                      {vs.title || vs.name}
+                                    </div>
+                                    {vs.definition && (
+                                      <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{vs.definition}</div>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3 hidden lg:table-cell max-w-xs">
+                                    <span className="text-xs font-mono text-gray-400 truncate block">{vs.url}</span>
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap">
+                                    <StatusBadge status={vs.status} />
+                                  </td>
+                                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                                    <span className="text-xs text-gray-500">{vs.conceptCount.toLocaleString()}</span>
+                                  </td>
+                                  <td className="px-4 py-3 hidden sm:table-cell whitespace-nowrap">
+                                    {vs.version && <span className="text-xs text-blue-600 font-medium">v{vs.version}</span>}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <button
+                                      className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-600"
+                                      onClick={e => { e.stopPropagation(); handleDownloadJson(vs); }}
+                                      title="Download JSON"
+                                    >
+                                      <Download className="w-4 h-4" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Pagination */}
+                        {vsTotalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between gap-2 flex-wrap">
+                            <p className="text-xs text-gray-500">
+                              Page {vsPageClamped + 1} of {vsTotalPages} · {resources.length} results
+                            </p>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => setVsPage(p => Math.max(0, p - 1))}
+                                disabled={vsPageClamped === 0}
+                                className="p-1.5 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </button>
+                              {Array.from({ length: Math.min(5, vsTotalPages) }, (_, i) => {
+                                const p = vsPageWindow + i;
+                                return (
+                                  <button
+                                    key={p}
+                                    onClick={() => setVsPage(p)}
+                                    className={`px-3 py-1.5 text-xs border rounded-md transition-colors ${
+                                      p === vsPageClamped
+                                        ? 'bg-blue-600 text-white border-blue-600'
+                                        : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                  >
+                                    {p + 1}
+                                  </button>
+                                );
+                              })}
+                              <button
+                                onClick={() => setVsPage(p => Math.min(vsTotalPages - 1, p + 1))}
+                                disabled={vsPageClamped >= vsTotalPages - 1}
+                                className="p-1.5 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                );
+              })()
             )}
 
             {/* Results — Concept/Code mode */}
@@ -1084,6 +1540,22 @@ const ModernPHINVADS = () => {
       </div>
 
       {selectedResource && <DetailPanel resource={selectedResource} />}
+
+      {editingResource && (
+        <EditValueSetModal
+          resource={editingResource}
+          onClose={() => setEditingResource(null)}
+          onSaved={() => { setEditingResource(null); setSelectedResource(null); loadResources(); }}
+        />
+      )}
+
+      {deletingResource && (
+        <DeleteConfirmDialog
+          resource={deletingResource}
+          onClose={() => setDeletingResource(null)}
+          onDeleted={() => { setDeletingResource(null); setSelectedResource(null); loadResources(); }}
+        />
+      )}
 
       {/* External Code System Search Config Modal */}
       {showSearchConfig && (

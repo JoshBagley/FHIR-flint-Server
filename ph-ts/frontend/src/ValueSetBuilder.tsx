@@ -730,7 +730,7 @@ export default function ValueSetBuilder({ onBack }: Props) {
               <Sparkles className="w-4 h-4 text-yellow-500" /> AI Code Assistant
             </h2>
             <p className="text-xs text-gray-500 mb-3">
-              Describe the clinical concept you're looking for. Claude will search the selected code
+              Describe the clinical concept you're looking for. The AI assistant will search the selected code
               systems and rank the best matches with clinical rationale.
             </p>
 

@@ -16,8 +16,33 @@ import hashlib
 import json
 
 from app import state
+from app.services import external_cs
 
 router = APIRouter(tags=["FHIR Operations"])
+
+# Maps FHIR system URLs to the SDO connector IDs in external_cs.py.
+# Used to delegate $expand/$lookup to external services when a locally
+# registered CodeSystem has content="not-present" or content="fragment".
+# OID aliases handle ValueSets imported from PHIN VADS where the migration
+# script could not normalise a system reference (e.g. unknown OIDs).
+_SYSTEM_URL_TO_SDO: Dict[str, str] = {
+    # Canonical FHIR URLs
+    "http://snomed.info/sct":                      "snomed",
+    "http://loinc.org":                            "loinc",
+    "http://hl7.org/fhir/sid/icd-10-cm":           "icd10cm",
+    "http://hl7.org/fhir/sid/icd-9-cm":            "icd9cm",
+    "http://www.nlm.nih.gov/research/umls/rxnorm": "rxnorm",
+    "https://cts.nlm.nih.gov/fhir":                "vsac",
+    # OID aliases — produced by PHIN VADS imports where normalisation did not apply
+    "urn:oid:2.16.840.1.113883.6.1":               "loinc",
+    "urn:oid:2.16.840.1.113883.6.96":              "snomed",
+    "urn:oid:2.16.840.1.113883.6.90":              "icd10cm",
+    "urn:oid:2.16.840.1.113883.6.103":             "icd9cm",
+    "urn:oid:2.16.840.1.113883.6.88":              "rxnorm",
+}
+
+# CodeSystem content values that indicate concepts are NOT stored locally.
+_STUB_CONTENT = {"not-present", "fragment"}
 
 
 # ============================================================================
@@ -78,12 +103,40 @@ async def _perform_expansion(
             cs_results = await state.db.search_resources('CodeSystem', {'url': system})
             if cs_results:
                 cs = cs_results[0]
-                for concept in cs.get('concept', []):
-                    all_concepts.append({
-                        'system': system,
-                        'code': concept['code'],
-                        'display': concept.get('display', concept['code'])
-                    })
+                cs_content = cs.get('content', 'complete')
+                local_concepts = cs.get('concept', [])
+
+                if cs_content in _STUB_CONTENT or not local_concepts:
+                    # Stub/fragment — delegate to external SDO connector
+                    sdo_id = _SYSTEM_URL_TO_SDO.get(system)
+                    if sdo_id:
+                        term = filter_text or ''
+                        external = await external_cs.search(sdo_id, term, limit=count)
+                        for item in external:
+                            all_concepts.append({
+                                'system': system,
+                                'code': item['code'],
+                                'display': item.get('display', item['code'])
+                            })
+                else:
+                    for concept in local_concepts:
+                        all_concepts.append({
+                            'system': system,
+                            'code': concept['code'],
+                            'display': concept.get('display', concept['code'])
+                        })
+            else:
+                # No local CodeSystem at all — try external connector directly
+                sdo_id = _SYSTEM_URL_TO_SDO.get(system)
+                if sdo_id:
+                    term = filter_text or ''
+                    external = await external_cs.search(sdo_id, term, limit=count)
+                    for item in external:
+                        all_concepts.append({
+                            'system': system,
+                            'code': item['code'],
+                            'display': item.get('display', item['code'])
+                        })
 
     if filter_text:
         filter_lower = filter_text.lower()
@@ -312,10 +365,6 @@ async def _perform_lookup(
         raise HTTPException(status_code=400, detail="system and code parameters are required")
 
     cs_results = await state.db.search_resources('CodeSystem', {'url': system})
-    if not cs_results:
-        raise HTTPException(status_code=404, detail=f"CodeSystem with url {system} not found")
-
-    codesystem = cs_results[0]
 
     def find_concept(concepts, target_code):
         for concept in concepts:
@@ -327,24 +376,57 @@ async def _perform_lookup(
                     return nested
         return None
 
-    concept = find_concept(codesystem.get('concept', []), code)
+    if cs_results:
+        codesystem = cs_results[0]
+        cs_content = codesystem.get('content', 'complete')
+        concept = find_concept(codesystem.get('concept', []), code)
 
-    if not concept:
-        return {
-            'resourceType': 'Parameters',
-            'parameter': [
-                {'name': 'result', 'valueBoolean': False},
-                {'name': 'message', 'valueString': 'Code not found'}
-            ]
-        }
+        if concept:
+            return {
+                'resourceType': 'Parameters',
+                'parameter': [
+                    {'name': 'name', 'valueString': codesystem.get('name')},
+                    {'name': 'version', 'valueString': codesystem.get('version')},
+                    {'name': 'display', 'valueString': concept.get('display')},
+                    {'name': 'definition', 'valueString': concept.get('definition', '')}
+                ]
+            }
+
+        # Concept not found locally — fall through to external if stub/fragment
+        if cs_content not in _STUB_CONTENT:
+            return {
+                'resourceType': 'Parameters',
+                'parameter': [
+                    {'name': 'result', 'valueBoolean': False},
+                    {'name': 'message', 'valueString': 'Code not found'}
+                ]
+            }
+    else:
+        codesystem = None
+
+    # No local CodeSystem, or it's a stub — try external SDO connector
+    sdo_id = _SYSTEM_URL_TO_SDO.get(system)
+    if sdo_id:
+        ext = await external_cs.lookup(sdo_id, code)
+        if ext:
+            return {
+                'resourceType': 'Parameters',
+                'parameter': [
+                    {'name': 'name', 'valueString': ext.get('systemName', system)},
+                    {'name': 'version', 'valueString': codesystem.get('version') if codesystem else None},
+                    {'name': 'display', 'valueString': ext.get('display')},
+                    {'name': 'definition', 'valueString': ''}
+                ]
+            }
+
+    if not cs_results:
+        raise HTTPException(status_code=404, detail=f"CodeSystem with url {system} not found")
 
     return {
         'resourceType': 'Parameters',
         'parameter': [
-            {'name': 'name', 'valueString': codesystem.get('name')},
-            {'name': 'version', 'valueString': codesystem.get('version')},
-            {'name': 'display', 'valueString': concept.get('display')},
-            {'name': 'definition', 'valueString': concept.get('definition', '')}
+            {'name': 'result', 'valueBoolean': False},
+            {'name': 'message', 'valueString': 'Code not found'}
         ]
     }
 

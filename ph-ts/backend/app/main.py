@@ -311,6 +311,32 @@ class DatabaseManager:
 
                 CREATE INDEX IF NOT EXISTS idx_version_resource ON resource_versions(resource_id);
 
+                -- Deduplicate fhir_resources: for each (resource_type, url, version) group
+                -- where both url and version are non-null, keep only the oldest row.
+                -- This is a no-op once the data is already clean.
+                WITH ranked AS (
+                    SELECT id,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY resource_type, url, version
+                               ORDER BY created_at ASC
+                           ) AS rn
+                    FROM fhir_resources
+                    WHERE url IS NOT NULL AND version IS NOT NULL
+                )
+                DELETE FROM fhir_resources
+                WHERE id IN (SELECT id FROM ranked WHERE rn > 1);
+
+                -- Remove orphaned version-history rows whose parent resource was removed
+                DELETE FROM resource_versions
+                WHERE resource_id NOT IN (SELECT id FROM fhir_resources);
+
+                -- Enforce uniqueness on (resource_type, url, version) going forward.
+                -- Partial index: only applies when both url and version are present,
+                -- so unversioned resources are not affected.
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_resource_url_version
+                ON fhir_resources(resource_type, url, version)
+                WHERE url IS NOT NULL AND version IS NOT NULL;
+
                 CREATE TABLE IF NOT EXISTS concept_mappings (
                     id SERIAL PRIMARY KEY,
                     source_system VARCHAR(255),
@@ -386,6 +412,13 @@ class DatabaseManager:
             affected = int(result.split()[-1]) if result and result.split() else 0
             return affected > 0
 
+    async def delete_resource(self, resource_id: str) -> bool:
+        async with self.pool.acquire() as conn:
+            await conn.execute("DELETE FROM resource_versions WHERE resource_id = $1", resource_id)
+            result = await conn.execute("DELETE FROM fhir_resources WHERE id = $1", resource_id)
+            affected = int(result.split()[-1]) if result and result.split() else 0
+            return affected > 0
+
     async def get_resource(self, resource_id: str, version: Optional[int] = None) -> Optional[Dict]:
         async with self.pool.acquire() as conn:
             if version:
@@ -417,7 +450,12 @@ class DatabaseManager:
             values.append(params['url'])
             param_idx += 1
 
-        query = f"SELECT data FROM fhir_resources WHERE {' AND '.join(conditions)} ORDER BY updated_at DESC LIMIT 100"
+        if 'content' in params:
+            conditions.append(f"data->>'content' = ${param_idx}")
+            values.append(params['content'])
+            param_idx += 1
+
+        query = f"SELECT data FROM fhir_resources WHERE {' AND '.join(conditions)} ORDER BY updated_at DESC LIMIT 5000"
 
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(query, *values)
@@ -504,6 +542,12 @@ class SearchEngine:
             "concepts": self._extract_concepts(resource)
         }
         await self.es.index(index="fhir_resources", id=resource.get("id"), document=doc)
+
+    async def delete_resource(self, resource_id: str):
+        try:
+            await self.es.delete(index="fhir_resources", id=resource_id)
+        except Exception:
+            pass  # Not indexed or already removed — not an error
 
     def _extract_concepts(self, resource: Dict) -> List[Dict]:
         concepts = []
@@ -807,6 +851,17 @@ async def update_value_set(resource_id: str, value_set: ValueSet):
     return await state.db.get_resource(resource_id)
 
 
+@app.delete("/ValueSet/{resource_id}", status_code=204)
+async def delete_value_set(resource_id: str):
+    existing = await state.db.get_resource(resource_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"ValueSet/{resource_id} not found")
+    await state.db.delete_resource(resource_id)
+    await state.search_engine.delete_resource(resource_id)
+    await state.cache.invalidate_pattern(f"ValueSet:{resource_id}:*")
+    await state.cache.invalidate_pattern("ValueSet:*")
+
+
 @app.get("/ValueSet")
 async def search_value_sets(
     name: Optional[str] = Query(None),
@@ -886,6 +941,7 @@ async def search_code_systems(
     name: Optional[str] = Query(None),
     url: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
+    content: Optional[str] = Query(None),
     q: Optional[str] = Query(None)
 ):
     if q:
@@ -899,6 +955,8 @@ async def search_code_systems(
         params['url'] = url
     if status:
         params['status'] = status
+    if content:
+        params['content'] = content
 
     results = await state.db.search_resources("CodeSystem", params)
     return {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}

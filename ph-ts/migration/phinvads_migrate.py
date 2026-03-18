@@ -45,9 +45,9 @@ import httpx
 
 PHINVADS_BASE = "https://phinvads.cdc.gov/baseStu3"
 DEFAULT_TARGET = "http://localhost"
-REQUEST_TIMEOUT = 60          # seconds per HTTP call
-RETRY_ATTEMPTS = 3
-RETRY_BACKOFF = 2.0           # seconds, doubles on each retry
+REQUEST_TIMEOUT = 120         # seconds per HTTP call (PHINVADS responses can be large)
+RETRY_ATTEMPTS = 5
+RETRY_BACKOFF = 5.0           # seconds, doubles on each retry
 PAGE_SIZE = 100               # _count per PHIN VADS page
 
 logging.basicConfig(
@@ -56,6 +56,131 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(stream=open(sys.stdout.fileno(), mode='w', encoding='utf-8', closefd=False))],
 )
 logger = logging.getLogger("phinvads_migrate")
+
+# ---------------------------------------------------------------------------
+# OID → Canonical FHIR URL mapping
+# ---------------------------------------------------------------------------
+# Maps well-known code system OIDs to their authoritative FHIR canonical URLs.
+# PHIN VADS STU3 resources frequently use urn:oid:... or bare OID notation in
+# compose.include.system; normalising these to canonical URLs ensures that
+# $expand/$lookup delegation routing (which keys on canonical URLs) works correctly.
+
+_OID_TO_CANONICAL: Dict[str, str] = {
+    # Standard SDOs
+    "2.16.840.1.113883.6.1":      "http://loinc.org",
+    "2.16.840.1.113883.6.96":     "http://snomed.info/sct",
+    "2.16.840.1.113883.6.90":     "http://hl7.org/fhir/sid/icd-10-cm",
+    "2.16.840.1.113883.6.103":    "http://hl7.org/fhir/sid/icd-9-cm",
+    "2.16.840.1.113883.6.88":     "http://www.nlm.nih.gov/research/umls/rxnorm",
+    "2.16.840.1.113883.6.101":    "http://www.ama-assn.org/go/cpt",
+    "2.16.840.1.113883.6.69":     "http://hl7.org/fhir/sid/ndc",
+    "2.16.840.1.113883.4.9":      "http://fdasis.nlm.nih.gov",
+    "2.16.840.1.113883.3.26.1.1": "http://ncithesaurus.nci.nih.gov",
+    # HL7 v3 code systems
+    "2.16.840.1.113883.5.1":      "http://terminology.hl7.org/CodeSystem/v3-AdministrativeGender",
+    "2.16.840.1.113883.5.4":      "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+    "2.16.840.1.113883.5.6":      "http://terminology.hl7.org/CodeSystem/v3-ActClass",
+    "2.16.840.1.113883.5.8":      "http://terminology.hl7.org/CodeSystem/v3-ActMood",
+    "2.16.840.1.113883.5.14":     "http://terminology.hl7.org/CodeSystem/v3-ActStatus",
+    "2.16.840.1.113883.5.25":     "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+    "2.16.840.1.113883.5.45":     "http://terminology.hl7.org/CodeSystem/v3-EntityNamePartQualifier",
+    "2.16.840.1.113883.5.83":     "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+    "2.16.840.1.113883.5.111":    "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+    # HL7 v2 tables
+    "2.16.840.1.113883.12.1":     "http://terminology.hl7.org/CodeSystem/v2-0001",
+    "2.16.840.1.113883.12.3":     "http://terminology.hl7.org/CodeSystem/v2-0003",
+    "2.16.840.1.113883.12.61":    "http://terminology.hl7.org/CodeSystem/v2-0061",
+    "2.16.840.1.113883.12.78":    "http://terminology.hl7.org/CodeSystem/v2-0078",
+    "2.16.840.1.113883.12.136":   "http://terminology.hl7.org/CodeSystem/v2-0136",
+    "2.16.840.1.113883.12.189":   "http://terminology.hl7.org/CodeSystem/v2-0189",
+    "2.16.840.1.113883.12.276":   "http://terminology.hl7.org/CodeSystem/v2-0276",
+    # CDC / public health — no universally recognised canonical; keep urn:oid: form
+    "2.16.840.1.113883.6.238":    "urn:oid:2.16.840.1.113883.6.238",   # CDCREC
+}
+
+
+def _normalize_system_url(system: Optional[str]) -> Optional[str]:
+    """
+    Convert a code system reference to its canonical FHIR URL where known.
+
+    PHIN VADS can use three formats:
+      - "urn:oid:2.16.840.1.113883.6.1"   (prefixed OID)
+      - "2.16.840.1.113883.6.1"            (bare OID)
+      - "http://loinc.org"                 (already canonical — leave as-is)
+    """
+    if not system:
+        return system
+    oid: Optional[str] = None
+    if system.startswith("urn:oid:"):
+        oid = system[8:]
+    elif system[:1].isdigit() and "." in system:
+        oid = system
+    if oid is not None:
+        return _OID_TO_CANONICAL.get(oid, f"urn:oid:{oid}")
+    return system
+
+
+def _ensure_preferred_designation(concept: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Ensure that a concept's Preferred Concept Name is captured as a FHIR
+    R4 designation with use.code = "preferred".
+
+    PHIN VADS exposes preferred names in two ways depending on the resource:
+      1. Already as a designation array with use.code = "preferred" — keep as-is.
+      2. Not included in the FHIR API at all (only in the Excel export) — in that
+         case there is nothing we can add here; the display value is the best proxy.
+
+    This function normalises case 1 so the designation use coding is consistent,
+    and leaves case 2 unchanged.
+    """
+    designations = concept.get("designation")
+    if not designations:
+        return concept
+    normalised = []
+    for d in designations:
+        use = d.get("use", {})
+        # Already has a structured use — pass through
+        if isinstance(use, dict) and use.get("code"):
+            normalised.append(d)
+        elif isinstance(use, str):
+            # Some STU3 sources use a plain string instead of a Coding object
+            normalised.append({
+                **d,
+                "use": {
+                    "system": "http://terminology.hl7.org/CodeSystem/designation-usage",
+                    "code": use,
+                    "display": use.capitalize(),
+                },
+            })
+        else:
+            normalised.append(d)
+    return {**concept, "designation": normalised}
+
+
+def _normalize_compose(compose: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Walk compose.include / compose.exclude and:
+      - Normalise every system URL from OID to canonical FHIR URL.
+      - Ensure concept designation use codings are structured (R4-compatible).
+    Returns a shallow copy of the compose dict with values replaced.
+    """
+    if not compose:
+        return compose
+    result = dict(compose)
+    for key in ("include", "exclude"):
+        entries = compose.get(key)
+        if not entries:
+            continue
+        normalised_entries = []
+        for entry in entries:
+            e = dict(entry)
+            if "system" in e:
+                e["system"] = _normalize_system_url(e["system"])
+            if "concept" in e:
+                e["concept"] = [_ensure_preferred_designation(c) for c in e["concept"]]
+            normalised_entries.append(e)
+        result[key] = normalised_entries
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -131,9 +256,26 @@ def _convert_valueset_stu3_to_r4(raw: Dict[str, Any]) -> Dict[str, Any]:
             }
         ]
 
-    # compose block — structurally identical STU3/R4
+    # Pass through FHIR extensions (PHIN VADS may include custom metadata here)
+    if raw.get("extension"):
+        r4["extension"] = raw["extension"]
+
+    # Release comments / notes — PHIN VADS exposes these as non-standard top-level
+    # fields (releaseNotes, releaseComments) that have no direct R4 equivalent.
+    # Append to description so the information is not silently dropped.
+    release_notes = (
+        raw.get("releaseNotes")
+        or raw.get("releaseComments")
+        or raw.get("changeNotes")
+    )
+    if release_notes and isinstance(release_notes, str) and release_notes.strip():
+        existing = r4.get("description") or ""
+        sep = "\n\nRelease Notes: "
+        r4["description"] = existing + sep + release_notes.strip() if existing else "Release Notes: " + release_notes.strip()
+
+    # compose block — normalise system URLs then pass through (STU3/R4 identical structure)
     if "compose" in raw:
-        r4["compose"] = raw["compose"]
+        r4["compose"] = _normalize_compose(raw["compose"])
 
     # expansion — pass through if present
     if "expansion" in raw:
@@ -215,13 +357,43 @@ async def _get_json(client: httpx.AsyncClient, url: str, params: Dict = None) ->
                     response=resp,
                 )
             return resp.json()
-        except (httpx.HTTPStatusError, httpx.RequestError) as exc:
+        except Exception as exc:
             if attempt == RETRY_ATTEMPTS:
                 raise
             wait = RETRY_BACKOFF * attempt
             logger.warning("Attempt %d/%d failed for %s — retrying in %.1fs: %s",
                            attempt, RETRY_ATTEMPTS, url, wait, exc)
             await asyncio.sleep(wait)
+
+
+async def _resource_exists(
+    client: httpx.AsyncClient,
+    target_base: str,
+    resource_type: str,
+    url: str,
+    version: Optional[str],
+) -> bool:
+    """
+    Return True if the target server already holds a resource with this URL
+    (and version, when provided).  Used to skip duplicate imports on re-runs.
+    """
+    if not url:
+        return False
+    params: Dict[str, str] = {"url": url}
+    if version:
+        params["version"] = version
+    try:
+        resp = await client.get(
+            f"{target_base}/{resource_type}",
+            params=params,
+            timeout=15,
+        )
+        if resp.status_code == 200:
+            bundle = resp.json()
+            return (bundle.get("total") or len(bundle.get("entry", []))) > 0
+    except Exception:
+        pass
+    return False
 
 
 async def _post_resource(
@@ -440,6 +612,11 @@ async def fetch_all_pages(
         if not entries or not next_url:
             break
 
+        # PHINVADS sometimes returns a stale "next" link even after the total
+        # is exhausted — stop early to avoid hanging requests beyond the total.
+        if total > 0 and len(resources) + start_offset >= total:
+            break
+
         offset += len(entries)
         page += 1
 
@@ -504,6 +681,21 @@ async def migrate_resource_type(
                 safe_name = pv_id.replace("/", "_").replace(":", "_")
                 out_path = output_dir / f"{resource_type}_{safe_name}.json"
                 out_path.write_text(json.dumps(r4, indent=2, default=str))
+
+            # Skip if an identical URL+version already exists on the target server
+            # (prevents duplicate rows when re-running the migration script)
+            if not dry_run and pv_url:
+                already = await _resource_exists(
+                    target_client, target_base, resource_type,
+                    pv_url, r4.get("version"),
+                )
+                if already:
+                    stats["skipped"] = stats.get("skipped", 0) + 1
+                    logger.debug(
+                        "  = %s %s (v%s) already exists — skipped",
+                        resource_type, pv_url, r4.get("version"),
+                    )
+                    continue
 
             # POST to target
             success, detail = await _post_resource(
@@ -633,6 +825,7 @@ async def run(args: argparse.Namespace):
         print(f"    Fetched   : {s['fetched']}")
         print(f"    Converted : {s['converted']}")
         print(f"    Imported  : {s['imported']}")
+        print(f"    Skipped   : {s.get('skipped', 0)}")
         print(f"    Errors    : {s['errors']}")
     print("=" * 60 + "\n")
 
