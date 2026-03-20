@@ -43,11 +43,13 @@ Config: `infrastructure/docker/nginx/nginx.conf`
 
 - Python 3.11, FastAPI 0.104, Uvicorn with `--reload`
 - Implements **FHIR R4** resource operations:
-  - CRUD for `ValueSet` and `CodeSystem`
-  - `$expand` — expands a ValueSet to its full list of concepts
+  - CRUD for `ValueSet`, `CodeSystem`, and `ConceptMap`
+  - `$expand` — expands a ValueSet to its full list of concepts; supports SNOMED CT ECL via `isa/{id}` and `refset/{id}` implicit ValueSet URLs
   - `$validate-code` — checks whether a code belongs to a ValueSet/CodeSystem
   - `$validate-batch` — validates up to 200 codes concurrently in one request (HL7 v2 message validation)
-  - `$lookup` — looks up display name and properties for a code
+  - `$lookup` — looks up display name and properties for a code; supports LOINC hierarchy properties (`parent`, `child`, `COMPONENT`, etc.) via fhir.loinc.org when credentials are set
+  - `$translate` — maps a code from one system to another using a stored ConceptMap; falls back to tx.fhir.org
+  - `$subsumes` — hierarchy check (subsumes / subsumed-by / equivalent / not-subsumed); delegates to tx.fhir.org for SNOMED CT and fhir.loinc.org for LOINC
   - `$diff` — compares two versions of a resource
   - `$stats` / `/analytics/summary` — aggregate counts
 - **HL7 v2 table support** — any `http://terminology.hl7.org/CodeSystem/v2-*` URL is

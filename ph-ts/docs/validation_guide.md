@@ -17,6 +17,11 @@ CDA documents, or any system that needs to confirm a code is valid.
 7. [Supported Code Systems](#7-supported-code-systems)
 8. [Integration Patterns](#8-integration-patterns)
 9. [Response Reference](#9-response-reference)
+10. [ConceptMap CRUD — Cross-System Translation Maps](#10-conceptmap-crud----cross-system-translation-maps)
+11. [Code Translation — $translate](#11-code-translation----translate)
+12. [Hierarchy — $subsumes](#12-hierarchy----subsumes)
+13. [SNOMED CT ECL in $expand](#13-snomed-ct-ecl-in-expand)
+14. [LOINC Hierarchy via $lookup Properties](#14-loinc-hierarchy-via-lookup-properties)
 
 ---
 
@@ -28,6 +33,10 @@ CDA documents, or any system that needs to confirm a code is valid.
 | `$lookup` | `GET/POST /CodeSystem/$lookup` | You need to confirm a code exists in a CodeSystem and get its display name |
 | `$validate-batch` | `POST /ValueSet/$validate-batch` | You have many codes to validate at once (e.g., all fields in an HL7 v2 message) |
 | `$expand` | `GET/POST /ValueSet/$expand` | You want to retrieve the full list of valid codes in a ValueSet |
+| `$translate` | `GET/POST /ConceptMap/$translate` | You need to map a code from one code system to an equivalent in another |
+| `$subsumes` | `GET /CodeSystem/$subsumes` | You need to check hierarchy — does code A subsume (contain) code B? |
+| ECL `$expand` | `GET /ValueSet/$expand?url=...fhir_vs=isa/...` | Expand all descendants of a SNOMED CT concept |
+| `$lookup` + properties | `GET /CodeSystem/$lookup?property=parent&property=child` | Retrieve LOINC hierarchy properties for a code |
 
 All endpoints are available at `http://localhost` (via Nginx) or directly at
 `http://localhost:8000`.
@@ -576,6 +585,402 @@ All operations return FHIR `OperationOutcome` on error:
 | `400` | Missing required parameter |
 | `404` | ValueSet or CodeSystem not found locally and not available via external connector |
 | `500` | Unexpected server error |
+
+---
+
+---
+
+## 10. ConceptMap CRUD — Cross-System Translation Maps
+
+A `ConceptMap` resource defines mappings between codes in different code systems
+(e.g., HL7 v2 administrative sex → FHIR administrative-gender). PH-TS stores
+ConceptMaps locally and uses them to drive the `$translate` operation.
+
+### Creating a ConceptMap
+
+```bash
+curl -X POST http://localhost/ConceptMap \
+  -H "Content-Type: application/fhir+json" \
+  -d '{
+    "resourceType": "ConceptMap",
+    "url": "http://example.org/map/v2-sex-to-fhir",
+    "name": "V2SexToFHIRGender",
+    "title": "HL7 v2 Administrative Sex to FHIR Gender",
+    "status": "active",
+    "group": [
+      {
+        "source": "http://terminology.hl7.org/CodeSystem/v2-0001",
+        "target": "http://hl7.org/fhir/administrative-gender",
+        "element": [
+          {
+            "code": "M",
+            "display": "Male",
+            "target": [{ "code": "male",   "equivalence": "equivalent" }]
+          },
+          {
+            "code": "F",
+            "display": "Female",
+            "target": [{ "code": "female", "equivalence": "equivalent" }]
+          },
+          {
+            "code": "U",
+            "display": "Unknown",
+            "target": [{ "code": "unknown","equivalence": "equivalent" }]
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+### CRUD Operations
+
+```bash
+# Read a ConceptMap by ID
+curl "http://localhost/ConceptMap/{id}"
+
+# Update a ConceptMap (creates a new version)
+curl -X PUT http://localhost/ConceptMap/{id} \
+  -H "Content-Type: application/fhir+json" \
+  -d '{ ... updated resource ... }'
+
+# Delete a ConceptMap
+curl -X DELETE http://localhost/ConceptMap/{id}
+
+# Search ConceptMaps
+curl "http://localhost/ConceptMap?name=V2Sex"
+curl "http://localhost/ConceptMap?url=http://example.org/map/v2-sex-to-fhir"
+curl "http://localhost/ConceptMap?status=active"
+curl "http://localhost/ConceptMap?q=sex"
+
+# Version history
+curl "http://localhost/ConceptMap/{id}/_history"
+```
+
+### Equivalence values
+
+| Value | Meaning |
+|---|---|
+| `equivalent` | Codes are semantically equivalent |
+| `equal` | Codes are exactly the same |
+| `wider` | The target concept is broader |
+| `narrower` | The target concept is more specific |
+| `subsumes` | The source concept subsumes the target |
+| `relatedto` | Related concepts, not necessarily equivalent |
+| `unmatched` | No applicable mapping exists |
+| `disjoint` | Concepts are explicitly not related |
+
+---
+
+## 11. Code Translation — `$translate`
+
+Maps a code from one system to an equivalent code in another system using a
+stored ConceptMap. Falls back to tx.fhir.org if no matching local map exists.
+
+### GET
+
+```bash
+GET /ConceptMap/$translate?url=<mapUrl>&system=<sourceSystem>&code=<code>&target=<targetSystem>
+```
+
+**Parameters**
+
+| Parameter | Required | Description |
+|---|---|---|
+| `url` | No | Canonical URL of the ConceptMap to use. If absent, all maps are searched. |
+| `system` | No | Code system URL of the source code |
+| `code` | Yes | The source code to translate |
+| `target` | No | Target system URL — used when delegating to tx.fhir.org |
+
+### Examples
+
+```bash
+# Translate HL7 v2 sex code to FHIR gender using local map
+curl "http://localhost/ConceptMap/\$translate?url=http://example.org/map/v2-sex-to-fhir&system=http://terminology.hl7.org/CodeSystem/v2-0001&code=M"
+
+# Translate a SNOMED concept to ICD-10-CM (delegated to tx.fhir.org)
+curl "http://localhost/ConceptMap/\$translate?system=http://snomed.info/sct&code=73211009&target=http://hl7.org/fhir/sid/icd-10-cm"
+
+# Translate without specifying the map URL (searches all local maps)
+curl "http://localhost/ConceptMap/\$translate?system=http://terminology.hl7.org/CodeSystem/v2-0001&code=F"
+```
+
+### POST (FHIR Parameters format)
+
+```bash
+curl -X POST http://localhost/ConceptMap/\$translate \
+  -H "Content-Type: application/fhir+json" \
+  -d '{
+    "resourceType": "Parameters",
+    "parameter": [
+      { "name": "url",    "valueUri":  "http://example.org/map/v2-sex-to-fhir" },
+      { "name": "system", "valueUri":  "http://terminology.hl7.org/CodeSystem/v2-0001" },
+      { "name": "code",   "valueCode": "M" }
+    ]
+  }'
+```
+
+### Response
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "result",  "valueBoolean": true },
+    { "name": "message", "valueString":  "Match found in local ConceptMap" },
+    {
+      "name": "match",
+      "part": [
+        { "name": "equivalence", "valueCode":   "equivalent" },
+        { "name": "concept",     "valueCoding": {
+          "system":  "http://hl7.org/fhir/administrative-gender",
+          "code":    "male",
+          "display": "Male"
+        }}
+      ]
+    }
+  ]
+}
+```
+
+When no match is found:
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "result",  "valueBoolean": false },
+    { "name": "message", "valueString":  "No match found" }
+  ]
+}
+```
+
+**Lookup order:**
+1. Search local ConceptMaps matching the `url` (or all maps if `url` is omitted)
+2. Find a group where `group.source == system`
+3. Find an element where `element.code == code`
+4. If not found locally → delegate to tx.fhir.org `GET /ConceptMap/$translate`
+5. If still not found → return `result = false`
+
+---
+
+## 12. Hierarchy — `$subsumes`
+
+Checks whether one code subsumes (contains) another within a code system
+hierarchy. Returns the relationship between the two codes.
+
+```bash
+GET /CodeSystem/$subsumes?system=<systemUrl>&codeA=<codeA>&codeB=<codeB>
+```
+
+**Parameters**
+
+| Parameter | Required | Description |
+|---|---|---|
+| `system` | Yes | Code system URL |
+| `codeA` | Yes | The potential parent/ancestor code |
+| `codeB` | Yes | The potential child/descendant code |
+
+### Response
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "outcome", "valueCode": "subsumes" }
+  ]
+}
+```
+
+**Outcome values:**
+
+| Value | Meaning |
+|---|---|
+| `equivalent` | `codeA` and `codeB` are the same concept |
+| `subsumes` | `codeA` subsumes `codeB` (A is an ancestor of B) |
+| `subsumed-by` | `codeA` is subsumed by `codeB` (A is a descendant of B) |
+| `not-subsumed` | Neither code is an ancestor of the other |
+
+### Examples
+
+```bash
+# SNOMED CT — is Diabetes mellitus (73211009) an ancestor of Type 2 DM (44054006)?
+curl "http://localhost/CodeSystem/\$subsumes?system=http://snomed.info/sct&codeA=73211009&codeB=44054006"
+# → outcome: subsumes
+
+# SNOMED CT — are both codes the same concept?
+curl "http://localhost/CodeSystem/\$subsumes?system=http://snomed.info/sct&codeA=73211009&codeB=73211009"
+# → outcome: equivalent
+
+# LOINC — requires fhir.loinc.org credentials (LOINC_USERNAME / LOINC_PASSWORD in .env)
+curl "http://localhost/CodeSystem/\$subsumes?system=http://loinc.org&codeA=LP29693-6&codeB=94500-6"
+
+# Local CodeSystem (complete content stored in PH-TS)
+curl "http://localhost/CodeSystem/\$subsumes?system=http://terminology.hl7.org/CodeSystem/v2-0001&codeA=M&codeB=M"
+```
+
+### System-specific behaviour
+
+| System | Backend |
+|---|---|
+| `http://snomed.info/sct` | Delegates to `tx.fhir.org/CodeSystem/$subsumes` (Snowstorm) |
+| `http://loinc.org` | Delegates to `fhir.loinc.org` — requires credentials; returns 422 if absent |
+| Any locally stored CodeSystem | Walks the local `concept[].concept[]` tree to find ancestor/descendant relationships |
+
+---
+
+## 13. SNOMED CT ECL in `$expand`
+
+PH-TS supports SNOMED CT Expression Constraint Language (ECL) in `$expand`
+to retrieve concept expansions without needing a pre-built ValueSet. Expansion
+is performed by tx.fhir.org and results are returned transparently.
+
+### Pathway 1 — Inline ECL URL (no stored ValueSet required)
+
+Use SNOMED CT implicit ValueSet URL notation directly in the `url` parameter:
+
+```bash
+# All descendants of Diabetes mellitus (73211009)
+curl "http://localhost/ValueSet/\$expand?url=http://snomed.info/sct?fhir_vs=isa/73211009&count=50"
+
+# SNOMED reference set (e.g., UK drug refset)
+curl "http://localhost/ValueSet/\$expand?url=http://snomed.info/sct?fhir_vs=refset/999000801000001108&count=100"
+```
+
+**Supported URL patterns:**
+
+| URL pattern | Meaning |
+|---|---|
+| `http://snomed.info/sct?fhir_vs=isa/{conceptId}` | Self + all descendants of the concept |
+| `http://snomed.info/sct?fhir_vs=refset/{refsetId}` | All members of a reference set |
+| `http://snomed.info/sct?fhir_vs` | All SNOMED CT concepts (use with `count` + `filter`) |
+
+### Pathway 2 — ECL filter in a stored ValueSet
+
+Create a ValueSet with a SNOMED `compose.include` filter, then expand it normally:
+
+```bash
+# Create a ValueSet using ECL-equivalent FHIR filters
+curl -X POST http://localhost/ValueSet \
+  -H "Content-Type: application/fhir+json" \
+  -d '{
+    "resourceType": "ValueSet",
+    "url": "http://example.org/vs/diabetes",
+    "name": "DiabetesMellitusConcepts",
+    "status": "active",
+    "compose": {
+      "include": [
+        {
+          "system": "http://snomed.info/sct",
+          "filter": [
+            { "property": "concept", "op": "is-a", "value": "73211009" }
+          ]
+        }
+      ]
+    }
+  }'
+
+# Expand the ValueSet (ECL filter is detected and delegated to tx.fhir.org)
+curl "http://localhost/ValueSet/\$expand?url=http://example.org/vs/diabetes&count=50"
+```
+
+**Supported FHIR filter operators for SNOMED CT:**
+
+| FHIR `op` | ECL equivalent | Meaning |
+|---|---|---|
+| `is-a` | `<<{value}` | Self + all descendants |
+| `descendent-of` | `<{value}` | Proper descendants only (excludes the concept itself) |
+| `in` | `^{value}` | Members of the specified reference set |
+| `generalizes` | `>>{value}` | Self + all ancestors |
+| `=` | raw ECL | Pass-through ECL expression (advanced) |
+
+> **Note:** Complex multi-clause ECL (e.g., `<<73211009 AND <<44054006`) is not
+> supported. It returns a descriptive 400 error. Use single-clause expressions.
+
+### Example response fragment
+
+```json
+{
+  "resourceType": "ValueSet",
+  "expansion": {
+    "total": 42,
+    "contains": [
+      { "system": "http://snomed.info/sct", "code": "73211009",  "display": "Diabetes mellitus" },
+      { "system": "http://snomed.info/sct", "code": "44054006",  "display": "Type 2 diabetes mellitus" },
+      { "system": "http://snomed.info/sct", "code": "46635009",  "display": "Type 1 diabetes mellitus" }
+    ]
+  }
+}
+```
+
+---
+
+## 14. LOINC Hierarchy via `$lookup` Properties
+
+LOINC has a multi-axial hierarchy. When LOINC credentials are configured
+(`LOINC_USERNAME` / `LOINC_PASSWORD` in `.env`), you can request LOINC
+hierarchy properties from fhir.loinc.org in a single `$lookup` call.
+
+```bash
+GET /CodeSystem/$lookup?system=http://loinc.org&code=<code>&property=<name>[&property=<name>...]
+```
+
+### Common LOINC properties
+
+| Property | Description |
+|---|---|
+| `parent` | Immediate parent concept in the LOINC hierarchy |
+| `child` | Direct child concepts |
+| `COMPONENT` | The measured substance or entity |
+| `PROPERTY` | Characteristics of the measured entity |
+| `TIME_ASPCT` | Timing of the measurement |
+| `SYSTEM` | Context or specimen type |
+| `SCALE_TYP` | Scale (quantitative, ordinal, nominal, …) |
+| `METHOD_TYP` | Method of measurement |
+| `STATUS` | Current LOINC concept status |
+| `CLASSTYPE` | Panel (1), Lab (2), or Clinical (3) |
+
+### Examples
+
+```bash
+# Get the parent and component for a COVID LOINC code
+curl "http://localhost/CodeSystem/\$lookup?system=http://loinc.org&code=94500-6&property=parent&property=COMPONENT&property=SYSTEM"
+
+# Get LOINC hierarchy (parent + children)
+curl "http://localhost/CodeSystem/\$lookup?system=http://loinc.org&code=LP29693-6&property=parent&property=child"
+
+# Basic lookup without properties (no credentials needed; uses NLM ClinicalTables)
+curl "http://localhost/CodeSystem/\$lookup?system=http://loinc.org&code=94500-6"
+```
+
+### Response with properties
+
+```json
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    { "name": "name",      "valueString": "LOINC" },
+    { "name": "version",   "valueString": "2.76" },
+    { "name": "display",   "valueString": "SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory specimen by NAA with probe detection" },
+    { "name": "property",  "part": [
+      { "name": "code",        "valueCode":   "parent" },
+      { "name": "valueCode",   "valueCode":   "LP29693-6" }
+    ]},
+    { "name": "property",  "part": [
+      { "name": "code",        "valueCode":   "COMPONENT" },
+      { "name": "valueString", "valueString": "SARS-CoV-2 RNA" }
+    ]},
+    { "name": "property",  "part": [
+      { "name": "code",        "valueCode":   "SYSTEM" },
+      { "name": "valueString", "valueString": "Respiratory specimen" }
+    ]}
+  ]
+}
+```
+
+> **Credentials:** Property lookups delegate to `fhir.loinc.org`. A free LOINC account is required.
+> Register at [loinc.org](https://loinc.org/downloads/loinc/) and set `LOINC_USERNAME` / `LOINC_PASSWORD` in `.env`.
+> Without credentials, `$lookup` still works via NLM ClinicalTables but hierarchy properties will be absent.
 
 ---
 

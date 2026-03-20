@@ -405,10 +405,13 @@ system that needs to confirm a code is valid in a given code system or ValueSet.
 | Endpoint | Purpose |
 |---|---|
 | `GET /ValueSet/$validate-code?url=&code=` | Validate one code against a ValueSet |
-| `GET /CodeSystem/$lookup?system=&code=` | Look up one code in a CodeSystem |
+| `GET /CodeSystem/$lookup?system=&code=[&property=...]` | Look up one code; optional hierarchy properties for LOINC |
 | `POST /ValueSet/$validate-batch` | Validate up to 200 codes concurrently |
+| `GET /ConceptMap/$translate?system=&code=[&url=][&target=]` | Translate a code to another system via ConceptMap |
+| `GET /CodeSystem/$subsumes?system=&codeA=&codeB=` | Check hierarchy relationship between two codes |
+| `GET /ValueSet/$expand?url=...fhir_vs=isa/{id}` | Expand all descendants of a SNOMED CT concept |
 
-**Quick validation examples:**
+**Quick examples:**
 
 ```bash
 # Validate a code against a ValueSet
@@ -417,8 +420,8 @@ curl "http://localhost/ValueSet/\$validate-code?url=http://hl7.org/fhir/ValueSet
 # Look up a LOINC code
 curl "http://localhost/CodeSystem/\$lookup?system=http://loinc.org&code=94500-6"
 
-# Look up an HL7 v2 Table 0001 code (Administrative Sex)
-curl "http://localhost/CodeSystem/\$lookup?system=http://terminology.hl7.org/CodeSystem/v2-0001&code=M"
+# Look up with LOINC hierarchy properties (requires LOINC credentials)
+curl "http://localhost/CodeSystem/\$lookup?system=http://loinc.org&code=94500-6&property=parent&property=COMPONENT"
 
 # Batch validate coded fields from an HL7 v2 message
 curl -X POST http://localhost/ValueSet/\$validate-batch \
@@ -428,6 +431,15 @@ curl -X POST http://localhost/ValueSet/\$validate-batch \
     {"code":"94500-6", "system":"http://loinc.org"},
     {"code":"J12.82",  "system":"http://hl7.org/fhir/sid/icd-10-cm"}
   ]}'
+
+# Translate HL7 v2 sex code to FHIR gender (using local ConceptMap)
+curl "http://localhost/ConceptMap/\$translate?url=http://example.org/map/v2-sex-to-fhir&system=http://terminology.hl7.org/CodeSystem/v2-0001&code=M"
+
+# Check SNOMED CT subsumption (is Diabetes mellitus an ancestor of Type 2 DM?)
+curl "http://localhost/CodeSystem/\$subsumes?system=http://snomed.info/sct&codeA=73211009&codeB=44054006"
+
+# Expand all descendants of Diabetes mellitus via SNOMED ECL (inline, no stored ValueSet needed)
+curl "http://localhost/ValueSet/\$expand?url=http://snomed.info/sct?fhir_vs=isa/73211009&count=50"
 ```
 
 **Load HL7 v2 tables for offline validation (run once):**

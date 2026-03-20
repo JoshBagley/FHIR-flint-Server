@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Search, Plus, Trash2, Save, Sparkles, ChevronLeft, Loader2,
   AlertCircle, CheckCircle, BookOpen, ArrowRightLeft, Info, X,
-  RefreshCw, ChevronDown, MessageSquare, Send,
+  RefreshCw, ChevronDown, MessageSquare, Send, GitBranch, Map, ChevronRight,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -79,6 +79,21 @@ interface AiMapResponse {
     rationale: string;
   }>;
   notes?: string;
+}
+
+interface TranslateResult {
+  sourceCode: string;
+  sourceDisplay: string;
+  targetCode: string | null;
+  targetDisplay: string | null;
+  targetSystem: string | null;
+  equivalence: string;
+  found: boolean;
+}
+
+interface LoincProperty {
+  code: string;
+  value: string;
 }
 
 interface BuilderMetadata {
@@ -206,6 +221,25 @@ export default function ValueSetBuilder({ onBack }: Props) {
   const [mapResults, setMapResults] = useState<AiMapResponse | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
 
+  // SNOMED hierarchy expand
+  const [snomedMode, setSnomedMode] = useState<'search' | 'hierarchy'>('search');
+  const [snomedEdition, setSnomedEdition] = useState<'international' | 'us'>('international');
+  const [eclConceptId, setEclConceptId] = useState('');
+  const [eclResults, setEclResults] = useState<SdoResult[]>([]);
+  const [eclLoading, setEclLoading] = useState(false);
+  const [eclError, setEclError] = useState<string | null>(null);
+  const [eclTotal, setEclTotal] = useState<number | null>(null);
+
+  // ConceptMap $translate in mapping panel
+  const [mapMode, setMapMode] = useState<'ai' | 'conceptmap'>('ai');
+  const [translateResults, setTranslateResults] = useState<TranslateResult[] | null>(null);
+  const [translateLoading, setTranslateLoading] = useState(false);
+
+  // LOINC property detail per search result
+  const [loincDetailCode, setLoincDetailCode] = useState<string | null>(null);
+  const [loincDetailCache, setLoincDetailCache] = useState<Record<string, LoincProperty[]>>({});
+  const [loincDetailLoading, setLoincDetailLoading] = useState<string | null>(null);
+
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load available systems on mount — merge external SDOs + local CodeSystems
@@ -249,7 +283,11 @@ export default function ValueSetBuilder({ onBack }: Props) {
         description: 'Search concepts across every locally stored code system at once',
         available: true,
       };
-      setSystems([...sdoSystems, ...(localSystems.length > 0 ? [allLocalSentinel, ...localSystems] : [])]);
+      const merged = [...sdoSystems, ...(localSystems.length > 0 ? [allLocalSentinel, ...localSystems] : [])];
+      setSystems(merged);
+      // Default to first available SDO system so external searches work out of the box
+      const firstAvailableSdo = sdoSystems.find(s => s.available);
+      if (firstAvailableSdo) setSelectedSystem(firstAvailableSdo.id);
     });
   }, []);
 
@@ -430,6 +468,131 @@ export default function ValueSetBuilder({ onBack }: Props) {
     }
   };
 
+  // SNOMED ECL / hierarchy expand
+  const handleEclExpand = async () => {
+    const conceptId = eclConceptId.trim();
+    if (!conceptId) return;
+    setEclLoading(true);
+    setEclError(null);
+    setEclResults([]);
+    setEclTotal(null);
+    try {
+      const base = snomedEdition === 'us'
+        ? 'http://snomed.info/sct/731000124108'
+        : 'http://snomed.info/sct';
+      const snomedUrl = `${base}?fhir_vs=isa/${encodeURIComponent(conceptId)}`;
+      const data = await apiFetch<{
+        expansion?: { total?: number; contains?: Array<{ system: string; code: string; display?: string }> };
+      }>(`/ValueSet/$expand?url=${encodeURIComponent(snomedUrl)}&count=200`);
+      const contains = data.expansion?.contains ?? [];
+      setEclTotal(data.expansion?.total ?? contains.length);
+      setEclResults(contains.map(c => ({
+        code: c.code,
+        display: c.display ?? c.code,
+        system: c.system,
+        systemName: snomedEdition === 'us' ? 'SNOMED CT US Edition' : 'SNOMED CT',
+      })));
+    } catch (e) {
+      setEclError((e as Error).message);
+    } finally {
+      setEclLoading(false);
+    }
+  };
+
+  // ConceptMap $translate for each selected code
+  const handleConceptMapTranslate = async () => {
+    if (selectedCodes.length === 0) {
+      setToast({ message: 'Select some codes first to translate.', type: 'error' });
+      return;
+    }
+    const targetSystem = systems.find(s => s.id === mapTarget);
+    const targetUrl = targetSystem?.url ?? '';
+    setTranslateLoading(true);
+    setTranslateResults(null);
+    try {
+      const results: TranslateResult[] = await Promise.all(
+        selectedCodes.map(async code => {
+          try {
+            const params = new URLSearchParams({ system: code.system, code: code.code });
+            if (targetUrl) params.set('target', targetUrl);
+            const data = await apiFetch<{
+              parameter: Array<{
+                name: string;
+                valueBoolean?: boolean;
+                part?: Array<{ name: string; valueCode?: string; valueCoding?: { system?: string; code?: string; display?: string } }>;
+              }>;
+            }>(`/ConceptMap/$translate?${params.toString()}`);
+            const resultParam = data.parameter?.find(p => p.name === 'result');
+            const found = resultParam?.valueBoolean === true;
+            const matchParam = data.parameter?.find(p => p.name === 'match');
+            const equivalence = matchParam?.part?.find(p => p.name === 'equivalence')?.valueCode ?? 'unmatched';
+            const concept = matchParam?.part?.find(p => p.name === 'concept')?.valueCoding;
+            return {
+              sourceCode: code.code,
+              sourceDisplay: code.display,
+              targetCode: concept?.code ?? null,
+              targetDisplay: concept?.display ?? null,
+              targetSystem: concept?.system ?? null,
+              equivalence,
+              found,
+            };
+          } catch {
+            return {
+              sourceCode: code.code,
+              sourceDisplay: code.display,
+              targetCode: null,
+              targetDisplay: null,
+              targetSystem: null,
+              equivalence: 'unmatched',
+              found: false,
+            };
+          }
+        })
+      );
+      setTranslateResults(results);
+    } catch (e) {
+      setToast({ message: `Translation failed: ${(e as Error).message}`, type: 'error' });
+    } finally {
+      setTranslateLoading(false);
+    }
+  };
+
+  // LOINC property detail (toggle open / fetch on demand)
+  const handleLoincDetail = async (code: string) => {
+    if (loincDetailCode === code) {
+      setLoincDetailCode(null);
+      return;
+    }
+    setLoincDetailCode(code);
+    if (loincDetailCache[code]) return;
+    setLoincDetailLoading(code);
+    try {
+      const data = await apiFetch<{
+        parameter: Array<{
+          name: string;
+          valueString?: string;
+          part?: Array<{ name: string; valueCode?: string; valueString?: string }>;
+        }>;
+      }>(`/CodeSystem/$lookup?system=http%3A%2F%2Floinc.org&code=${encodeURIComponent(code)}&property=parent&property=COMPONENT&property=PROPERTY&property=SYSTEM&property=SCALE_TYP&property=METHOD_TYP&property=STATUS`);
+      const props: LoincProperty[] = (data.parameter ?? [])
+        .filter(p => p.name === 'property' && p.part)
+        .map(p => {
+          const namePart = p.part!.find(x => x.name === 'code');
+          const valPart = p.part!.find(x => x.name === 'value');
+          return {
+            code: namePart?.valueCode ?? '',
+            value: valPart?.valueCode ?? valPart?.valueString ?? '',
+          };
+        })
+        .filter(p => p.code && p.value);
+      setLoincDetailCache(prev => ({ ...prev, [code]: props }));
+    } catch {
+      setLoincDetailCache(prev => ({ ...prev, [code]: [] }));
+    } finally {
+      setLoincDetailLoading(null);
+    }
+  };
+
   const currentSystem = systems.find(s => s.id === selectedSystem);
   const sdoSystems = systems.filter(s => s.source === 'sdo');
   const localSystems = systems.filter(s => s.source === 'local' && s.id !== '__local_all__');
@@ -515,60 +678,233 @@ export default function ValueSetBuilder({ onBack }: Props) {
               )}
             </div>
 
-            {/* Search input */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search concepts…"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400"
-              />
-              {searchLoading && (
-                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 animate-spin" />
-              )}
-            </div>
-          </div>
-
-          {/* Search results */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
-            {searchError && (
-              <div className="p-3 flex items-start gap-2 text-red-600 text-xs">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <span>{searchError}</span>
+            {/* SNOMED mode toggle */}
+            {selectedSystem === 'snomed' && (
+              <div className="flex rounded-lg border border-gray-200 overflow-hidden mb-3 text-xs font-medium">
+                <button
+                  onClick={() => { setSnomedMode('search'); setEclResults([]); setEclError(null); }}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 transition-colors ${snomedMode === 'search' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                >
+                  <Search className="w-3.5 h-3.5" /> Text Search
+                </button>
+                <button
+                  onClick={() => { setSnomedMode('hierarchy'); setSearchResults([]); setSearchQuery(''); }}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 transition-colors ${snomedMode === 'hierarchy' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                >
+                  <GitBranch className="w-3.5 h-3.5" /> Hierarchy
+                </button>
               </div>
             )}
-            {!searchLoading && !searchError && searchResults.length === 0 && searchQuery && (
-              <p className="p-4 text-sm text-gray-400 text-center">No results for "{searchQuery}"</p>
-            )}
-            {!searchQuery && (
-              <p className="p-4 text-sm text-gray-400 text-center">Type a term to search concepts</p>
-            )}
-            {searchResults.map((r, i) => {
-              const key = codeKey(r.code, r.system);
-              const added = selectedCodes.some(c => c.key === key);
-              return (
-                <div key={i} className="flex items-start gap-3 px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-blue-50 transition-colors group">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-mono text-blue-600">{r.code}</p>
-                    <p className="text-sm text-gray-800 line-clamp-2">{r.display}</p>
-                    <p className="text-xs text-gray-400 truncate">{r.system}</p>
+
+            {/* ECL / hierarchy expand input (SNOMED only) */}
+            {selectedSystem === 'snomed' && snomedMode === 'hierarchy' ? (
+              <div className="space-y-2">
+                {/* Edition toggle */}
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase block mb-1">Edition</label>
+                  <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs font-medium">
+                    <button
+                      onClick={() => { setSnomedEdition('international'); setEclResults([]); setEclError(null); }}
+                      className={`flex-1 py-1.5 transition-colors ${snomedEdition === 'international' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                    >
+                      International
+                    </button>
+                    <button
+                      onClick={() => { setSnomedEdition('us'); setEclResults([]); setEclError(null); }}
+                      className={`flex-1 py-1.5 transition-colors ${snomedEdition === 'us' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                    >
+                      US Edition
+                    </button>
                   </div>
+                  {snomedEdition === 'us' && (
+                    <p className="text-xs text-amber-600 mt-1">Requires <span className="font-mono">UMLS_API_KEY</span> in .env</p>
+                  )}
+                </div>
+                <label className="text-xs font-medium text-gray-500 uppercase block">Parent Concept ID</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. 840539006"
+                    value={eclConceptId}
+                    onChange={e => setEclConceptId(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleEclExpand(); }}
+                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 font-mono"
+                  />
                   <button
-                    onClick={() => addCode(r)}
-                    disabled={added}
-                    title={added ? 'Already added' : 'Add to value set'}
-                    className={`flex-shrink-0 mt-0.5 p-1.5 rounded-full transition-colors ${added
-                      ? 'bg-green-100 text-green-600 cursor-default'
-                      : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                    }`}
+                    onClick={handleEclExpand}
+                    disabled={eclLoading || !eclConceptId.trim()}
+                    className="flex items-center gap-1 text-sm bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors whitespace-nowrap"
                   >
-                    {added ? <CheckCircle className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                    {eclLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitBranch className="w-4 h-4" />}
+                    Expand
                   </button>
                 </div>
-              );
-            })}
+                <p className="text-xs text-gray-400">
+                  {snomedEdition === 'us'
+                    ? 'Returns concept + descendants from SNOMED CT US Edition via NLM VSAC.'
+                    : 'Returns concept + descendants from SNOMED CT International via tx.fhir.org.'}
+                </p>
+              </div>
+            ) : (
+              /* Standard text search input */
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search concepts…"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400"
+                />
+                {searchLoading && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 animate-spin" />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Search / ECL results */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+            {/* ECL results (SNOMED hierarchy mode) */}
+            {selectedSystem === 'snomed' && snomedMode === 'hierarchy' && (
+              <>
+                {eclError && (
+                  <div className="p-3 flex items-start gap-2 text-red-600 text-xs">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{eclError}</span>
+                  </div>
+                )}
+                {eclLoading && (
+                  <div className="p-4 flex items-center justify-center gap-2 text-sm text-gray-400">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Expanding hierarchy…
+                  </div>
+                )}
+                {!eclLoading && eclResults.length === 0 && !eclError && (
+                  <p className="p-4 text-sm text-gray-400 text-center">Enter a SNOMED CT concept ID and click Expand</p>
+                )}
+                {eclResults.length > 0 && (
+                  <>
+                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                      <span className="text-xs text-gray-500">
+                        {eclResults.length} concept{eclResults.length !== 1 ? 's' : ''}
+                        {eclTotal != null && eclTotal > eclResults.length ? ` (showing ${eclResults.length} of ${eclTotal.toLocaleString()})` : ''}
+                      </span>
+                      <button
+                        onClick={() => eclResults.forEach(r => addCode(r))}
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                      >
+                        Add all
+                      </button>
+                    </div>
+                    {eclResults.map((r, i) => {
+                      const key = codeKey(r.code, r.system);
+                      const added = selectedCodes.some(c => c.key === key);
+                      return (
+                        <div key={i} className="flex items-start gap-3 px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-blue-50 transition-colors group">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-mono text-blue-600">{r.code}</p>
+                            <p className="text-sm text-gray-800 line-clamp-2">{r.display}</p>
+                          </div>
+                          <button
+                            onClick={() => addCode(r)}
+                            disabled={added}
+                            title={added ? 'Already added' : 'Add to value set'}
+                            className={`flex-shrink-0 mt-0.5 p-1.5 rounded-full transition-colors ${added ? 'bg-green-100 text-green-600 cursor-default' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}
+                          >
+                            {added ? <CheckCircle className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+              </>
+            )}
+
+            {/* Standard text search results */}
+            {(selectedSystem !== 'snomed' || snomedMode === 'search') && (
+              <>
+                {searchError && (
+                  <div className="p-3 flex items-start gap-2 text-red-600 text-xs">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{searchError}</span>
+                  </div>
+                )}
+                {!searchLoading && !searchError && searchResults.length === 0 && searchQuery && (
+                  <div className="p-4 text-center space-y-1">
+                    <p className="text-sm text-gray-500">No results for "{searchQuery}"</p>
+                    {selectedSystem === '__local_all__' && (
+                      <p className="text-xs text-gray-400">
+                        "All Local Code Systems" only searches concepts stored in the local database.
+                        Select a specific system like <strong>SNOMED CT</strong>, <strong>LOINC</strong>, or <strong>ICD-10-CM</strong> to search external vocabularies.
+                      </p>
+                    )}
+                  </div>
+                )}
+                {!searchQuery && (
+                  <p className="p-4 text-sm text-gray-400 text-center">Type a term to search concepts</p>
+                )}
+                {searchResults.map((r, i) => {
+                  const key = codeKey(r.code, r.system);
+                  const added = selectedCodes.some(c => c.key === key);
+                  const isLoincSelected = selectedSystem === 'loinc';
+                  const detailOpen = isLoincSelected && loincDetailCode === r.code;
+                  const detailProps = loincDetailCache[r.code];
+                  return (
+                    <div key={i} className="border-b border-gray-100 last:border-0">
+                      <div className="flex items-start gap-3 px-4 py-3 hover:bg-blue-50 transition-colors group">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-mono text-blue-600">{r.code}</p>
+                          <p className="text-sm text-gray-800 line-clamp-2">{r.display}</p>
+                          <p className="text-xs text-gray-400 truncate">{r.system}</p>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+                          {isLoincSelected && (
+                            <button
+                              onClick={() => handleLoincDetail(r.code)}
+                              title="Show LOINC properties"
+                              className={`p-1.5 rounded-full transition-colors ${detailOpen ? 'bg-purple-100 text-purple-600' : 'text-gray-300 hover:text-purple-500 hover:bg-purple-50'}`}
+                            >
+                              {loincDetailLoading === r.code
+                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                : <ChevronRight className={`w-3.5 h-3.5 transition-transform ${detailOpen ? 'rotate-90' : ''}`} />
+                              }
+                            </button>
+                          )}
+                          <button
+                            onClick={() => addCode(r)}
+                            disabled={added}
+                            title={added ? 'Already added' : 'Add to value set'}
+                            className={`p-1.5 rounded-full transition-colors ${added ? 'bg-green-100 text-green-600 cursor-default' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}
+                          >
+                            {added ? <CheckCircle className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      {/* LOINC property detail panel */}
+                      {isLoincSelected && detailOpen && (
+                        <div className="px-4 pb-3 bg-purple-50 border-t border-purple-100">
+                          {detailProps === undefined && <p className="text-xs text-gray-400 py-2">Loading…</p>}
+                          {detailProps?.length === 0 && (
+                            <p className="text-xs text-gray-400 py-2">No properties returned for this code. For parent/child hierarchy, set <span className="font-mono">LOINC_USERNAME</span> / <span className="font-mono">LOINC_PASSWORD</span> in <span className="font-mono">.env</span>.</p>
+                          )}
+                          {detailProps && detailProps.length > 0 && (
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-2">
+                              {detailProps.map((p, pi) => (
+                                <div key={pi} className="text-xs">
+                                  <span className="font-medium text-purple-700">{p.code}:</span>{' '}
+                                  <span className="text-gray-700 font-mono">{p.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </>
+            )}
           </div>
 
           {/* System legend */}
@@ -767,6 +1103,22 @@ export default function ValueSetBuilder({ onBack }: Props) {
 
             {mapOpen && (
               <div className="mt-3 space-y-3">
+                {/* Mode toggle: AI vs stored ConceptMap */}
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs font-medium">
+                  <button
+                    onClick={() => { setMapMode('ai'); setTranslateResults(null); }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 transition-colors ${mapMode === 'ai' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" /> AI Suggest
+                  </button>
+                  <button
+                    onClick={() => { setMapMode('conceptmap'); setMapResults(null); }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 transition-colors ${mapMode === 'conceptmap' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    <Map className="w-3.5 h-3.5" /> Stored ConceptMap
+                  </button>
+                </div>
+
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
                     <label className="text-xs font-medium text-gray-500 uppercase block mb-1">Map to System</label>
@@ -784,16 +1136,19 @@ export default function ValueSetBuilder({ onBack }: Props) {
                     </div>
                   </div>
                   <button
-                    onClick={handleAiMap}
-                    disabled={mapLoading || selectedCodes.length === 0}
+                    onClick={mapMode === 'ai' ? handleAiMap : handleConceptMapTranslate}
+                    disabled={(mapMode === 'ai' ? mapLoading : translateLoading) || selectedCodes.length === 0}
                     className="mt-5 flex items-center gap-1.5 text-sm bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-40 transition-colors whitespace-nowrap"
                   >
-                    {mapLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRightLeft className="w-4 h-4" />}
+                    {(mapMode === 'ai' ? mapLoading : translateLoading)
+                      ? <Loader2 className="w-4 h-4 animate-spin" />
+                      : mapMode === 'ai' ? <Sparkles className="w-4 h-4" /> : <Map className="w-4 h-4" />}
                     Map
                   </button>
                 </div>
 
-                {mapResults && (
+                {/* AI map results */}
+                {mapMode === 'ai' && mapResults && (
                   <div className="border border-gray-200 rounded-lg overflow-hidden">
                     <table className="w-full text-xs">
                       <thead className="bg-gray-50 border-b border-gray-200">
@@ -831,6 +1186,54 @@ export default function ValueSetBuilder({ onBack }: Props) {
                     </table>
                     {mapResults.notes && (
                       <p className="px-3 py-2 text-xs text-gray-400 border-t border-gray-100">{mapResults.notes}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* ConceptMap $translate results */}
+                {mapMode === 'conceptmap' && translateResults && (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="px-3 py-1.5 bg-purple-50 border-b border-gray-200 text-xs text-purple-700 font-medium flex items-center gap-1.5">
+                      <Map className="w-3.5 h-3.5" /> Results from stored ConceptMaps
+                    </div>
+                    <table className="w-full text-xs">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="text-left px-3 py-2 font-medium text-gray-500">Source</th>
+                          <th className="text-left px-3 py-2 font-medium text-gray-500">Target</th>
+                          <th className="text-left px-3 py-2 font-medium text-gray-500">Match</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {translateResults.map((m, i) => (
+                          <tr key={i} className="hover:bg-gray-50">
+                            <td className="px-3 py-2">
+                              <p className="font-mono text-blue-600">{m.sourceCode}</p>
+                              <p className="text-gray-600 line-clamp-1">{m.sourceDisplay}</p>
+                            </td>
+                            <td className="px-3 py-2">
+                              {m.targetCode ? (
+                                <>
+                                  <p className="font-mono text-purple-600">{m.targetCode}</p>
+                                  <p className="text-gray-600 line-clamp-1">{m.targetDisplay}</p>
+                                </>
+                              ) : (
+                                <span className="text-gray-400 italic">No match in ConceptMap</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2">
+                              <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${EQUIV_COLOURS[m.equivalence] ?? 'bg-gray-100 text-gray-500'}`}>
+                                {m.equivalence}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {translateResults.every(r => !r.found) && (
+                      <p className="px-3 py-2 text-xs text-gray-400 border-t border-gray-100">
+                        No local ConceptMaps matched. Create a ConceptMap via <span className="font-mono">POST /ConceptMap</span> to enable deterministic translation.
+                      </p>
                     )}
                   </div>
                 )}

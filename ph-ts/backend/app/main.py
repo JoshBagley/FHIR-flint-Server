@@ -259,6 +259,58 @@ class CodeSystem(BaseModel):
     extension: Optional[List[Dict[str, Any]]] = []
 
 
+class ConceptMapGroupElementTarget(BaseModel):
+    code: Optional[str] = None
+    display: Optional[str] = None
+    equivalence: Literal[
+        "relatedto", "equivalent", "equal", "wider", "subsumes",
+        "narrower", "specializes", "inexact", "unmatched", "disjoint"
+    ] = "equivalent"
+    comment: Optional[str] = None
+    dependsOn: Optional[List[Dict[str, Any]]] = []
+    product: Optional[List[Dict[str, Any]]] = []
+
+
+class ConceptMapGroupElement(BaseModel):
+    code: Optional[str] = None
+    display: Optional[str] = None
+    target: Optional[List[ConceptMapGroupElementTarget]] = []
+
+
+class ConceptMapGroup(BaseModel):
+    source: Optional[str] = None
+    sourceVersion: Optional[str] = None
+    target: Optional[str] = None
+    targetVersion: Optional[str] = None
+    element: List[ConceptMapGroupElement] = []
+    unmapped: Optional[Dict[str, Any]] = None
+
+
+class ConceptMap(BaseModel):
+    resourceType: Literal["ConceptMap"] = "ConceptMap"
+    id: Optional[str] = None
+    meta: Optional[Meta] = None
+    url: Optional[str] = None
+    identifier: Optional[List[Identifier]] = []
+    version: Optional[str] = None
+    name: Optional[str] = None
+    title: Optional[str] = None
+    status: ResourceStatus
+    experimental: Optional[bool] = None
+    date: Optional[str] = None
+    publisher: Optional[str] = None
+    contact: Optional[List[ContactDetail]] = []
+    description: Optional[str] = None
+    purpose: Optional[str] = None
+    copyright: Optional[str] = None
+    sourceUri: Optional[str] = None
+    sourceCanonical: Optional[str] = None
+    targetUri: Optional[str] = None
+    targetCanonical: Optional[str] = None
+    group: Optional[List[ConceptMapGroup]] = []
+    extension: Optional[List[Dict[str, Any]]] = []
+
+
 # ============================================================================
 # Database Layer
 # ============================================================================
@@ -1078,4 +1130,91 @@ async def get_code_system_history(resource_id: str):
     history = await state.db.get_version_history(resource_id)
     if not history:
         raise HTTPException(status_code=404, detail=f"CodeSystem/{resource_id} not found")
+    return {"resourceType": "Bundle", "type": "history", "total": len(history), "entry": history}
+
+
+# ============================================================================
+# ConceptMap Endpoints
+# ============================================================================
+
+@app.post("/ConceptMap", status_code=201)
+async def create_concept_map(concept_map: ConceptMap):
+    data = concept_map.model_dump(exclude_none=True)
+    resource_id = await state.db.create_resource("ConceptMap", data)
+    await state.search_engine.index_resource(data)
+    await state.cache.invalidate_pattern("ConceptMap:*")
+    RESOURCE_COUNT.labels(resource_type="ConceptMap", operation="create").inc()
+    resource = await state.db.get_resource(resource_id)
+    return JSONResponse(content=resource, status_code=201)
+
+
+@app.get("/ConceptMap/{resource_id}")
+async def get_concept_map(resource_id: str, version: Optional[int] = None):
+    cache_key = f"ConceptMap:{resource_id}:{version or 'latest'}"
+    cached = await state.cache.get(cache_key)
+    if cached:
+        return cached
+
+    resource = await state.db.get_resource(resource_id, version)
+    if not resource:
+        raise HTTPException(status_code=404, detail=f"ConceptMap/{resource_id} not found")
+
+    await state.cache.set(cache_key, resource)
+    return resource
+
+
+@app.put("/ConceptMap/{resource_id}")
+async def update_concept_map(resource_id: str, concept_map: ConceptMap):
+    existing = await state.db.get_resource(resource_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"ConceptMap/{resource_id} not found")
+
+    data = concept_map.model_dump(exclude_none=True)
+    data['id'] = resource_id
+    await state.db.update_resource(resource_id, data)
+    await state.search_engine.index_resource(data)
+    await state.cache.invalidate_pattern(f"ConceptMap:{resource_id}:*")
+    RESOURCE_COUNT.labels(resource_type="ConceptMap", operation="update").inc()
+    return await state.db.get_resource(resource_id)
+
+
+@app.delete("/ConceptMap/{resource_id}", status_code=204)
+async def delete_concept_map(resource_id: str):
+    existing = await state.db.get_resource(resource_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"ConceptMap/{resource_id} not found")
+    await state.db.delete_resource(resource_id)
+    await state.search_engine.delete_resource(resource_id)
+    await state.cache.invalidate_pattern(f"ConceptMap:{resource_id}:*")
+    await state.cache.invalidate_pattern("ConceptMap:*")
+
+
+@app.get("/ConceptMap")
+async def search_concept_maps(
+    name: Optional[str] = Query(None),
+    url: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    q: Optional[str] = Query(None)
+):
+    if q:
+        results = await state.search_engine.search(q, "ConceptMap")
+        return {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}
+
+    params = {}
+    if name:
+        params['name'] = name
+    if url:
+        params['url'] = url
+    if status:
+        params['status'] = status
+
+    results = await state.db.search_resources("ConceptMap", params)
+    return {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}
+
+
+@app.get("/ConceptMap/{resource_id}/_history")
+async def get_concept_map_history(resource_id: str):
+    history = await state.db.get_version_history(resource_id)
+    if not history:
+        raise HTTPException(status_code=404, detail=f"ConceptMap/{resource_id} not found")
     return {"resourceType": "Bundle", "type": "history", "total": len(history), "entry": history}

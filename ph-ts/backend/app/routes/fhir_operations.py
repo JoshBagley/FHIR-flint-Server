@@ -15,9 +15,12 @@ from datetime import datetime, timezone
 import asyncio
 import hashlib
 import json
+import logging
 
 from app import state
 from app.services import external_cs
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["FHIR Operations"])
 
@@ -68,6 +71,43 @@ _HL7_TERMINOLOGY_BASE = "http://terminology.hl7.org/CodeSystem/"
 def _is_hl7_terminology_url(system: str) -> bool:
     """Return True for any HL7-owned terminology CodeSystem URL (v2 tables, v3 systems)."""
     return system.startswith(_HL7_TERMINOLOGY_BASE)
+
+
+_SNOMED_SYSTEM = "http://snomed.info/sct"
+
+# ECL operators that signal a SNOMED filter should be delegated to Snowstorm
+_ECL_OPS = {"is-a", "descendent-of", "in", "generalizes"}
+
+
+def _filters_to_ecl(filters: list) -> str:
+    """
+    Convert a FHIR ValueSet compose.include.filter list to a SNOMED ECL expression.
+
+    Supported FHIR filter operators:
+      is-a          → <<{value}   (self + all descendants)
+      descendent-of → <{value}    (proper descendants only)
+      in            → ^{value}    (reference set membership)
+      =             → {value}     (raw ECL passthrough)
+    Multiple filters are joined with AND.
+    """
+    parts = []
+    for f in filters:
+        op = f.get("op", "")
+        val = f.get("value", "")
+        if not val:
+            continue
+        if op == "is-a":
+            parts.append(f"<<{val}")
+        elif op == "descendent-of":
+            parts.append(f"<{val}")
+        elif op == "in":
+            parts.append(f"^{val}")
+        elif op == "generalizes":
+            parts.append(f">>{val}")
+        elif op == "=":
+            # Raw ECL passthrough — caller already encoded ECL in the value
+            parts.append(val)
+    return " AND ".join(parts)
 
 
 def _hl7_system_display_name(system: str) -> str:
@@ -144,6 +184,23 @@ async def _get_system_name(
     return name
 
 
+def _wrap_ecl_expansion(url: str, concepts: list, offset: int, count: int) -> Dict[str, Any]:
+    """Wrap an ECL expansion result in a minimal FHIR ValueSet response."""
+    total = len(concepts)
+    paginated = concepts[offset:offset + count]
+    return {
+        'resourceType': 'ValueSet',
+        'url': url,
+        'expansion': {
+            'identifier': hashlib.md5(url.encode()).hexdigest(),
+            'timestamp': datetime.now().isoformat(),
+            'total': total,
+            'offset': offset,
+            'contains': paginated
+        }
+    }
+
+
 async def _perform_expansion(
     url: Optional[str],
     version: Optional[str],
@@ -153,6 +210,29 @@ async def _perform_expansion(
 ) -> Dict[str, Any]:
     if not url:
         raise HTTPException(status_code=400, detail="url parameter is required")
+
+    # ------------------------------------------------------------------
+    # Pathway 1: Inline SNOMED implicit ValueSet URL (no stored VS required)
+    # Handles both:
+    #   fhir_vs=ecl/<<73211009  (ECL notation — common in authoring tools)
+    #   fhir_vs=isa/73211009    (FHIR implicit ValueSet notation)
+    # ------------------------------------------------------------------
+    if "fhir_vs=" in url and "snomed.info/sct" in url:
+        # Extract everything after fhir_vs=ecl/ or fhir_vs=isa/ etc.
+        fhir_vs_part = url.split("fhir_vs=", 1)[1]          # e.g. "ecl/<<73211009"
+        ecl_expr = fhir_vs_part.split("/", 1)[-1] if "/" in fhir_vs_part else fhir_vs_part
+        # Route to US Edition (VSAC) if the URL contains the US module identifier
+        use_us_edition = external_cs._SNOMED_US_MODULE in url
+        try:
+            if use_us_edition:
+                concepts = await external_cs.expand_snomed_ecl_us(ecl_expr, filter_text or "", count)
+            else:
+                concepts = await external_cs.expand_snomed_ecl(ecl_expr, filter_text or "", count)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"SNOMED expansion failed: {e}")
+        return _wrap_ecl_expansion(url, concepts, offset, count)
 
     search_results = await state.db.search_resources('ValueSet', {'url': url})
     if not search_results:
@@ -177,6 +257,29 @@ async def _perform_expansion(
                 if system_name:
                     c['systemName'] = system_name
                 all_concepts.append(c)
+        elif system and include.get('filter') and system == _SNOMED_SYSTEM:
+            # ------------------------------------------------------------------
+            # Pathway 2: SNOMED ECL filter in compose.include.filter
+            # e.g. filter=[{"property":"concept","op":"is-a","value":"73211009"}]
+            # ------------------------------------------------------------------
+            ecl_filters = [
+                f for f in include['filter']
+                if f.get('property') == 'concept' and f.get('op') in _ECL_OPS | {'='}
+            ]
+            if ecl_filters:
+                ecl = _filters_to_ecl(ecl_filters)
+                if ecl:
+                    try:
+                        external = await external_cs.expand_snomed_ecl(ecl, filter_text or "", count)
+                        for item in external:
+                            all_concepts.append({
+                                'system': system,
+                                'code': item['code'],
+                                'display': item.get('display', item['code']),
+                                'systemName': 'SNOMED CT',
+                            })
+                    except Exception as e:
+                        logger.warning("ECL expansion failed [%s]: %s", ecl, e)
         elif system:
             cs_results = await state.db.search_resources('CodeSystem', {'url': system})
             if cs_results:
@@ -447,9 +550,10 @@ async def _perform_validation(
 async def lookup_code_get(
     system: Optional[str] = Query(None),
     code: Optional[str] = Query(None),
-    version: Optional[str] = Query(None)
+    version: Optional[str] = Query(None),
+    property: Optional[List[str]] = Query(None, description="Properties to return (e.g. parent, child, COMPONENT)")
 ):
-    return await _perform_lookup(system, code, version)
+    return await _perform_lookup(system, code, version, property)
 
 
 @router.post("/CodeSystem/$lookup")
@@ -458,13 +562,15 @@ async def lookup_code_post(body: Dict[str, Any] = Body(...)):
     system = next((p['valueUri'] for p in params if p.get('name') == 'system'), None)
     code = next((p['valueCode'] for p in params if p.get('name') == 'code'), None)
     version = next((p['valueString'] for p in params if p.get('name') == 'version'), None)
-    return await _perform_lookup(system, code, version)
+    properties = [p['valueCode'] for p in params if p.get('name') == 'property' and p.get('valueCode')] or None
+    return await _perform_lookup(system, code, version, properties)
 
 
 async def _perform_lookup(
     system: Optional[str],
     code: Optional[str],
-    version: Optional[str]
+    version: Optional[str],
+    properties: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     if not system or not code:
         raise HTTPException(status_code=400, detail="system and code parameters are required")
@@ -511,6 +617,31 @@ async def _perform_lookup(
 
     # No local CodeSystem, or it's a stub — try external SDO connector
     sdo_id = _SYSTEM_URL_TO_SDO.get(system)
+
+    # LOINC with property requests → use fhir.loinc.org for hierarchy traversal
+    if sdo_id == 'loinc' and properties:
+        try:
+            ext = await external_cs.lookup_loinc_with_properties(code, properties)
+            if ext:
+                param_list = [
+                    {'name': 'name', 'valueString': 'LOINC'},
+                    {'name': 'version', 'valueString': codesystem.get('version') if codesystem else None},
+                    {'name': 'display', 'valueString': ext.get('display', '')},
+                    {'name': 'definition', 'valueString': ''},
+                ]
+                for prop in ext.get('properties', []):
+                    param_list.append({
+                        'name': 'property',
+                        'part': [
+                            {'name': 'code', 'valueCode': prop.get('code', '')},
+                            {'name': 'value', 'valueCode': str(prop.get('value', ''))}
+                        ]
+                    })
+                return {'resourceType': 'Parameters', 'parameter': param_list}
+        except Exception as e:
+            logger.warning("LOINC property lookup failed [%s]: %s", code, e)
+            # Fall through to standard lookup
+
     if sdo_id:
         ext = await external_cs.lookup(sdo_id, code)
         if ext:
@@ -648,6 +779,189 @@ async def validate_batch(body: Dict[str, Any] = Body(...)):
             "valid": valid_count,
             "invalid": len(results) - valid_count,
         },
+    }
+
+
+# ============================================================================
+# ConceptMap $translate Operation
+# ============================================================================
+
+@router.get("/ConceptMap/$translate")
+async def translate_get(
+    url: Optional[str] = Query(None, description="Canonical URL of the ConceptMap"),
+    system: Optional[str] = Query(None, description="Source code system URL"),
+    code: Optional[str] = Query(None, description="Source code to translate"),
+    target: Optional[str] = Query(None, description="Target code system URL (optional filter)")
+):
+    return await _perform_translate(url, system, code, target)
+
+
+@router.post("/ConceptMap/$translate")
+async def translate_post(body: Dict[str, Any] = Body(...)):
+    params = body.get('parameter', [])
+    url = next((p.get('valueUri') or p.get('valueString') for p in params if p.get('name') == 'url'), None)
+    system = next((p.get('valueUri') for p in params if p.get('name') == 'system'), None)
+    code = next((p.get('valueCode') or p.get('valueString') for p in params if p.get('name') == 'code'), None)
+    target = next((p.get('valueUri') for p in params if p.get('name') == 'target'), None)
+    return await _perform_translate(url, system, code, target)
+
+
+async def _perform_translate(
+    url: Optional[str],
+    system: Optional[str],
+    code: Optional[str],
+    target: Optional[str]
+) -> Dict[str, Any]:
+    if not code:
+        raise HTTPException(status_code=400, detail="code parameter is required")
+
+    no_match = {
+        'resourceType': 'Parameters',
+        'parameter': [
+            {'name': 'result', 'valueBoolean': False},
+            {'name': 'message', 'valueString': 'No mapping found'}
+        ]
+    }
+
+    # --- 1. Search local ConceptMaps ---
+    search_params: Dict[str, Any] = {}
+    if url:
+        search_params['url'] = url
+
+    maps = await state.db.search_resources('ConceptMap', search_params)
+
+    for cm in maps:
+        for group in cm.get('group', []):
+            # Match source system if provided
+            if system and group.get('source') and group['source'] != system:
+                continue
+            # Match target system if provided
+            if target and group.get('target') and group['target'] != target:
+                continue
+            for element in group.get('element', []):
+                if element.get('code') == code:
+                    targets = element.get('target', [])
+                    if not targets:
+                        continue
+                    t = targets[0]
+                    return {
+                        'resourceType': 'Parameters',
+                        'parameter': [
+                            {'name': 'result', 'valueBoolean': True},
+                            {'name': 'message', 'valueString': 'Match found in local ConceptMap'},
+                            {
+                                'name': 'match',
+                                'part': [
+                                    {'name': 'equivalence', 'valueCode': t.get('equivalence', 'equivalent')},
+                                    {
+                                        'name': 'concept',
+                                        'valueCoding': {
+                                            'system': group.get('target', ''),
+                                            'code': t.get('code', ''),
+                                            'display': t.get('display', '')
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+
+    # --- 2. Delegate to tx.fhir.org if url provided but not found locally ---
+    if url or (system and code):
+        try:
+            import aiohttp as _aiohttp
+            params_ext: Dict[str, str] = {'code': code, '_format': 'json'}
+            if url:
+                params_ext['url'] = url
+            if system:
+                params_ext['system'] = system
+            if target:
+                params_ext['target'] = target
+            _timeout = _aiohttp.ClientTimeout(total=15)
+            async with _aiohttp.ClientSession() as session:
+                async with session.get(
+                    'https://tx.fhir.org/r4/ConceptMap/$translate',
+                    params=params_ext,
+                    timeout=_timeout
+                ) as resp:
+                    if resp.status == 200:
+                        data = await resp.json(content_type=None)
+                        ext_params = {p['name']: p for p in data.get('parameter', [])}
+                        if ext_params.get('result', {}).get('valueBoolean'):
+                            return data
+        except Exception as e:
+            logger.warning("$translate delegation to tx.fhir.org failed: %s", e)
+
+    return no_match
+
+
+# ============================================================================
+# CodeSystem $subsumes Operation
+# ============================================================================
+
+@router.get("/CodeSystem/$subsumes")
+async def subsumes_get(
+    system: Optional[str] = Query(None, description="Code system URL"),
+    codeA: Optional[str] = Query(None, description="Potentially subsuming code"),
+    codeB: Optional[str] = Query(None, description="Potentially subsumed code")
+):
+    return await _perform_subsumes(system, codeA, codeB)
+
+
+async def _subsumes_local(system: str, codeA: str, codeB: str) -> str:
+    """Walk local CodeSystem concept tree to check if codeA is an ancestor of codeB."""
+    cs_results = await state.db.search_resources('CodeSystem', {'url': system})
+    if not cs_results:
+        return 'not-subsumed'
+
+    def _build_ancestor_map(concepts: list, ancestors: set, result: Dict[str, set]):
+        for c in concepts:
+            code = c.get('code', '')
+            result[code] = set(ancestors)
+            if c.get('concept'):
+                _build_ancestor_map(c['concept'], ancestors | {code}, result)
+
+    ancestor_map: Dict[str, set] = {}
+    _build_ancestor_map(cs_results[0].get('concept', []), set(), ancestor_map)
+
+    if codeA == codeB:
+        return 'equivalent'
+    if codeB in ancestor_map and codeA in ancestor_map[codeB]:
+        return 'subsumes'
+    if codeA in ancestor_map and codeB in ancestor_map[codeA]:
+        return 'subsumed-by'
+    return 'not-subsumed'
+
+
+async def _perform_subsumes(
+    system: Optional[str],
+    codeA: Optional[str],
+    codeB: Optional[str]
+) -> Dict[str, Any]:
+    if not system or not codeA or not codeB:
+        raise HTTPException(status_code=400, detail="system, codeA, and codeB parameters are required")
+
+    try:
+        if system == 'http://snomed.info/sct':
+            outcome = await external_cs.subsumes_snomed(codeA, codeB)
+        elif system == 'http://loinc.org':
+            outcome = await external_cs.subsumes_loinc(codeA, codeB)
+            if outcome is None:
+                raise HTTPException(
+                    status_code=422,
+                    detail="LOINC credentials (LOINC_USERNAME / LOINC_PASSWORD) are required for $subsumes"
+                )
+        else:
+            outcome = await _subsumes_local(system, codeA, codeB)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning("$subsumes failed [%s %s/%s]: %s", system, codeA, codeB, e)
+        raise HTTPException(status_code=502, detail=f"Subsumption check failed: {e}")
+
+    return {
+        'resourceType': 'Parameters',
+        'parameter': [{'name': 'outcome', 'valueCode': outcome}]
     }
 
 
@@ -917,11 +1231,13 @@ async def get_statistics():
     async with state.db.pool.acquire() as conn:
         vs_count = await conn.fetchval("SELECT COUNT(*) FROM fhir_resources WHERE resource_type = 'ValueSet'")
         cs_count = await conn.fetchval("SELECT COUNT(*) FROM fhir_resources WHERE resource_type = 'CodeSystem'")
+        cm_count = await conn.fetchval("SELECT COUNT(*) FROM fhir_resources WHERE resource_type = 'ConceptMap'")
 
     return {
         'resourceType': 'Parameters',
         'parameter': [
             {'name': 'total_valuesets', 'valueInteger': vs_count or 0},
             {'name': 'total_codesystems', 'valueInteger': cs_count or 0},
+            {'name': 'total_conceptmaps', 'valueInteger': cm_count or 0},
         ]
     }

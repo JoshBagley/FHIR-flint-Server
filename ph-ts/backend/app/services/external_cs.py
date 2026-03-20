@@ -17,6 +17,7 @@ import asyncio
 from typing import Optional
 
 import aiohttp
+import yarl
 
 logger = logging.getLogger(__name__)
 
@@ -396,6 +397,268 @@ async def lookup_hl7v2(system_url: str, code: str) -> Optional[dict]:
         "systemName": _v2_system_name(system_url),
         "active": True,
     }
+
+
+async def subsumes_snomed(codeA: str, codeB: str) -> str:
+    """
+    Check subsumption between two SNOMED CT concepts via tx.fhir.org.
+
+    Returns one of: 'equivalent' | 'subsumes' | 'subsumed-by' | 'not-subsumed'
+    """
+    url = f"{_TX_FHIR}/CodeSystem/$subsumes"
+    params = {
+        "system": "http://snomed.info/sct",
+        "codeA": codeA,
+        "codeB": codeB,
+        "_format": "json",
+    }
+    async with aiohttp.ClientSession() as session:
+        data = await _get(session, url, params=params)
+    outcome = next(
+        (p.get("valueCode", "") for p in data.get("parameter", []) if p.get("name") == "outcome"),
+        "not-subsumed",
+    )
+    return outcome
+
+
+async def subsumes_loinc(codeA: str, codeB: str) -> Optional[str]:
+    """
+    Check subsumption between two LOINC codes via fhir.loinc.org.
+
+    Returns outcome string or None if credentials are not configured.
+    """
+    auth = _loinc_auth_header()
+    if not auth:
+        return None
+    headers = {"Authorization": auth, "Accept": "application/fhir+json"}
+    url = f"{_LOINC_FHIR}/CodeSystem/$subsumes"
+    params = {
+        "system": "http://loinc.org",
+        "codeA": codeA,
+        "codeB": codeB,
+        "_format": "json",
+    }
+    async with aiohttp.ClientSession() as session:
+        data = await _get(session, url, headers=headers, params=params)
+    return next(
+        (p.get("valueCode", "") for p in data.get("parameter", []) if p.get("name") == "outcome"),
+        "not-subsumed",
+    )
+
+
+async def expand_snomed_ecl(ecl: str, filter_text: str, count: int) -> list:
+    """
+    Expand a SNOMED CT ECL expression via tx.fhir.org.
+
+    ECL examples:
+      <<73211009   — Diabetes mellitus and all descendants (self + descendants)
+      <73211009    — Proper descendants only
+      ^447562003   — Reference set members
+      73211009     — Single concept
+
+    tx.fhir.org uses FHIR implicit ValueSet URL formats rather than raw ECL:
+      isa/{id}      — concept + all descendants (equivalent to <<{id})
+      refset/{id}   — reference set members (equivalent to ^{id})
+    Simple single-concept and ECL expressions are translated automatically.
+    """
+    import re
+
+    ecl = ecl.strip()
+
+    # <<{id} or <{id}  → isa/{id}  (self+descendants or descendants-only, both
+    # map to isa/ since tx.fhir.org doesn't distinguish; callers needing strict
+    # proper-descendants can post-filter the root concept themselves)
+    m = re.match(r'^<{1,2}(\d+)\s*$', ecl)
+    if m:
+        vs_url = f"http://snomed.info/sct?fhir_vs=isa/{m.group(1)}"
+    # ^{refsetId}  → refset/{id}
+    elif re.match(r'^\^(\d+)\s*$', ecl):
+        refset_id = re.match(r'^\^(\d+)\s*$', ecl).group(1)
+        vs_url = f"http://snomed.info/sct?fhir_vs=refset/{refset_id}"
+    # Plain concept ID — single concept
+    elif re.match(r'^\d+\s*$', ecl):
+        vs_url = f"http://snomed.info/sct?fhir_vs=isa/{ecl}"
+    else:
+        # Complex ECL not reducible to a simple URL — not supported via tx.fhir.org
+        raise ValueError(
+            f"Complex ECL expressions are not supported via tx.fhir.org: {ecl!r}. "
+            "Use simple is-a filters (<<conceptId) or reference set filters (^refsetId)."
+        )
+
+    from urllib.parse import urlencode
+    qs_params: list = [("url", vs_url), ("count", count), ("_format", "json")]
+    if filter_text:
+        qs_params.append(("filter", filter_text))
+    # urlencode encodes '?' as '%3F' and '=' as '%3D' in param values.
+    # Pass as yarl.URL(..., encoded=True) so yarl does not re-normalize and
+    # decode '%3F' back to '?' — which would cause tx.fhir.org to misparse the
+    # SNOMED implicit ValueSet URL (splitting the query string at the second '?').
+    request_url = f"{_TX_FHIR}/ValueSet/$expand?{urlencode(qs_params)}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(yarl.URL(request_url, encoded=True), timeout=_TIMEOUT) as resp:
+            if not resp.ok:
+                body = await resp.text()
+                # Extract diagnostics from OperationOutcome if present
+                try:
+                    import json as _json
+                    oo = _json.loads(body)
+                    diag = oo.get("issue", [{}])[0].get("diagnostics", body[:300])
+                except Exception:
+                    diag = body[:300]
+                raise aiohttp.ClientResponseError(
+                    resp.request_info, resp.history,
+                    status=resp.status, message=diag,
+                )
+            data = await resp.json(content_type=None)
+    results = []
+    for item in data.get("expansion", {}).get("contains", []):
+        code = item.get("code", "")
+        results.append({
+            "code": code,
+            "display": item.get("display", ""),
+            "system": "http://snomed.info/sct",
+            "systemName": "SNOMED CT",
+            "sourceUrl": f"https://browser.ihtsdotools.org/?perspective=full&conceptId1={code}",
+        })
+    return results
+
+
+_VSAC_FHIR = "https://cts.nlm.nih.gov/fhir"
+_SNOMED_US_MODULE = "731000124108"
+
+
+async def expand_snomed_ecl_us(ecl: str, filter_text: str, count: int) -> list:
+    """
+    Expand a SNOMED CT ECL expression via NLM VSAC FHIR (US Edition).
+
+    Uses the SNOMED CT US module (731000124108) which includes the full
+    International Edition plus ~30 000 US-specific extension concepts.
+    Requires UMLS_API_KEY in the environment.
+    """
+    import re
+    from urllib.parse import urlencode
+
+    api_key = os.getenv("UMLS_API_KEY", "")
+    if not api_key:
+        raise ValueError(
+            "UMLS_API_KEY is required for SNOMED CT US Edition expansion. "
+            "Set it in .env and restart the backend."
+        )
+
+    ecl = ecl.strip()
+    m = re.match(r'^<{1,2}(\d+)\s*$', ecl)
+    if m:
+        vs_url = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=isa/{m.group(1)}"
+    elif re.match(r'^\^(\d+)\s*$', ecl):
+        refset_id = re.match(r'^\^(\d+)\s*$', ecl).group(1)
+        vs_url = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=refset/{refset_id}"
+    elif re.match(r'^\d+\s*$', ecl):
+        vs_url = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=isa/{ecl}"
+    else:
+        raise ValueError(
+            f"Complex ECL expressions are not supported: {ecl!r}. "
+            "Use simple is-a filters (<<conceptId) or reference set filters (^refsetId)."
+        )
+
+    qs_params: list = [("url", vs_url), ("count", count), ("_format", "json")]
+    if filter_text:
+        qs_params.append(("filter", filter_text))
+    request_url = f"{_VSAC_FHIR}/ValueSet/$expand?{urlencode(qs_params)}"
+    headers = {
+        "Authorization": "Basic " + __import__("base64").b64encode(f"apikey:{api_key}".encode()).decode(),
+        "Accept": "application/fhir+json",
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            yarl.URL(request_url, encoded=True), headers=headers, timeout=_TIMEOUT
+        ) as resp:
+            if not resp.ok:
+                body = await resp.text()
+                try:
+                    import json as _json
+                    oo = _json.loads(body)
+                    diag = oo.get("issue", [{}])[0].get("diagnostics", body[:300])
+                except Exception:
+                    diag = body[:300]
+                raise aiohttp.ClientResponseError(
+                    resp.request_info, resp.history,
+                    status=resp.status, message=diag,
+                )
+            data = await resp.json(content_type=None)
+    results = []
+    for item in data.get("expansion", {}).get("contains", []):
+        code = item.get("code", "")
+        results.append({
+            "code": code,
+            "display": item.get("display", ""),
+            "system": "http://snomed.info/sct",
+            "systemName": "SNOMED CT US Edition",
+            "sourceUrl": f"https://browser.ihtsdotools.org/?perspective=full&conceptId1={code}",
+        })
+    return results
+
+
+async def lookup_loinc_with_properties(code: str, properties: list) -> Optional[dict]:
+    """
+    Lookup a LOINC code and return requested properties (e.g. parent, child, COMPONENT).
+    Uses fhir.loinc.org when credentials are configured (full hierarchy including parent/child).
+    Falls back to NLM ClinicalTables for axis properties (COMPONENT, PROPERTY, SYSTEM, etc.)
+    when credentials are absent — parent/child hierarchy requires credentials.
+    """
+    auth = _loinc_auth_header()
+    if auth:
+        param_list = [("system", "http://loinc.org"), ("code", code), ("_format", "json")]
+        for prop in properties:
+            param_list.append(("property", prop))
+        headers = {"Authorization": auth, "Accept": "application/fhir+json"}
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{_LOINC_FHIR}/CodeSystem/$lookup", headers=headers,
+                                   params=param_list, timeout=_TIMEOUT) as resp:
+                resp.raise_for_status()
+                data = await resp.json(content_type=None)
+        result: dict = {"code": code, "system": "http://loinc.org", "systemName": "LOINC", "properties": []}
+        for p in data.get("parameter", []):
+            name = p.get("name", "")
+            if name == "display":
+                result["display"] = p.get("valueString", "")
+            elif name == "property":
+                parts = {part.get("name"): part for part in p.get("part", [])}
+                prop_code = parts.get("code", {}).get("valueCode", "")
+                prop_value = (
+                    parts.get("value", {}).get("valueCode")
+                    or parts.get("value", {}).get("valueString")
+                    or parts.get("value", {}).get("valueCoding", {}).get("code")
+                )
+                if prop_code and prop_value:
+                    result["properties"].append({"code": prop_code, "value": prop_value})
+        return result
+
+    # No credentials — NLM ClinicalTables fallback for axis properties.
+    # parent/child hierarchy is not available without fhir.loinc.org credentials.
+    _NLM_AXIS_FIELDS = "LOINC_NUM,LONG_COMMON_NAME,COMPONENT,PROPERTY,TIME_ASPCT,SYSTEM,SCALE_TYP,METHOD_TYP,STATUS,CLASS"
+    _NLM_AXIS_IDX: dict = {
+        "COMPONENT": 2, "PROPERTY": 3, "TIME_ASPCT": 4,
+        "SYSTEM": 5, "SCALE_TYP": 6, "METHOD_TYP": 7,
+        "STATUS": 8, "CLASS": 9,
+    }
+    params_nlm = {"terms": code, "maxList": 5, "df": _NLM_AXIS_FIELDS}
+    async with aiohttp.ClientSession() as session:
+        data = await _get(session, _NLM_LOINC, params=params_nlm)
+    for row in (data[3] if len(data) > 3 and data[3] else []):
+        if row[0].upper() == code.upper():
+            result_props = []
+            for prop in properties:
+                idx = _NLM_AXIS_IDX.get(prop.upper())
+                if idx is not None and len(row) > idx and row[idx]:
+                    result_props.append({"code": prop, "value": row[idx]})
+            return {
+                "code": code,
+                "system": "http://loinc.org",
+                "systemName": "LOINC",
+                "display": row[1] if len(row) > 1 else "",
+                "properties": result_props,
+            }
+    return None
 
 
 async def lookup_by_system_url(system_url: str, code: str) -> Optional[dict]:

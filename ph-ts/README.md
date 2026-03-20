@@ -6,7 +6,11 @@ A FHIR R4 terminology server for public health vocabulary management. Supports v
 
 - Fast full-text search with Elasticsearch
 - AI-powered concept search and mapping (Anthropic, OpenAI, or Gemini)
-- FHIR R4 operations: `$expand`, `$validate-code`, `$validate-batch`, `$lookup`, `$diff`
+- FHIR R4 operations: `$expand`, `$validate-code`, `$validate-batch`, `$lookup`, `$translate`, `$subsumes`, `$diff`
+- SNOMED CT ECL expansion via implicit ValueSet URLs (`fhir_vs=isa/{id}`, `fhir_vs=refset/{id}`)
+- LOINC hierarchy properties via `$lookup?property=parent&property=child` (requires LOINC credentials)
+- ConceptMap CRUD + `$translate` for cross-system code mapping (local + tx.fhir.org fallback)
+- `$subsumes` hierarchy checks for SNOMED CT (tx.fhir.org), LOINC (fhir.loinc.org), and local CodeSystems
 - HL7 v2 table validation — offline (imported) or delegated to `tx.fhir.org`
 - SDO connectors: SNOMED CT, ICD-10-CM, ICD-9-CM, LOINC, RxNorm, VSAC, PHIN VADS
 - Version history with git-style diffs for every resource
