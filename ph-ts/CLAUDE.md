@@ -8,7 +8,7 @@ This file provides context and working conventions for Claude Code when operatin
 
 **PH-TS** (Public Health Terminology Service) is a FHIR R4 terminology server built for public health vocabulary management. It allows vocabulary SMEs to search, browse, create, and manage value sets backed by standard development organization (SDO) code systems.
 
-**Stack:** FastAPI · PostgreSQL · Elasticsearch · Redis · React/Vite · Nginx · Docker Compose
+**Stack:** FastAPI · PostgreSQL · Elasticsearch · Redis · React/Vite · Nginx · Prometheus · Grafana · Loki · Promtail · Docker Compose
 
 ---
 
@@ -23,8 +23,9 @@ This file provides context and working conventions for Claude Code when operatin
 | PostgreSQL | localhost:5432 | DB: `phts`, User: `phts` |
 | Elasticsearch | http://localhost:9200 | |
 | Redis | localhost:6379 | |
-| Grafana | http://localhost:3001 | Dashboards |
+| Grafana | http://localhost:3001 | Metrics + log dashboards (admin/admin) |
 | Prometheus | http://localhost:9090 | Metrics scraper |
+| Loki | http://localhost:3100 | Log aggregation API |
 | Adminer (DB UI) | http://localhost:8181 | Lightweight PostgreSQL browser |
 | Kibana | http://localhost:5601 | Elasticsearch browser |
 
@@ -368,6 +369,28 @@ curl http://localhost:8000/sdo/systems
 
 # Run backend tests
 docker compose exec backend pytest
+```
+
+---
+
+## Observability
+
+### Metrics — Prometheus + Grafana
+- Prometheus scrapes `/metrics` every 15 s; Grafana dashboard **PH-TS Overview** shows request rates, latency, error rates, resource counts.
+- Dashboard JSON: `grafana/dashboards/fhir_overview.json`
+- Datasource UIDs are provisioned and auto-assigned by Grafana; the dashboard JSON must reference the actual UID. If panels show "No data" after a fresh volume, the UID may have changed — check `GET http://localhost:3001/api/datasources` and update the JSON.
+
+### Logs — Loki + Promtail
+- **Promtail** (`phts-promtail`) mounts `/var/run/docker.sock` and `/var/lib/docker/containers`, discovers all containers via Docker SD, ships logs to Loki.
+- **Loki** (`phts-loki`) stores log streams; queryable via Grafana Explore (Loki datasource) or **PH-TS Logs** dashboard.
+- Config files: `loki/loki-config.yml`, `promtail/promtail-config.yml`
+
+**Useful LogQL queries:**
+```logql
+{service="backend"} |= "HTTP/1"                          # all API requests
+{service="backend"} |~ " [45][0-9]{2} "                  # 4xx/5xx errors
+{service="backend"} |= "/ValueSet/$expand"               # expand calls only
+{compose_project="ph-ts"} |~ "(?i)error|exception"      # errors, all containers
 ```
 
 ---

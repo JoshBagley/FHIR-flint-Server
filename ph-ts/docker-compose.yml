@@ -150,7 +150,7 @@ services:
     networks:
       - phts-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -196,6 +196,45 @@ services:
       - "3001:3000"
     networks:
       - phts-network
+    restart: unless-stopped
+
+  # ============================================================================
+  # Loki — Log Aggregation
+  # ============================================================================
+  loki:
+    image: grafana/loki:latest
+    container_name: phts-loki
+    command: -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - phts-network
+    healthcheck:
+      test: ["CMD", "/usr/bin/loki", "-version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ============================================================================
+  # Promtail — Log Collector (ships Docker logs → Loki)
+  # ============================================================================
+  promtail:
+    image: grafana/promtail:latest
+    container_name: phts-promtail
+    command: -config.file=/etc/promtail/promtail-config.yml
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    networks:
+      - phts-network
+    depends_on:
+      loki:
+        condition: service_healthy
     restart: unless-stopped
 
   # ============================================================================
@@ -268,3 +307,4 @@ volumes:
   redis_data:
   prometheus_data:
   grafana_data:
+  loki_data:

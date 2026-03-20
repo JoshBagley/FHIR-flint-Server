@@ -1,53 +1,115 @@
-# PH-TS - Public Health Terminology Service
+# PH-TS — Public Health Terminology Service
 
-A high-performance FHIR R4 terminology server for public health vocabulary management.
+A FHIR R4 terminology server for public health vocabulary management. Supports value set authoring, code validation, AI-assisted concept mapping, HL7 v2 message validation, and full observability via Prometheus, Grafana, and Loki.
 
 ## Features
 
-- 🚀 Fast search with Elasticsearch
-- 📊 Real-time analytics and reporting
-- 🔄 Version control with git-style diffs
-- 🤖 AI-powered semantic search
-- 🗺️ Automated concept mapping
-- 📱 Modern React web interface
-- 🔐 Enterprise-grade security
-- 📈 Horizontal scalability
+- Fast full-text search with Elasticsearch
+- AI-powered concept search and mapping (Anthropic, OpenAI, or Gemini)
+- FHIR R4 operations: `$expand`, `$validate-code`, `$validate-batch`, `$lookup`, `$diff`
+- HL7 v2 table validation — offline (imported) or delegated to `tx.fhir.org`
+- SDO connectors: SNOMED CT, ICD-10-CM, ICD-9-CM, LOINC, RxNorm, VSAC, PHIN VADS
+- Version history with git-style diffs for every resource
+- Observability: Prometheus metrics + Grafana dashboards + Loki log aggregation
+- Modern React/TypeScript UI with Value Set Builder
 
 ## Quick Start
 
 ```bash
-# Clone repository
-git clone <repo-url>
-cd ph-ts
-
-# Copy environment file
+# Copy and configure environment
 cp .env.example .env
+# Edit .env — set AI_PROVIDER and matching API key
 
 # Start all services
-make start
+docker compose up -d
 
-# View logs
-make logs
+# Access
+# Web UI:       http://localhost
+# API:          http://localhost:8000
+# API Docs:     http://localhost:8000/docs
+# Grafana:      http://localhost:3001   (admin / admin)
+# Prometheus:   http://localhost:9090
+# Adminer:      http://localhost:8181
+```
 
-# Access services
-# - API: http://localhost:8000
-# - Web UI: http://localhost
-# - API Docs: http://localhost:8000/docs
-# - Grafana: http://localhost:3001
+## Service Ports
+
+| Port | Service |
+|------|---------|
+| 80 | Nginx (primary entry point) |
+| 8000 | FastAPI backend |
+| 5173 | Vite frontend dev server |
+| 5432 | PostgreSQL |
+| 9200 | Elasticsearch |
+| 6379 | Redis |
+| 3001 | Grafana dashboards |
+| 9090 | Prometheus metrics |
+| 3100 | Loki log aggregation |
+| 8181 | Adminer database UI |
+
+## Observability
+
+### Metrics (Prometheus + Grafana)
+- Dashboard: **PH-TS Overview** at [http://localhost:3001](http://localhost:3001)
+- Tracks: request rates, latency (p50/p95/p99), error rates, resource counts
+
+### Logs (Loki + Grafana)
+- Dashboard: **PH-TS Logs** at [http://localhost:3001](http://localhost:3001)
+- Every container's stdout/stderr is collected by Promtail and queryable in Grafana Explore
+- Use LogQL to filter: `{service="backend"} |= "POST /ValueSet"`
+
+### Direct log access
+```bash
+docker compose logs backend -f
+docker compose logs backend --tail=200 | grep "POST\|PUT\|DELETE"
+```
+
+## Terminology Validation
+
+```bash
+# Validate a code against a ValueSet
+curl "http://localhost/ValueSet/\$validate-code?url=http://hl7.org/fhir/ValueSet/administrative-gender&code=M"
+
+# Look up a LOINC code
+curl "http://localhost/CodeSystem/\$lookup?system=http://loinc.org&code=94500-6"
+
+# Batch validate codes from an HL7 v2 message
+curl -X POST http://localhost/ValueSet/\$validate-batch \
+  -H "Content-Type: application/json" \
+  -d '{"items":[
+    {"code":"M",       "system":"http://terminology.hl7.org/CodeSystem/v2-0001"},
+    {"code":"94500-6", "system":"http://loinc.org"},
+    {"code":"J12.82",  "system":"http://hl7.org/fhir/sid/icd-10-cm"}
+  ]}'
+```
+
+See [docs/validation_guide.md](docs/validation_guide.md) for full documentation.
+
+## Data Import
+
+```bash
+# HL7 FHIR R4 core code systems
+python migration/import_hl7_core.py --target-url http://localhost
+
+# HL7 v2 table code systems (enables offline v2 validation)
+python migration/import_hl7_v2_tables.py --target-url http://localhost
+
+# ICD-9-CM (~14k codes)
+python migration/import_icd9cm.py --target-url http://localhost
+
+# PHIN VADS ValueSets and CodeSystems
+python migration/phinvads_migrate.py --target-url http://localhost
 ```
 
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Development Setup](docs/DEVELOPMENT.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [API Documentation](docs/API.md)
-- [Migration Guide](docs/MIGRATION.md)
-
-## Project Structure
-
-See [Project Structure](docs/ARCHITECTURE.md#project-structure) for detailed information.
+- [Local Setup Guide](docs/local_setup_guide.md)
+- [Validation Guide](docs/validation_guide.md)
+- [Troubleshooting](docs/troubleshooting_guide.md)
+- [Deployment Guide](docs/deployment_guide.md)
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License — see LICENSE file for details.

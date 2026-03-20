@@ -101,11 +101,25 @@ Source: `backend/app/`
 - Available at **http://localhost:8181**
 - Requires no configuration — pre-configured to connect to the `postgres` service
 
-### Prometheus + Grafana (Observability)
+### Prometheus + Grafana (Metrics)
 
 - Prometheus scrapes the backend `/metrics` endpoint every 15 s
 - Grafana dashboards provisioned from `grafana/dashboards/` and `grafana/datasources/`
 - Grafana at **http://localhost:3001** (default: admin / admin)
+- Dashboard **PH-TS Overview**: request rates, latency (p50/p95/p99), error rates, resource counts
+
+### Loki + Promtail (Log Aggregation)
+
+- **Promtail** runs as a sidecar container, mounts the Docker socket, and ships every container's stdout/stderr to Loki
+- **Loki** stores log streams indexed by labels: `service`, `container`, `stream`, `compose_project`
+- Loki at **http://localhost:3100**; queryable via Grafana Explore (Loki datasource) or the **PH-TS Logs** dashboard
+- Use LogQL in Grafana Explore to filter logs:
+  - All API calls: `{service="backend"} |= "HTTP/1"`
+  - Errors only: `{service="backend"} |~ " [45][0-9]{2} "`
+  - Specific path: `{service="backend"} |= "/ValueSet/$expand"`
+  - All containers, errors: `{compose_project="ph-ts"} |~ "(?i)error|exception"`
+
+Config: `loki/loki-config.yml`, `promtail/promtail-config.yml`
 
 ---
 
@@ -120,8 +134,9 @@ Source: `backend/app/`
 | 9200 | Elasticsearch | REST API |
 | 6379 | Redis | CLI / direct access |
 | 8181 | Adminer | Database browser UI |
-| 3001 | Grafana | Metrics dashboards |
+| 3001 | Grafana | Metrics + log dashboards |
 | 9090 | Prometheus | Metrics scrape UI |
+| 3100 | Loki | Log aggregation API |
 
 ---
 
@@ -181,6 +196,7 @@ Nginx ($expand rate limit: 20r/s) → Backend
 | `redis_data` | Redis | Cached results (ephemeral — safe to delete) |
 | `prometheus_data` | Prometheus | Metrics time-series |
 | `grafana_data` | Grafana | Dashboard state, user settings |
+| `loki_data` | Loki | Log streams and index (ephemeral — safe to delete) |
 
 To reset all data:
 ```bash

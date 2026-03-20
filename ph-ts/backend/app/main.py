@@ -902,6 +902,7 @@ async def create_value_set(value_set: ValueSet):
     resource_id = await state.db.create_resource("ValueSet", data)
     await state.search_engine.index_resource(data)
     await state.cache.invalidate_pattern("ValueSet:*")
+    RESOURCE_COUNT.labels(resource_type="ValueSet", operation="create").inc()
     resource = await state.db.get_resource(resource_id)
     return JSONResponse(content=resource, status_code=201)
 
@@ -932,6 +933,7 @@ async def update_value_set(resource_id: str, value_set: ValueSet):
     await state.db.update_resource(resource_id, data)
     await state.search_engine.index_resource(data)
     await state.cache.invalidate_pattern(f"ValueSet:{resource_id}:*")
+    RESOURCE_COUNT.labels(resource_type="ValueSet", operation="update").inc()
     return await state.db.get_resource(resource_id)
 
 
@@ -1010,6 +1012,7 @@ async def create_code_system(code_system: CodeSystem):
     resource_id = await state.db.create_resource("CodeSystem", data)
     await state.search_engine.index_resource(data)
     await state.cache.invalidate_pattern("CodeSystem:*")
+    RESOURCE_COUNT.labels(resource_type="CodeSystem", operation="create").inc()
     resource = await state.db.get_resource(resource_id)
     return JSONResponse(content=resource, status_code=201)
 
@@ -1040,6 +1043,7 @@ async def update_code_system(resource_id: str, code_system: CodeSystem):
     await state.db.update_resource(resource_id, data)
     await state.search_engine.index_resource(data)
     await state.cache.invalidate_pattern(f"CodeSystem:{resource_id}:*")
+    RESOURCE_COUNT.labels(resource_type="CodeSystem", operation="update").inc()
     return await state.db.get_resource(resource_id)
 
 
