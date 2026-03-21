@@ -1,0 +1,19 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Case Transmission Mode	PHVS_CaseTransmissionMode_NND	2.16.840.1.114222.4.11.3027	2	Codes specifying the mechanism by which disease or condition was acquired.	Published	01/14/2019	v2-- Added Droplet transmission.
+
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+416380006	Airborne transmission (qualifier value)	Airborne transmission		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT
+409700000	Animal to human transmission (qualifier value)	Animal to human transmission		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT
+420014008	Blood borne transmission (qualifier value)	Blood borne transmission		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT
+461551000124100	Droplet transmission (qualifier value)	Droplet transmission		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT
+416086007	Food-borne transmission (qualifier value)	Food-borne transmission		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT
+418375005	Indeterminate disease transmission mode (qualifier value)	Indeterminate disease transmission mode		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT
+PHC142	Mechanical transmission	Mechanical		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20200526	CDCPHINVS
+416085006	Nosocomial transmission (qualifier value)	Nosocomial transmission		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT
+OTH	other	Other		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+417564009	Sexual transmission (qualifier value)	Sexual transmission		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT
+420193003	Transdermal transmission (qualifier value)	Transdermal transmission		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT
+417409004	Transplacental transmission (qualifier value)	Transplacental transmission		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT
+418427004	Vector-borne transmission (qualifier value)	Vector-borne transmission		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT
+418117003	Water-borne transmission (qualifier value)	Water-borne transmission		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20200901	SCT

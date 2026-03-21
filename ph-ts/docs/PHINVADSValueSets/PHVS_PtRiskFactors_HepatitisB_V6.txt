@@ -1,0 +1,22 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Patient Epidemiological Risk Factors (Hepatitis B)	PHVS_PtRiskFactors_HepatitisB	2.16.840.1.114222.4.11.8052	6	Patient epidemiological risk factors for contracting hepatitis B
+	Published	08/03/2023	V6: Updated maps for Contact with sexual partners and Contact with household member (nonsexual)
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+PHC2356	Contact with a confirmed or suspected case	Contact with a confirmed or suspected case		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250519	CDCPHINVS
+PHC2359	Contact with drug sharing partner	Contact with Drug sharing partner		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250519	CDCPHINVS
+302497006	Hemodialysis (procedure)	Hemodialysis		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+413141003	History of needle stick injury (situation)	Accidental stick with contaminated blood		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+PHC2362	Homelessness or unstable housing	Homelessness or unstable housing		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250519	CDCPHINVS
+PHC300	Household member (non-sexual)	Contact with household member (nonsexual)		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250519	CDCPHINVS
+307052004	Illicit drug use (finding)	Noninjection drugs not prescribed		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+45361006	Imprisonment (finding)	Incarcerated		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+226034001	Injecting drug user (finding)	Inject nonprescription drugs		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+PHC2379	Medical worker, public safety	Medical worker, public safety		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250519	CDCPHINVS
+PHC2361	Men who have sex with men (MSM)	Men who have sex with men		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250519	CDCPHINVS
+225516002	Multiple sexual contacts (finding)	Multiple sexual partners		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+OTH	Other	Other contact, specify		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+72483009	Sex related disease (finding)	STI Diagnosis		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+225517006	Sexual partners (observable entity)	Contact with Sexual partner		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+341000119102	Tattoo of skin (finding)	Tattoo		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+77465005	Transplantation (procedure)	Organ or tissue transplant recipient		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT

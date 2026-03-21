@@ -1,0 +1,10 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Epilinked Case Type (VZ)	PHVS_EpilinkedCaseType_VZ	2.16.840.1.114222.4.11.992	5	Type of case the varicella case is linked to e	Published	03/07/2024	V5: Deprecated 'Confirmed Varicella Case' to new value 'Laboratory-confirmed varicella case' and added 'Varicella cluster or outbreak containing greater or equal to 1 laboratory-confirmed case'
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+PHC166	Deprecated Confirmed Varicella Case	Deprecated Confirmed Varicella Case		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20240227	CDCPHINVS
+PHC167	Herpes Zoster Case	Herpes Zoster Case		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20240227	CDCPHINVS
+PHC2385	Laboratory-confirmed varicella case	Laboratory-confirmed varicella case		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20240227	CDCPHINVS
+PHC168	Probable Varicella Case	Probable Varicella Case		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20240227	CDCPHINVS
+UNK	unknown	unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+PHC2386	Varicella cluster or outbreak containing ≥1 laboratory-confirmed case	Varicella cluster or outbreak containing ≥1 laboratory-confirmed case		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20240227	CDCPHINVS

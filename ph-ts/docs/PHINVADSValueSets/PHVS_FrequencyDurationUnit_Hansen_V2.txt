@@ -1,0 +1,9 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Frequency Duration Unit (Hansen)	PHVS_FrequencyDurationUnit_Hansen	2.16.840.1.114222.4.11.8033	2	Indicate the frequency of medication units to treat Hansen's Disease.	Published	06/10/2021	Updated VS to UCUM units.
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+/a	/ year	Annually		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+OTH	other	Other time period		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+/d	per day	Daily		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+/mo	per month	Monthly		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+/wk	per week	Weekly		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM

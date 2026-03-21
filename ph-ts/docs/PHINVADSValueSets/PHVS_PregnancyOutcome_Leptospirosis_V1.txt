@@ -1,0 +1,15 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Pregnancy Outcome (Leptospirosis)	PHVS_PregnancyOutcome_Leptospirosis	2.16.840.1.114222.4.11.8040	1	Pregnancy outcome during Leptospirosis infection	Published	06/30/2021	Initial version
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+281050002	Livebirth (finding)	Live birth		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+17369002	Miscarriage (disorder)	Miscarriage (fetal loss before 20 weeks)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+22925008	Neonatal disorder (disorder)	Neonatal illness		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+276506001	Newborn death (event)	Neonatal death (loss up to 28 days after birth)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+OTH	other	Other pregnancy outcome (Specify)		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+77386006	Pregnant (finding)	Still pregnant		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+395507008	Premature infant (finding)	Premature birth of newborn		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+237364002	Stillbirth (finding)	Stillbirth (fetal loss at or after 20 weeks)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+87527008	Term pregnancy (finding)	Full-term pregnancy		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+386639001	Termination of pregnancy (procedure)	Terminated pregnancy including abortion		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

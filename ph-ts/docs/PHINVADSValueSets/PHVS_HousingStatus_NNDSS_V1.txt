@@ -1,0 +1,7 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Housing Status	PHVS_HousingStatus_NNDSS	2.16.840.1.114222.4.11.8097	1	Housing status of a person at the first epidemiologically relevant date associated with the case	Published	07/01/2025	v1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+32911000	Homeless (finding)	Homeless		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+414418009	Housed (finding)	Housed		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+261665006	Unknown (qualifier value)	Unknown		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT

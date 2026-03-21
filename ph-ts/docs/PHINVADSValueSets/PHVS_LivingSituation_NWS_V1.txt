@@ -1,0 +1,30 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Living Situation (NWS)	PHVS_LivingSituation_NWS	2.16.840.1.114222.4.11.8100	1	Person’s Primary living situation diagnosed with New World Screwworm (NWS)	Published	08/18/2025	v1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+PHC948	Agricultural worker housing	Agricultural (e.g., livestock, farm) worker housing, including migrant worker housing		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
+asked-declined	Asked But Declined	Declined to respond		2.16.840.1.113883.4.642.4.1048	Data Absent Reason	PH_DataAbsentReason_HL7	0.1.0	HL7
+PHC938	Federal adult correctional facility	Federal adult correctional facility		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
+PHC944	Hotel/motel or vacation rental in a long-term arrangement of more than 14 days	Hotel/motel or vacation rental in a long-term arrangement of more than 14 days		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
+PHC945	Hotel/motel or vacation rental, short-term arrangement 14 days or less	Hotel/motel or vacation rental, short-term arrangement 14 days or less		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
+224219001	Lives in independent group home (finding)	Group home or residential facility not provided by employer or school (e.g., recovery house)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+160729004	Lives in sheltered housing (finding)	Shelter or safe haven (congregate setting)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+32074000	Long term care hospital (environment)	Long term care facility (e.g., skilled nursing facility, nursing home, assisted living)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+224683003	Military accommodation (environment)	Military congregate housing (e.g., barracks)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+257641002	Mobile home (environment)	Vehicle meant for human habitation (e.g., RV)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+224786002	Open air environment (environment)	Outside or open air (e.g., tent bus shelter), not part of an established encampment		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+OTH	Other	Other, specifiy living situation(s)		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+PHC937	Other congregate housing for workers/students	Other congregate housing for workers/students		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
+PHC940	Other correctional/detention facility (e.g., border detention facility)	Other correctional/detention facility (e.g., border detention facility)		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
+PHC950	Other inpatient medical facility	Other inpatient medical facility		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
+257656006	Penal institution (environment)	Local adult jail/detention facility		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+PHC933	Private residence in a long-term arrangement of more than 14 days	Private residence in a long-term arrangement of more than 14 days		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
+PHC934	Private residence in a short-term arrangement of 14 days or less	Private residence in a short-term arrangement of 14 days or less		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
+62480006	Psychiatric hospital (environment)	Mental/Behavioral/Substance use treatment facility		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+PHC936	School/university dormitory	School/university congregate housing (e.g., dormitories)		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
+PHC939	State adult correctional facility	State adult correctional facility		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
+25911000087103	Transitional housing (environment)	Temporary, non-congregate housing provided by charity or government program (e.g., transitional housing, pallet shelter, hotel/motel)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+UNK	Unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+224933006	Unlicensed residential camp site (environment)	Outside or open air (e.g., tent bus shelter), part of an established encampment		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+611141000124105	Unsheltered homelessness (finding)	Structure or vehicle not meant for human habitation		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+224689004	Young offenders center (environment)	Juvenile correctional/detention facility		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT

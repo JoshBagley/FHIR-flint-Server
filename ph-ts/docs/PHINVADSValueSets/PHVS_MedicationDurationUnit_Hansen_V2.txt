@@ -1,0 +1,8 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Medication Duration Unit (Hansen)	PHVS_MedicationDurationUnit_Hansen	2.16.840.1.114222.4.11.8034	2	Indicate the duration of medication units to treat Hansen's Disease.	Published	06/10/2021	Updated VS to UCUM units
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+d	day	Days		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+mo	month	Months		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+wk	week	Weeks		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+a	year	Years		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM

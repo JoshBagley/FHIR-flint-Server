@@ -1,0 +1,12 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Contact Type (Anthrax)	PHVS_ContactType_Anthrax	2.16.840.1.114222.4.11.8006	1	Type of contact with case	Published	12/10/2020	v1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+105899005	Animal agent (substance)	Animal Product		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+226465004	Drinks (substance)	Drink		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+276339004	Environment (environment)	Environment		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+255620007	Food (substance)	Food		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+387961004	Kingdom Animalia (organism)	Animal		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+OTH	other	Other		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+285141008	Work environment (environment)	Workplace		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT

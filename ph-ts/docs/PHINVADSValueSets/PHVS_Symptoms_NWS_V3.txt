@@ -1,0 +1,13 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Symptoms (NWS)	PHVS_Symptoms_NWS	2.16.840.1.114222.4.11.8091	3	Signs and symptoms associated with New World Screw (NWS) worm infection	Published	07/01/2025	v3: Removed 95324001 'Skin lesion (disorder)'
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+249366005	Bleeding from nose (finding)	Nosebleed		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+271618001	Impaired wound healing (finding)	Skin wound or sore that worsened over time		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+240877000	Infestation of skin caused by fly larvae (disorder)	Maggots/larvae visible		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+447547000	Offensive wound odor (finding)	Foul odor		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+OTH	Other	Other symptom, specify		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+22253000	Pain (finding)	Pain		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+277426005	Sensation of movement (finding)	Sensation of movement		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+65124004	Swelling (finding)	Swelling		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+239164002	Wound discharge (finding)	Discharge or bleeding		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT

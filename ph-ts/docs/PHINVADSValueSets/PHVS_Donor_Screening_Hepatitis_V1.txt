@@ -1,0 +1,6 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Donor Screening (Hepatitis)	PHVS_Donor Screening_Hepatitis	2.16.840.1.114222.4.11.8069	1	This value set identifies hepatitis cases found during blood, tissue or organ donation screening	Published	08/02/2022	V1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+PHC2349	Organ or tissue donation	Organ or tissue donation		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS
+25179006	Whole blood unit collection (procedure)	Blood donation		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT

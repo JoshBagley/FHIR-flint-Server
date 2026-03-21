@@ -1,0 +1,13 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Lab Test Type (CPO)	PHVS_LabTestType_CPO	2.16.840.1.114222.4.11.8079	1	Epidemiologic interpretation of the type of CPO test(s) performed for this case.	Published	04/11/2024	V1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+LABAST6	Antimicrobial susceptibility Test Type	AST(antimicrobial susceptibility testing)		2.16.840.1.114222.4.5.232	PHIN Questions	PH_PHINQuestions_CDC	20211027	PHINQUESTION
+86930-5	Carbapenemase Islt Ql	Carbapenemase production		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.77	LN
+409877007	Immunochromatographic test (procedure)	Immunochromatography tests (ICT)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20240301	SCT
+LAB738	Organism identification test type	Organism identification		2.16.840.1.114222.4.5.232	PHIN Questions	PH_PHINQuestions_CDC	20211027	PHINQUESTION
+LAB608	Other Test Type	Other Test Type		2.16.840.1.114222.4.5.232	PHIN Questions	PH_PHINQuestions_CDC	20211027	PHINQUESTION
+LAB696	Polymerase chain reaction analysis test	PCR		2.16.840.1.114222.4.5.232	PHIN Questions	PH_PHINQuestions_CDC	20211027	PHINQUESTION
+373121007	Test not done (qualifier value)	Not Done		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20240301	SCT
+LAB609	Unknown Test Type	Unknown Test Type		2.16.840.1.114222.4.5.232	PHIN Questions	PH_PHINQuestions_CDC	20211027	PHINQUESTION
+86206-0	Whole genome seq analysis Bld/T	WGS (whole genome sequencing)		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.77	LN

@@ -1,0 +1,10 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Exposure Type (Leptospirosis)	PHVS_ExposureType_Leptospirosis	2.16.840.1.114222.4.11.7994	1	Exposure type for Leptospirosis	Published	12/03/2020	v1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+PHC2288	Animal contact	Animal contact		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201124	CDCPHINVS
+PHC2289	Fresh water or mud contact	Fresh water or mud contact		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201124	CDCPHINVS
+PHC2291	No known animal, fresh water, mud or sewage contact	No known animal, fresh water, mud or sewage contact		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201124	CDCPHINVS
+OTH	other	Other exposure type (specify)		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+PHC2290	Sewage contact	Sewage contact		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201124	CDCPHINVS
+UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

@@ -1,0 +1,535 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Preferred Language	PHVS_PreferredLangauge_NNDSS	2.16.840.1.114222.4.5.341	1	Comprehensive list of codes included in the NHSN Abridged Primary Language List	Published	06/20/2025	1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+abk	Abkhazian	Abkhazian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ace	Achinese	Achinese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ach	Acoli	Acoli		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+aar	Afar	Afar		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+afg	Afghan Sign Language	Afghan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+aka	Akan	Akan		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+akl	Aklanon	Aklanon		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mim	Alacatlatzala Mixtec	Alacatlatzala Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sqi	Albanian	Albanian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sqk	Albanian Sign Language	Albanian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xta	Alcozauca Mixtec	Alcozauca Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+arq	Algerian Arabic	Algerian Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+aao	Algerian Saharan Arabic	Algerian Saharan Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+asp	Algerian Sign Language	Algerian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ase	American Sign Language	American Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+amh	Amharic	Amharic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mbz	Amoltepec Mixtec	Amoltepec Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xaa	Andalusian Arabic	Andalusian Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+anu	Anuak	Anuak		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mip	Apasco-Apoala Mixtec	Apasco-Apoala Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ara	Arabic	Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+aed	Argentine Sign Language	Argentine Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hye	Armenian	Armenian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+aen	Armenian Sign Language	Armenian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+asked-declined	Asked But Declined	Asked But Declined		2.16.840.1.113883.4.642.4.1048	Data Absent Reason	PH_DataAbsentReason_HL7	0.1.0	HL7
+asm	Assamese	Assamese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mib	Atatláhuca Mixtec	Atatláhuca Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+asq	Austrian Sign Language	Austrian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ava	Avaric	Avaric		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+auj	Awjilah	Awjilah		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+aym	Aymara	Aymara		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+miy	Ayutla Mixtec	Ayutla Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+aze	Azerbaijani	Azerbaijani		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ksf	Bafia	Bafia		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+abv	Baharna Arabic	Baharna Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bal	Baluchi	Baluchi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bam	Bambara	Bambara		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bza	Bandi	Bandi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bci	Baoulé	Baoulé		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bfa	Bari	Bari		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bak	Bashkir	Bashkir		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bsq	Bassa	Bassa		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bej	Beja	Beja		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bel	Belarusian	Belarusian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bem	Bemba (Zambia)	Bemba (Zambia)		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bmb	Bembe	Bembe		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ben	Bengali	Bengali		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ber	Berber languages	Berber languages		2.16.840.1.113883.6.100	ISO 639-2 Language	PH_Language_ISO_639-2_Alpha3	March 2014	ISO6392
+bho	Bhojpuri	Bhojpuri		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+byn	Bilin	Bilin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bis	Bislama	Bislama		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bvl	Bolivian Sign Language	Bolivian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bos	Bosnian	Bosnian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bzs	Brazilian Sign Language	Brazilian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bul	Bulgarian	Bulgarian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bqn	Bulgarian Sign Language	Bulgarian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mya	Burmese	Burmese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lsb	Burundian Sign Language	Burundian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+miu	Cacaloxtepec Mixtec	Cacaloxtepec Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+csx	Cambodian Sign Language	Cambodian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ceb	Cebuano	Cebuano		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tzm	Central Atlas Tamazight	Central Atlas Tamazight		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nch	Central Huasteca Nahuatl	Central Huasteca Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ckb	Central Kurdish	Central Kurdish		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhn	Central Nahuatl	Central Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ncx	Central Puebla Nahuatl	Central Puebla Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+shu	Chadian Arabic	Chadian Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cds	Chadian Sign Language	Chadian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cha	Chamorro	Chamorro		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mih	Chayuco Mixtec	Chayuco Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xtb	Chazumba Mixtec	Chazumba Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+che	Chechen	Chechen		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cnu	Chenoua	Chenoua		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mii	Chigmecatitlán Mixtec	Chigmecatitlán Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+csg	Chilean Sign Language	Chilean Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+csl	Chinese Sign Language	Chinese Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ctg	Chittagonian	Chittagonian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cac	Chuj	Chuj		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+chk	Chuukese	Chuukese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nci	Classical Nahuatl	Classical Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+naz	Coatepec Nahuatl	Coatepec Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+miz	Coatzospan Mixtec	Coatzospan Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+csn	Colombian Sign Language	Colombian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+csr	Costa Rican Sign Language	Costa Rican Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+csq	Croatia Sign Language	Croatia Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hrv	Croatian	Croatian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+csf	Cuba Sign Language	Cuba Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xtu	Cuyamecalco Mixtec	Cuyamecalco Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+acy	Cypriot Arabic	Cypriot Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ces	Czech	Czech		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cse	Czech Sign Language	Czech Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+dnj	Dan	Dan		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+dan	Danish	Danish		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+dsl	Danish Sign Language	Danish Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+prs	Dari	Dari		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+div	Dhivehi	Dhivehi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+adf	Dhofari Arabic	Dhofari Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+din	Dinka	Dinka		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xtd	Diuxi-Tilantongo Mixtec	Diuxi-Tilantongo Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+doq	Dominican Sign Language	Dominican Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nld	Dutch	Dutch		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+dse	Dutch Sign Language	Dutch Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+dyu	Dyula	Dyula		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+dzo	Dzongkha	Dzongkha		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+azd	Eastern Durango Nahuatl	Eastern Durango Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+avl	Eastern Egyptian Bedawi Arabic	Eastern Egyptian Bedawi Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+otm	Eastern Highland Otomi	Eastern Highland Otomi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhe	Eastern Huasteca Nahuatl	Eastern Huasteca Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+eky	Eastern Kayah	Eastern Kayah		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ecs	Ecuadorian Sign Language	Ecuadorian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+esl	Egypt Sign Language	Egypt Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+arz	Egyptian Arabic	Egyptian Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+eng	English	English		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ots	Estado de México Otomi	Estado de México Otomi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+est	Estonian	Estonian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+eso	Estonian Sign Language	Estonian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+eth	Ethiopian Sign Language	Ethiopian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ewe	Ewe	Ewe		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cfm	Falam Chin	Falam Chin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fat	Fanti	Fanti		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fao	Faroese	Faroese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fij	Fijian	Fijian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fil	Filipino	Filipino		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fss	Finland-Swedish Sign Language	Finland-Swedish Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fin	Finnish	Finnish		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fse	Finnish Sign Language	Finnish Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fra	French	French		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fsl	French Sign Language	French Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ful	Fulah	Fulah		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+flr	Fuliiru	Fuliiru		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fvr	Fur	Fur		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gaa	Ga	Ga		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gan	Gan Chinese	Gan Chinese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lug	Ganda	Ganda		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cab	Garifuna	Garifuna		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gex	Garre	Garre		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gej	Gen	Gen		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kat	Georgian	Georgian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+deu	German	German		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gsg	German Sign Language	German Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gha	Ghadamès	Ghadamès		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gse	Ghanaian Sign Language	Ghanaian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gho	Ghomara	Ghomara		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+glk	Gilaki	Gilaki		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gol	Gola	Gola		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+grb	Grebo	Grebo		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gss	Greek Sign Language	Greek Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+grn	Guarani	Guarani		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gsm	Guatemalan Sign Language	Guatemalan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+amu	Guerrero Amuzgo	Guerrero Amuzgo		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ngu	Guerrero Nahuatl	Guerrero Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lgs	Guinea-Bissau Sign Language	Guinea-Bissau Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+gus	Guinean Sign Language	Guinean Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+guj	Gujarati	Gujarati		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+afb	Gulf Arabic	Gulf Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+guz	Gusii	Gusii		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ayh	Hadrami Arabic	Hadrami Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hat	Haitian	Haitian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cnh	Hakha Chin	Hakha Chin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hab	Hanoi Sign Language	Hanoi Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hau	Hausa	Hausa		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hsl	Hausa Sign Language	Hausa Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+haz	Hazaragi	Hazaragi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+heb	Hebrew	Hebrew		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+her	Herero	Herero		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+azz	Highland Puebla Nahuatl	Highland Puebla Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+acw	Hijazi Arabic	Hijazi Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hin	Hindi	Hindi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hmo	Hiri Motu	Hiri Motu		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hmn	Hmong	Hmong		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hds	Honduras Sign Language	Honduras Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hks	Hong Kong Sign Language	Hong Kong Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhq	Huaxcaleca Nahuatl	Huaxcaleca Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mxs	Huitepec Mixtec	Huitepec Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hke	Hunde	Hunde		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hun	Hungarian	Hungarian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hsh	Hungarian Sign Language	Hungarian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ibb	Ibibio	Ibibio		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+isl	Icelandic	Icelandic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+icl	Icelandic Sign Language	Icelandic Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ibo	Igbo	Igbo		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ilo	Iloko	Iloko		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ins	Indian Sign Language	Indian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ind	Indonesian	Indonesian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+inl	Indonesian Sign Language	Indonesian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+psc	Iranian Sign Language	Iranian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+isg	Irish Sign Language	Irish Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+isr	Israeli Sign Language	Israeli Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhk	Isthmus-Cosoleacaque Nahuatl	Isthmus-Cosoleacaque Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhx	Isthmus-Mecayapan Nahuatl	Isthmus-Mecayapan Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhp	Isthmus-Pajapan Nahuatl	Isthmus-Pajapan Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ita	Italian	Italian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ise	Italian Sign Language	Italian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mce	Itundujia Mixtec	Itundujia Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ixl	Ixil	Ixil		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+vmj	Ixtayutla Mixtec	Ixtayutla Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+otz	Ixtenco Otomi	Ixtenco Otomi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+jls	Jamaican Sign Language	Jamaican Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mxt	Jamiltepec Mixtec	Jamiltepec Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+jpn	Japanese	Japanese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+jsl	Japanese Sign Language	Japanese Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+jra	Jarai	Jarai		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+jav	Javanese	Javanese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+jos	Jordanian Sign Language	Jordanian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+jrb	Judeo-Arabic	Judeo-Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+yhd	Judeo-Iraqi Arabic	Judeo-Iraqi Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+aju	Judeo-Moroccan Arabic	Judeo-Moroccan Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+yud	Judeo-Tripolitanian Arabic	Judeo-Tripolitanian Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+jye	Judeo-Yemeni Arabic	Judeo-Yemeni Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+vmc	Juxtlahuaca Mixtec	Juxtlahuaca Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kab	Kabyle	Kabyle		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kac	Kachin	Kachin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kan	Kannada	Kannada		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cak	Kaqchikel	Kaqchikel		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kar	Karen languages	Karen languages		2.16.840.1.113883.6.100	ISO 639-2 Language	PH_Language_ISO_639-2_Alpha3	March 2014	ISO6392
+kas	Kashmiri	Kashmiri		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kaz	Kazakh	Kazakh		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kek	Kekchí	Kekchí		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xki	Kenyan Sign Language	Kenyan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+khm	Khmer	Khmer		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cnk	Khumi Chin	Khumi Chin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+quc	K'iche'	K'iche'		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kik	Kikuyu	Kikuyu		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kin	Kinyarwanda	Kinyarwanda		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kir	Kirghiz	Kirghiz		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ktu	Kituba (Democratic Republic of Congo)	Kituba (Democratic Republic of Congo)		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kon	Kongo	Kongo		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+knn	Konkani (individual language)	Konkani (individual language)		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kor	Korean	Korean		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kvk	Korean Sign Language	Korean Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kpe	Kpelle	Kpelle		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kri	Krio	Krio		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kro	Kru languages	Kru languages		2.16.840.1.113883.6.100	ISO 639-2 Language	PH_Language_ISO_639-2_Alpha3	March 2014	ISO6392
+kua	Kuanyama	Kuanyama		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kun	Kunama	Kunama		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+blh	Kuwaa	Kuwaa		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lao	Lao	Lao		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lso	Laos Sign Language	Laos Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lav	Latvian	Latvian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lsl	Latvian Sign Language	Latvian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+clt	Lautu Chin	Lautu Chin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+apc	Levantine Arabic	Levantine Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ayl	Libyan Arabic	Libyan Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lbs	Libyan Sign Language	Libyan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lin	Lingala	Lingala		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lit	Lithuanian	Lithuanian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lls	Lithuanian Sign Language	Lithuanian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lpx	Lopit	Lopit		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lua	Luba-Lulua	Luba-Lulua		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+luo	Luo (Kenya and Tanzania)	Luo (Kenya and Tanzania)		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lus	Lushai	Lushai		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ymm	Maay	Maay		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mkd	Macedonian	Macedonian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mzc	Madagascar Sign Language	Madagascar Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mhi	Ma'di	Ma'di		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mad	Madurese	Madurese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xtm	Magdalena Peñasco Mixtec	Magdalena Peñasco Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mdh	Maguindanaon	Maguindanaon		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mai	Maithili	Maithili		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mak	Makasar	Makasar		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mlg	Malagasy	Malagasy		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lws	Malawian Sign Language	Malawian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+msa	Malay (macrolanguage)	Malay (macrolanguage)		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mal	Malayalam	Malayalam		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xml	Malaysian Sign Language	Malaysian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mlt	Maltese	Maltese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mdl	Maltese Sign Language	Maltese Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mam	Mam	Mam		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cmn	Mandarin Chinese	Mandarin Chinese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mnk	Mandinka	Mandinka		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mev	Mano	Mano		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mar	Marathi	Marathi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mah	Marshallese	Marshallese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mls	Masalit	Masalit		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hlt	Matu Chin	Matu Chin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lsy	Mauritian Sign Language	Mauritian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+men	Mende (Sierra Leone)	Mende (Sierra Leone)		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+acm	Mesopotamian Arabic	Mesopotamian Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mxv	Metlatónoc Mixtec	Metlatónoc Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mfs	Mexican Sign Language	Mexican Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ote	Mezquital Otomi	Mezquital Otomi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ncl	Michoacán Nahuatl	Michoacán Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cdo	Min Dong Chinese	Min Dong Chinese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nan	Min Nan Chinese	Min Nan Chinese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+min	Minangkabau	Minangkabau		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+vmm	Mitlatongo Mixtec	Mitlatongo Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mix	Mixtepec Mixtec	Mixtepec Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ahm	Mobumrin Aizi	Mobumrin Aizi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+jkm	Mobwa Karen	Mobwa Karen		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ell	Modern Greek (1453-)	Modern Greek (1453-)		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mnw	Mon	Mon		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mon	Mongolian	Mongolian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+msr	Mongolian Sign Language	Mongolian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhm	Morelos Nahuatl	Morelos Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mor	Moro	Moro		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ary	Moroccan Arabic	Moroccan Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xms	Moroccan Sign Language	Moroccan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mzy	Mozambican Sign Language	Mozambican Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mxi	Mozarabic	Mozarabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ysm	Myanmar Sign Language	Myanmar Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nah	Nahuatl languages	Nahuatl languages		2.16.840.1.113883.6.100	ISO 639-2 Language	PH_Language_ISO_639-2_Alpha3	March 2014	ISO6392
+ars	Najdi Arabic	Najdi Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nbs	Namibian Sign Language	Namibian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nsp	Nepalese Sign Language	Nepalese Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+npi	Nepali (individual language)	Nepali (individual language)		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nzs	New Zealand Sign Language	New Zealand Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ncs	Nicaraguan Sign Language	Nicaraguan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nsi	Nigerian Sign Language	Nigerian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ayp	North Mesopotamian Arabic	North Mesopotamian Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nde	North Ndebele	North Ndebele		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+aee	Northeast Pashai	Northeast Pashai		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kmr	Northern Kurdish	Northern Kurdish		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lrc	Northern Luri	Northern Luri		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhy	Northern Oaxaca Nahuatl	Northern Oaxaca Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ncj	Northern Puebla Nahuatl	Northern Puebla Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xtn	Northern Tlaxiaco Mixtec	Northern Tlaxiaco Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mxa	Northwest Oaxaca Mixtec	Northwest Oaxaca Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+glh	Northwest Pashai	Northwest Pashai		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nor	Norwegian	Norwegian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nsl	Norwegian Sign Language	Norwegian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nus	Nuer	Nuer		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nya	Nyanja	Nyanja		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mie	Ocotepec Mixtec	Ocotepec Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+acx	Omani Arabic	Omani Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nht	Ometepec Nahuatl	Ometepec Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nlv	Orizaba Nahuatl	Orizaba Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+orm	Oromo	Oromo		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+oss	Ossetian	Ossetian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+OTH	other	other		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+oto	Otomian languages	Otomian languages		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+pks	Pakistan Sign Language	Pakistan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+jkp	Paku Karen	Paku Karen		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lsp	Panamanian Sign Language	Panamanian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+pan	Panjabi	Panjabi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+blk	Pa'o Karen	Pa'o Karen		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+pgz	Papua New Guinean Sign Language	Papua New Guinean Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+pys	Paraguayan Sign Language	Paraguayan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nso	Pedi	Pedi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mil	Peñoles Mixtec	Peñoles Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fas	Persian	Persian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+prl	Peruvian Sign Language	Peruvian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+psp	Philippine Sign Language	Philippine Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kjt	Phrae Pwo Karen	Phrae Pwo Karen		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mio	Pinotepa Nacional Mixtec	Pinotepa Nacional Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+pol	Polish	Polish		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+pso	Polish Sign Language	Polish Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+poh	Poqomchi'	Poqomchi'		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+por	Portuguese	Portuguese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+psr	Portuguese Sign Language	Portuguese Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+psl	Puerto Rican Sign Language	Puerto Rican Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fuc	Pulaar	Pulaar		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tsz	Purepecha	Purepecha		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+pus	Pushto	Pushto		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kjp	Pwo Eastern Karen	Pwo Eastern Karen		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+pww	Pwo Northern Karen	Pwo Northern Karen		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+pwo	Pwo Western Karen	Pwo Western Karen		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kjb	Q'anjob'al	Q'anjob'al		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+que	Quechua	Quechua		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+otq	Querétaro Otomi	Querétaro Otomi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+rki	Rakhine	Rakhine		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+rhg	Rohingya	Rohingya		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ron	Romanian	Romanian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+rms	Romanian Sign Language	Romanian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+run	Rundi	Rundi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+rus	Russian	Russian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+rsl	Russian Sign Language	Russian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+rsn	Rwandan Sign Language	Rwandan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ssy	Saho	Saho		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+aec	Saidi Arabic	Saidi Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+esn	Salvadoran Sign Language	Salvadoran Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+smo	Samoan	Samoan		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+cuk	San Blas Kuna	San Blas Kuna		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mjc	San Juan Colorado Mixtec	San Juan Colorado Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xtj	San Juan Teita Mixtec	San Juan Teita Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mig	San Miguel El Grande Mixtec	San Miguel El Grande Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xtp	San Miguel Piedras Mixtec	San Miguel Piedras Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ayn	Sanaani Arabic	Sanaani Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sag	Sango	Sango		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mdv	Santa Lucía Monteverde Mixtec	Santa Lucía Monteverde Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhz	Santa María La Alta Nahuatl	Santa María La Alta Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mza	Santa María Zacatepec Mixtec	Santa María Zacatepec Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kwg	Sara Kaba Deme	Sara Kaba Deme		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kwv	Sara Kaba Náà	Sara Kaba Náà		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sdl	Saudi Arabian Sign Language	Saudi Arabian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+swn	Sawknah	Sawknah		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sjs	Senhaja De Srair	Senhaja De Srair		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sez	Senthang Chin	Senthang Chin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+srp	Serbian	Serbian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lsw	Seychelles Sign Language	Seychelles Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ksw	S'gaw Karen	S'gaw Karen		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+shn	Shan	Shan		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ssh	Shihhi Arabic	Shihhi Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+shk	Shilluk	Shilluk		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sna	Shona	Shona		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sif	Siamou	Siamou		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+iii	Sichuan Yi	Sichuan Yi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sqr	Siculo Arabic	Siculo Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sgx	Sierra Leone Sign Language	Sierra Leone Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nsu	Sierra Negra Nahuatl	Sierra Negra Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sgn	Sign Languages	Sign Languages		2.16.840.1.113883.6.100	ISO 639-2 Language	PH_Language_ISO_639-2_Alpha3	March 2014	ISO6392
+mks	Silacayoapan Mixtec	Silacayoapan Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+snd	Sindhi	Sindhi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xts	Sindihui Mixtec	Sindihui Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sls	Singapore Sign Language	Singapore Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sin	Sinhala	Sinhala		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xti	Sinicahua Mixtec	Sinicahua Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+siz	Siwi	Siwi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+csy	Siyin Chin	Siyin Chin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+slk	Slovak	Slovak		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+svk	Slovakian Sign Language	Slovakian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+slv	Slovenian	Slovenian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+szs	Solomon Islands Sign Language	Solomon Islands Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+som	Somali	Somali		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+snk	Soninke	Soninke		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sfs	South African Sign Language	South African Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+psi	Southeast Pashai	Southeast Pashai		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mxy	Southeastern Nochixtlán Mixtec	Southeastern Nochixtlán Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+npl	Southeastern Puebla Nahuatl	Southeastern Puebla Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sdh	Southern Kurdish	Southern Kurdish		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+luz	Southern Luri	Southern Luri		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mit	Southern Puebla Mixtec	Southern Puebla Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sot	Southern Sotho	Southern Sotho		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+psh	Southwest Pashai	Southwest Pashai		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+meh	Southwestern Tlaxiaco Mixtec	Southwestern Tlaxiaco Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+vmq	Soyaltepec Mixtec	Soyaltepec Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+spa	Spanish	Spanish		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ssp	Spanish Sign Language	Spanish Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sqs	Sri Lankan Sign Language	Sri Lankan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+arb	Standard Arabic	Standard Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+apd	Sudanese Arabic	Sudanese Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+pga	Sudanese Creole Arabic	Sudanese Creole Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sun	Sundanese	Sundanese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+swh	Swahili (individual language)	Swahili (individual language)		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ssw	Swati	Swati		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+swe	Swedish	Swedish		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+swl	Swedish Sign Language	Swedish Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ssr	Swiss-French Sign Language	Swiss-French Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+sgg	Swiss-German Sign Language	Swiss-German Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+slf	Swiss-Italian Sign Language	Swiss-Italian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhc	Tabasco Nahuatl	Tabasco Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xtt	Tacahua Mixtec	Tacahua Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+shy	Tachawit	Tachawit		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+shi	Tachelhit	Tachelhit		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tgl	Tagalog	Tagalog		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tss	Taiwan Sign Language	Taiwan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+acq	Ta'izzi-Adeni Arabic	Ta'izzi-Adeni Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tgk	Tajik	Tajik		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+abh	Tajiki Arabic	Tajiki Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tmh	Tamashek	Tamashek		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+vmx	Tamazola Mixtec	Tamazola Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tam	Tamil	Tamil		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tza	Tanzanian Sign Language	Tanzanian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+rif	Tarifit	Tarifit		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tat	Tatar	Tatar		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ctd	Tedim Chin	Tedim Chin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tel	Telugu	Telugu		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhv	Temascaltepec Nahuatl	Temascaltepec Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ott	Temoaya Otomi	Temoaya Otomi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+otn	Tenango Otomi	Tenango Otomi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhg	Tetelcingo Nahuatl	Tetelcingo Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tez	Tetserret	Tetserret		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+otx	Texcatepec Otomi	Texcatepec Otomi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mxb	Tezoatlán Mixtec	Tezoatlán Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tha	Thai	Thai		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tsq	Thai Sign Language	Thai Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ahi	Tiagbamrin Aizi	Tiagbamrin Aizi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+bod	Tibetan	Tibetan		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lsn	Tibetan Sign Language	Tibetan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mtx	Tidaá Mixtec	Tidaá Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tig	Tigre	Tigre		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tir	Tigrinya	Tigrinya		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xtl	Tijaltepec Mixtec	Tijaltepec Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+otl	Tilapa Otomi	Tilapa Otomi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nuz	Tlamacazapa Nahuatl	Tlamacazapa Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mqh	Tlazoyaltepec Mixtec	Tlazoyaltepec Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ton	Tonga (Tonga Islands)	Tonga (Tonga Islands)		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+lst	Trinidad and Tobago Sign Language	Trinidad and Tobago Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tsn	Tswana	Tswana		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tcy	Tulu	Tulu		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+aeb	Tunisian Arabic	Tunisian Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tse	Tunisian Sign Language	Tunisian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tur	Turkish	Turkish		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tsm	Turkish Sign Language	Turkish Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tuk	Turkmen	Turkmen		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mtu	Tututepec Mixtec	Tututepec Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+twi	Twi	Twi		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tzo	Tzotzil	Tzotzil		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+tzj	Tz'utujil	Tz'utujil		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ugn	Ugandan Sign Language	Ugandan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+uig	Uighur	Uighur		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ukr	Ukrainian	Ukrainian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ukl	Ukrainian Sign Language	Ukrainian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+umb	Umbundu	Umbundu		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+unknown	Unknown	Unknown		2.16.840.1.113883.4.642.4.1048	Data Absent Reason	PH_DataAbsentReason_HL7	0.1.0	HL7
+urd	Urdu	Urdu		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ugy	Uruguayan Sign Language	Uruguayan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+uzb	Uzbek	Uzbek		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+auz	Uzbeki Arabic	Uzbeki Arabic		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+vsl	Venezuelan Sign Language	Venezuelan Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+vie	Vietnamese	Vietnamese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+war	Waray (Philippines)	Waray (Philippines)		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+azn	Western Durango Nahuatl	Western Durango Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+fry	Western Frisian	Western Frisian		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhw	Western Huasteca Nahuatl	Western Huasteca Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+jmx	Western Juxtlahuaca Mixtec	Western Juxtlahuaca Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+knj	Western Kanjobal	Western Kanjobal		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+kyu	Western Kayah	Western Kayah		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+wea	Wewaw	Wewaw		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+wol	Wolof	Wolof		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+wuu	Wu Chinese	Wu Chinese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xho	Xhosa	Xhosa		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+hsn	Xiang Chinese	Xiang Chinese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+yid	Yiddish	Yiddish		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+xty	Yoloxochitl Mixtec	Yoloxochitl Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+yor	Yoruba	Yoruba		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mpm	Yosondúa Mixtec	Yosondúa Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+msd	Yucatec Maya Sign Language	Yucatec Maya Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mvg	Yucuañe Mixtec	Yucuañe Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+yue	Yue Chinese	Yue Chinese		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+ysl	Yugoslavian Sign Language	Yugoslavian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+mab	Yutanduchi Mixtec	Yutanduchi Mixtec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+nhi	Zacatlán-Ahuacatlán-Tepetzintla Nahuatl	Zacatlán-Ahuacatlán-Tepetzintla Nahuatl		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+zag	Zaghawa	Zaghawa		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+zsl	Zambian Sign Language	Zambian Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+zap	Zapotec	Zapotec		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+zen	Zenaga	Zenaga		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+zib	Zimbabwe Sign Language	Zimbabwe Sign Language		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+czt	Zotung Chin	Zotung Chin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+zom	Zou	Zou		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+zul	Zulu	Zulu		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393
+zyp	Zyphe Chin	Zyphe Chin		1.0.639.3	ISO 639-3 Language	PH_Language_ISO_639-3	20240123	ISO6393

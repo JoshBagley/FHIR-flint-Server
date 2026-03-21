@@ -45,10 +45,10 @@ import httpx
 
 PHINVADS_BASE = "https://phinvads.cdc.gov/baseStu3"
 DEFAULT_TARGET = "http://localhost"
-REQUEST_TIMEOUT = 120         # seconds per HTTP call (PHINVADS responses can be large)
-RETRY_ATTEMPTS = 5
+REQUEST_TIMEOUT = 180         # seconds per HTTP call (PHINVADS responses can be large)
+RETRY_ATTEMPTS = 20
 RETRY_BACKOFF = 5.0           # seconds, doubles on each retry
-PAGE_SIZE = 100               # _count per PHIN VADS page
+PAGE_SIZE = 50                # _count per PHIN VADS page
 
 logging.basicConfig(
     level=logging.INFO,
@@ -584,8 +584,12 @@ async def fetch_all_pages(
     """
     Page through PHIN VADS FHIR bundle for the given resource type.
     Returns a flat list of raw STU3 resource dicts.
+
+    Uses ID-based deduplication: stops when a full page contains only
+    resources already seen (guards against PHIN VADS cycling pages).
     """
-    resources = []
+    resources: List[Dict] = []
+    seen_ids: set = set()
     offset = start_offset
     page = 0
 
@@ -600,13 +604,19 @@ async def fetch_all_pages(
         )
 
         entries = bundle.get("entry", [])
+        new_this_page = 0
         for entry in entries:
             res = entry.get("resource")
             if res:
-                resources.append(res)
+                rid = res.get("id") or res.get("url") or str(len(resources))
+                if rid not in seen_ids:
+                    seen_ids.add(rid)
+                    resources.append(res)
+                    new_this_page += 1
 
         total = bundle.get("total", 0)
-        logger.info("  Got %d/%d %s resources so far", len(resources) + start_offset, total, resource_type)
+        logger.info("  Got %d/%d %s resources so far (%d new this page)",
+                    len(resources) + start_offset, total, resource_type, new_this_page)
 
         # Check for a 'next' link in the bundle
         next_url = None
@@ -615,7 +625,11 @@ async def fetch_all_pages(
                 next_url = link.get("url")
                 break
 
-        if not entries or not next_url:
+        # Stop if: no entries, no next link, no new unique resources on this page
+        if not entries or not next_url or new_this_page == 0:
+            if new_this_page == 0 and entries:
+                logger.info("  All %d entries on this page were duplicates — stopping pagination",
+                            len(entries))
             break
 
         # PHINVADS sometimes returns a stale "next" link even after the total

@@ -1,0 +1,787 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Occupation CDC SOC 2010	PHVS_Occupation_CDC_SOC2010	2.16.840.1.114222.4.11.8028	2	2010 BLS Standard Occupational Classification (SOC) coding system used by the NIOSH Industry and Occupation Computerized Coding System (NIOCCS). Occupation describes a set of activities or tasks that individuals are paid to perform or, if unpaid, define a person’s contribution to a household/family business/community. This code system includes 2010 SOC occupation codes with modifications made by CDC for unpaid workers and military occupations. The PH_Industry_CDC_NAICS2012 code system should be used in conjunction with this occupation code system when coding both industry and occupation. For more information and instructions on using this coding system, see the instruction manual for  CDC-Census I&O coding at:  http://www.cdc.gov/niosh/topics/coding/	Published	06/22/2021	Updated concepts to reflect Occupation SOC 2010 updates
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+13-2011	Accountants and Auditors	Accountants and Auditors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-2011	Actors	Actors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-2011	Actuaries	Actuaries		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9191	Adhesive Bonding Machine Operators and Tenders	Adhesive Bonding Machine Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+23-1021	Administrative Law Judges, Adjudicators, and Hearing Officers	Administrative Law Judges, Adjudicators, and Hearing Officers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-3011	Administrative Services Managers	Administrative Services Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-3011	Adult Basic and Secondary Education and Literacy Teachers and Instructors	Adult Basic and Secondary Education and Literacy Teachers and Instructors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-2011	Advertising and Promotions Managers	Advertising and Promotions Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-3011	Advertising Sales Agents	Advertising Sales Agents		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3021	Aerospace Engineering and Operations Technicians	Aerospace Engineering and Operations Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2011	Aerospace Engineers	Aerospace Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1011	Agents and Business Managers Of Artists, Performers, and Athletes	Agents and Business Managers Of Artists, Performers, and Athletes		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-4011	Agricultural and Food Science Technicians	Agricultural and Food Science Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2021	Agricultural Engineers	Agricultural Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-2091	Agricultural Equipment Operators	Agricultural Equipment Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-2011	Agricultural Inspectors	Agricultural Inspectors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-2099	Agricultural Workers, All Other	Agricultural Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-2021	Air Traffic Controllers	Air Traffic Controllers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-1011	Aircraft Cargo Handling Supervisors	Aircraft Cargo Handling Supervisors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3011	Aircraft Mechanics and Service Technicians	Aircraft Mechanics and Service Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-2011	Aircraft Structure, Surfaces, Rigging, and Systems Assemblers	Aircraft Structure, Surfaces, Rigging, and Systems Assemblers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-2022	Airfield Operations Specialists	Airfield Operations Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-2011	Airline Pilots, Copilots, and Flight Engineers	Airline Pilots, Copilots, and Flight Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-3011	Ambulance Drivers and Attendants, Except Emergency Medical Technicians	Ambulance Drivers and Attendants, Except Emergency Medical Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-3091	Amusement and Recreation Attendants	Amusement and Recreation Attendants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1061	Anesthesiologists	Anesthesiologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-2021	Animal Breeders	Animal Breeders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-9011	Animal Control Workers	Animal Control Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1011	Animal Scientists	Animal Scientists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-2011	Animal Trainers	Animal Trainers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3091	Anthropologists and Archeologists	Anthropologists and Archeologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2021	Appraisers and Assessors of Real Estate	Appraisers and Assessors of Real Estate		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+23-1022	Arbitrators, Mediators, and Conciliators	Arbitrators, Mediators, and Conciliators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-1011	Architects, Except Landscape and Naval	Architects, Except Landscape and Naval		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3011	Architectural and Civil Drafters	Architectural and Civil Drafters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9041	Architectural and Engineering Managers	Architectural and Engineering Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-4011	Archivists	Archivists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1011	Art Directors	Art Directors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1019	Artists and Related Workers, All Other	Artists and Related Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-2099	Assemblers and Fabricators, All Other	Assemblers and Fabricators, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-2011	Astronomers	Astronomers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-2021	Athletes and Sports Competitors	Athletes and Sports Competitors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-9091	Athletic Trainers	Athletic Trainers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-2021	Atmospheric and Space Scientists	Atmospheric and Space Scientists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-4011	Audio and Video Equipment Technicians	Audio and Video Equipment Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1181	Audiologists	Audiologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-9011	Audio-Visual and Multimedia Collections Specialists	Audio-Visual and Multimedia Collections Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-6031	Automotive and Watercraft Service Attendants 	Automotive and Watercraft Service Attendants 		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3021	Automotive Body and Related Repairers	Automotive Body and Related Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3022	Automotive Glass Installers and Repairers	Automotive Glass Installers and Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3023	Automotive Service Technicians and Mechanics	Automotive Service Technicians and Mechanics		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-2091	Avionics Technicians	Avionics Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-6011	Baggage Porters and Bellhops	Baggage Porters and Bellhops		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-3011	Bailiffs	Bailiffs		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-3011	Bakers	Bakers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-5011	Barbers	Barbers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-3011	Bartenders	Bartenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3091	Bicycle Repairers	Bicycle Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-3011	Bill and Account Collectors	Bill and Account Collectors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-3021	Billing and Posting Clerks	Billing and Posting Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1021	Biochemists and Biophysicists	Biochemists and Biophysicists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1029	Biological Scientists, All Other	Biological Scientists, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-4021	Biological Technicians	Biological Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2031	Biomedical Engineers	Biomedical Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2011	Boilermakers	Boilermakers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-3031	Bookkeeping, Accounting, and Auditing Clerks	Bookkeeping, Accounting, and Auditing Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2021	Brickmasons and Blockmasons	Brickmasons and Blockmasons		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-6011	Bridge and Lock Tenders	Bridge and Lock Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-3021	Broadcast News Analysts	Broadcast News Analysts		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-4012	Broadcast Technicians	Broadcast Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4011	Brokerage Clerks	Brokerage Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2031	Budget Analysts	Budget Analysts		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+37-2019	Building Cleaning Workers, All Other	Building Cleaning Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3031	Bus and Truck Mechanics and Diesel Engine Specialists	Bus and Truck Mechanics and Diesel Engine Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-3022	Bus Drivers, School or Special Client	Bus Drivers, School or Special Client		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-3021	Bus Drivers, Transit and Intercity	Bus Drivers, Transit and Intercity		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1199	Business Operations Specialists, All Other	Business Operations Specialists, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-3021	Butchers and Meat Cutters	Butchers and Meat Cutters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1021	Buyers and Purchasing Agents, Farm Products	Buyers and Purchasing Agents, Farm Products		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-7011	Cabinetmakers and Bench Carpenters	Cabinetmakers and Bench Carpenters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9061	Camera and Photographic Equipment Repairers	Camera and Photographic Equipment Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-4031	Camera Operators, Television, Video, and Motion Picture	Camera Operators, Television, Video, and Motion Picture		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-5021	Captains, Mates, and Pilots of Water Vessels	Captains, Mates, and Pilots of Water Vessels		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2031	Cardiovascular Technologists and Technicians	Cardiovascular Technologists and Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5011	Cargo and Freight Agents	Cargo and Freight Agents		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2031	Carpenters	Carpenters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2041	Carpet Installers	Carpet Installers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-1021	Cartographers and Photogrammetrists	Cartographers and Photogrammetrists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-2011	Cashiers	Cashiers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2051	Cement Masons and Concrete Finishers	Cement Masons and Concrete Finishers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-1011	Chefs and Head Cooks	Chefs and Head Cooks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2041	Chemical Engineers	Chemical Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9011	Chemical Equipment Operators and Tenders	Chemical Equipment Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-8091	Chemical Plant and System Operators	Chemical Plant and System Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-4031	Chemical Technicians	Chemical Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-2031	Chemists	Chemists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-1011	Chief Executives	Chief Executives		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1021	Child, Family, and School Social Workers	Child, Family, and School Social Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-9011	Childcare Workers	Childcare Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1011	Chiropractors	Chiropractors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-2032	Choreographers	Choreographers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3022	Civil Engineering Technicians	Civil Engineering Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2051	Civil Engineers	Civil Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1031	Claims Adjusters, Examiners, and Investigators	Claims Adjusters, Examiners, and Investigators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7061	Cleaners Of Vehicles and Equipment	Cleaners Of Vehicles and Equipment		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9192	Cleaning, Washing, and Metal Pickling Equipment Operators and Tenders	Cleaning, Washing, and Metal Pickling Equipment Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-2011	Clergy	Clergy		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3031	Clinical, Counseling, and School Psychologists	Clinical, Counseling, and School Psychologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-2022	Coaches and Scouts	Coaches and Scouts		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9121	Coating, Painting, and Spraying Machine Setters, Operators, and Tenders	Coating, Painting, and Spraying Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-2021	Coil Winders, Tapers, and Finishers	Coil Winders, Tapers, and Finishers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9091	Coin, Vending, and Amusement Machine Servicers and Repairers	Coin, Vending, and Amusement Machine Servicers and Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-3021	Combined Food Preparation and Serving Workers, Including Fast Food	Combined Food Preparation and Serving Workers, Including Fast Food		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1021	Commercial and Industrial Designers	Commercial and Industrial Designers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9092	Commercial Divers	Commercial Divers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-2012	Commercial Pilots	Commercial Pilots		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-2099	Communications Equipment Operators, All Other	Communications Equipment Operators, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1099	Community and Social Service Specialists, All Other	Community and Social Service Specialists, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1094	Community Health Workers	Community Health Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-3111	Compensation and Benefits Managers	Compensation and Benefits Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1141	Compensation, Benefits, and Job Analysis Specialists	Compensation, Benefits, and Job Analysis Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1041	Compliance Officers	Compliance Officers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1111	Computer and Information Research Scientists	Computer and Information Research Scientists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-3021	Computer and Information Systems Managers	Computer and Information Systems Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2061	Computer Hardware Engineers	Computer Hardware Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1143	Computer Network Architects	Computer Network Architects		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1152	Computer Network Support Specialists	Computer Network Support Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4012	Computer Numerically Controlled Machine Tool Programmers, Metal and Plastic	Computer Numerically Controlled Machine Tool Programmers, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1199	Computer Occupations, All Other	Computer Occupations, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-9011	Computer Operators	Computer Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1131	Computer Programmers	Computer Programmers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1121	Computer Systems Analysts	Computer Systems Analysts		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1151	Computer User Support Specialists	Computer User Support Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-2011	Computer, Automated Teller, and Office Machine Repairers	Computer, Automated Teller, and Office Machine Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4011	Computer-Controlled Machine Tool Operators, Metal and Plastic	Computer-Controlled Machine Tool Operators, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-6012	Concierges	Concierges		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1031	Conservation Scientists	Conservation Scientists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-4011	Construction and Building Inspectors	Construction and Building Inspectors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-4099	Construction and Related Workers, All Other	Construction and Related Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2061	Construction Laborers	Construction Laborers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9021	Construction Managers	Construction Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5041	Continuous Mining Machine Operators	Continuous Mining Machine Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9012	Control and Valve Installers and Repairers, Except Mechanical Door	Control and Valve Installers and Repairers, Except Mechanical Door		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7011	Conveyor Operators and Tenders	Conveyor Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-2019	Cooks, All Other	Cooks, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-2011	Cooks, Fast Food	Cooks, Fast Food		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-2012	Cooks, Institution and Cafeteria	Cooks, Institution and Cafeteria		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-2013	Cooks, Private Household	Cooks, Private Household		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-2014	Cooks, Restaurant	Cooks, Restaurant		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-2015	Cooks, Short Order	Cooks, Short Order		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9193	Cooling and Freezing Equipment Operators and Tenders	Cooling and Freezing Equipment Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-3012	Correctional Officers and Jailers	Correctional Officers and Jailers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4021	Correspondence Clerks	Correspondence Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1051	Cost Estimators	Cost Estimators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-3092	Costume Attendants	Costume Attendants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1019	Counselors, All Other	Counselors, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-2021	Counter and Rental Clerks	Counter and Rental Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-3022	Counter Attendants, Cafeteria, Food Concession, and Coffee Shop	Counter Attendants, Cafeteria, Food Concession, and Coffee Shop		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5021	Couriers and Messengers	Couriers and Messengers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+23-2091	Court Reporters	Court Reporters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4031	Court, Municipal, and License Clerks	Court, Municipal, and License Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1012	Craft Artists	Craft Artists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7021	Crane and Tower Operators	Crane and Tower Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2041	Credit Analysts	Credit Analysts		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4041	Credit Authorizers, Checkers, and Clerks	Credit Authorizers, Checkers, and Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2071	Credit Counselors	Credit Counselors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-9091	Crossing Guards	Crossing Guards		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9021	Crushing, Grinding, and Polishing Machine Setters, Operators, and Tenders	Crushing, Grinding, and Polishing Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-4012	Curators	Curators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4051	Customer Service Representatives	Customer Service Representatives		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9031	Cutters and Trimmers, Hand	Cutters and Trimmers, Hand		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9032	Cutting and Slicing Machine Setters, Operators, and Tenders	Cutting and Slicing Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4031	Cutting, Punching, and Press Machine Setters, Operators, and Tenders, Metal and Plastic	Cutting, Punching, and Press Machine Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-2031	Dancers	Dancers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-9021	Data Entry Keyers	Data Entry Keyers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1141	Database Administrators	Database Administrators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-9011	Demonstrators and Product Promoters	Demonstrators and Product Promoters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-9091	Dental Assistants	Dental Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2021	Dental Hygienists	Dental Hygienists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9081	Dental Laboratory Technicians	Dental Laboratory Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1029	Dentists, All Other Specialists	Dentists, All Other Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1021	Dentists, General	Dentists, General		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5011	Derrick Operators, Oil and Gas	Derrick Operators, Oil and Gas		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1029	Designers, All Other	Designers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-9031	Desktop Publishers	Desktop Publishers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-3021	Detectives and Criminal Investigators	Detectives and Criminal Investigators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2032	Diagnostic Medical Sonographers	Diagnostic Medical Sonographers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+00-9100	Did Not Work (unpaid) -NIOSH	Did Not Work (unpaid) -NIOSH		2.16.840.1.113883.6.243	Occupation (SOC 2000)	PH_Occupation_SOC_2000	2000	SOC
+29-2051	Dietetic Technicians	Dietetic Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1031	Dietitians and Nutritionists	Dietitians and Nutritionists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-9011	Dining Room and Cafeteria Attendants and Bartender Helpers	Dining Room and Cafeteria Attendants and Bartender Helpers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-2021	Directors, Religious Activities and Education	Directors, Religious Activities and Education		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-9021	Dishwashers	Dishwashers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5032	Dispatchers, except Police, Fire, and Ambulance	Dispatchers, except Police, Fire, and Ambulance		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-9091	Door-To-Door Sales Workers, News and Street Vendors, and Related Workers	Door-To-Door Sales Workers, News and Street Vendors, and Related Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3019	Drafters, All Other	Drafters, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7031	Dredge Operators	Dredge Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4032	Drilling and Boring Machine Tool Setters, Operators, and Tenders, Metal and Plastic	Drilling and Boring Machine Tool Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-3031	Driver/Sales Workers	Driver/Sales Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2081	Drywall and Ceiling Tile Installers	Drywall and Ceiling Tile Installers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5021	Earth Drillers, Except Oil and Gas	Earth Drillers, Except Oil and Gas		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3011	Economists	Economists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-3041	Editors	Editors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9039	Education Administrators, All Other	Education Administrators, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9032	Education Administrators, Elementary and Secondary School	Education Administrators, Elementary and Secondary School		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9033	Education Administrators, Postsecondary	Education Administrators, Postsecondary		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9031	Education Administrators, Preschool and Childcare Center/Program	Education Administrators, Preschool and Childcare Center/Program		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-9099	Education, Training, and Library Workers, All Other	Education, Training, and Library Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1012	Educational, Guidance, School, and Vocational Counselors	Educational, Guidance, School, and Vocational Counselors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-2092	Electric Motor, Power Tool, and Related Repairers	Electric Motor, Power Tool, and Related Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-2022	Electrical and Electronic Equipment Assemblers	Electrical and Electronic Equipment Assemblers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3012	Electrical and Electronics Drafters	Electrical and Electronics Drafters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3023	Electrical and Electronics Engineering Technicians	Electrical and Electronics Engineering Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-2093	Electrical and Electronics Installers and Repairers, Transportation Equipment	Electrical and Electronics Installers and Repairers, Transportation Equipment		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-2094	Electrical and Electronics Repairers, Commercial and Industrial Equipment	Electrical and Electronics Repairers, Commercial and Industrial Equipment		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-2095	Electrical and Electronics Repairers, Powerhouse, Substation, and Relay	Electrical and Electronics Repairers, Powerhouse, Substation, and Relay		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2071	Electrical Engineers	Electrical Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9051	Electrical Power-Line Installers and Repairers	Electrical Power-Line Installers and Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2111	Electricians	Electricians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-2023	Electromechanical Equipment Assemblers	Electromechanical Equipment Assemblers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3024	Electro-Mechanical Technicians	Electro-Mechanical Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-2096	Electronic Equipment Installers and Repairers, Motor Vehicles	Electronic Equipment Installers and Repairers, Motor Vehicles		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-2097	Electronic Home Entertainment Equipment Installers and Repairers	Electronic Home Entertainment Equipment Installers and Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2072	Electronics Engineers, Except Computer	Electronics Engineers, Except Computer		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-2020	Elementary and Middle School Teachers	Elementary and Middle School Teachers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-4021	Elevator Installers and Repairers	Elevator Installers and Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4061	Eligibility Interviewers, Government Programs	Eligibility Interviewers, Government Programs		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-4011	Embalmers	Embalmers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9161	Emergency Management Directors	Emergency Management Directors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2041	Emergency Medical Technicians and Paramedics	Emergency Medical Technicians and Paramedics		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-2031	Engine and Other Machine Assemblers	Engine and Other Machine Assemblers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3029	Engineering Technicians, Except Drafters, All Other	Engineering Technicians, Except Drafters, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2199	Engineers, All Other	Engineers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-2099	Entertainers and Performers, Sports and Related Workers, All Other	Entertainers and Performers, Sports and Related Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-3099	Entertainment Attendants and Related Workers, All Other	Entertainment Attendants and Related Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3025	Environmental Engineering Technicians	Environmental Engineering Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2081	Environmental Engineers	Environmental Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-4091	Environmental Science and Protection Technicians, Including Health	Environmental Science and Protection Technicians, Including Health		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-2041	Environmental Scientists and Specialists, Including Health	Environmental Scientists and Specialists, Including Health		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1041	Epidemiologists	Epidemiologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9194	Etchers and Engravers	Etchers and Engravers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7032	Excavating and Loading Machine and Dragline Operators	Excavating and Loading Machine and Dragline Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-6011	Executive Secretaries and Executive Administrative Assistants	Executive Secretaries and Executive Administrative Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1128	Exercise Physiologists	Exercise Physiologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5031	Explosives Workers, Ordnance Handling Experts, and Blasters	Explosives Workers, Ordnance Handling Experts, and Blasters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5099	Extraction Workers, All Other	Extraction Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4021	Extruding and Drawing Machine Setters, Operators, and Tenders, Metal and Plastic	Extruding and Drawing Machine Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6091	Extruding and Forming Machine Setters, Operators, and Tenders, Synthetic and Glass Fibers	Extruding and Forming Machine Setters, Operators, and Tenders, Synthetic and Glass Fibers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9041	Extruding, Forming, Pressing, and Compacting Machine Setters, Operators, and Tenders	Extruding, Forming, Pressing, and Compacting Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6092	Fabric and Apparel Patternmakers	Fabric and Apparel Patternmakers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9093	Fabric Menders, Except Garment	Fabric Menders, Except Garment		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-4021	Fallers	Fallers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1062	Family and General Practitioners	Family and General Practitioners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-9021	Farm and Home Management Advisors	Farm and Home Management Advisors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3041	Farm Equipment Mechanics and Service Technicians	Farm Equipment Mechanics and Service Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1074	Farm Labor Contractors	Farm Labor Contractors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9013	Farmers, Ranchers, and Other Agricultural Managers	Farmers, Ranchers, and Other Agricultural Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-2092	Farmworkers and Laborers, Crop, Nursery, and Greenhouse	Farmworkers and Laborers, Crop, Nursery, and Greenhouse		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-2093	Farmworkers, Farm, Ranch, and Aquacultural Animals	Farmworkers, Farm, Ranch, and Aquacultural Animals		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1022	Fashion Designers	Fashion Designers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-4031	Fence Erectors	Fence Erectors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-2091	Fiberglass Laminators and Fabricators	Fiberglass Laminators and Fabricators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4071	File Clerks	File Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-4032	Film and Video Editors	Film and Video Editors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2051	Financial Analysts	Financial Analysts		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-3099	Financial Clerks, All Other	Financial Clerks, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2061	Financial Examiners	Financial Examiners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-3031	Financial Managers	Financial Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2099	Financial Specialists, All Other	Financial Specialists, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1013	Fine Artists, Including Painters, Sculptors, and Illustrators	Fine Artists, Including Painters, Sculptors, and Illustrators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-2021	Fire Inspectors and Investigators	Fire Inspectors and Investigators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-2011	Firefighters	Firefighters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-1011	First-Line Supervisors Of Construction Trades and Extraction Workers	First-Line Supervisors Of Construction Trades and Extraction Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-1011	First-Line Supervisors Of Correctional Officers	First-Line Supervisors Of Correctional Officers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-1011	First-Line Supervisors Of Farming, Fishing, and Forestry Workers	First-Line Supervisors Of Farming, Fishing, and Forestry Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-1021	First-Line Supervisors Of Fire Fighting and Prevention Workers	First-Line Supervisors Of Fire Fighting and Prevention Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-1012	First-Line Supervisors Of Food Preparation and Serving Workers	First-Line Supervisors Of Food Preparation and Serving Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-1021	First-Line Supervisors of Helpers, Laborers, and Material Movers, Hand	First-Line Supervisors of Helpers, Laborers, and Material Movers, Hand		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+37-1011	First-Line Supervisors Of Housekeeping and Janitorial Workers	First-Line Supervisors Of Housekeeping and Janitorial Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+37-1012	First-Line Supervisors Of Landscaping, Lawn Service, and Groundskeeping Workers	First-Line Supervisors Of Landscaping, Lawn Service, and Groundskeeping Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-1011	First-Line Supervisors Of Mechanics, Installers, and Repairers	First-Line Supervisors Of Mechanics, Installers, and Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-1012	First-Line Supervisors of Non-Retail Sales Workers	First-Line Supervisors of Non-Retail Sales Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-1011	First-Line Supervisors of Office and Administrative Support Workers	First-Line Supervisors of Office and Administrative Support Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-1021	First-Line Supervisors of Personal Service Workers	First-Line Supervisors of Personal Service Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-1012	First-Line Supervisors Of Police and Detectives	First-Line Supervisors Of Police and Detectives		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-1011	First-Line Supervisors Of Production and Operating Workers	First-Line Supervisors Of Production and Operating Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-1099	First-Line Supervisors Of Protective Service Workers, All Other	First-Line Supervisors Of Protective Service Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-1011	First-Line Supervisors of Retail Sales Workers	First-Line Supervisors of Retail Sales Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-1031	First-Line Supervisors of Transportation and Material-Moving Machine and Vehicle Operators	First-Line Supervisors of Transportation and Material-Moving Machine and Vehicle Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-3031	Fish and Game Wardens	Fish and Game Wardens		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-3011	Fishers and Related Fishing Workers	Fishers and Related Fishing Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-9031	Fitness Trainers and Aerobics Instructors	Fitness Trainers and Aerobics Instructors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-2031	Flight Attendants	Flight Attendants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2042	Floor Layers, Except Carpet, Wood, and Hard Tiles	Floor Layers, Except Carpet, Wood, and Hard Tiles		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2043	Floor Sanders and Finishers	Floor Sanders and Finishers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1023	Floral Designers	Floral Designers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-3091	Food and Tobacco Roasting, Baking, and Drying Machine Operators and Tenders	Food and Tobacco Roasting, Baking, and Drying Machine Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-3092	Food Batchmakers	Food Batchmakers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-3093	Food Cooking Machine Operators and Tenders	Food Cooking Machine Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-9099	Food Preparation and Serving Related Workers, All Other	Food Preparation and Serving Related Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-2021	Food Preparation Workers	Food Preparation Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-3099	Food Processing Workers, All Other	Food Processing Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1012	Food Scientists and Technologists	Food Scientists and Technologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+35-3041	Food Servers, Nonrestaurant	Food Servers, Nonrestaurant		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9051	Food Service Managers	Food Service Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-4092	Forensic Science Technicians	Forensic Science Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-4093	Forest and Conservation Technicians	Forest and Conservation Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-4011	Forest and Conservation Workers	Forest and Conservation Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-2022	Forest Fire Inspectors and Prevention Specialists	Forest Fire Inspectors and Prevention Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1032	Foresters	Foresters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4022	Forging Machine Setters, Operators, and Tenders, Metal and Plastic	Forging Machine Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4071	Foundry Mold and Coremakers	Foundry Mold and Coremakers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1131	Fundraisers	Fundraisers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-4021	Funeral Attendants	Funeral Attendants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9061	Funeral Service Managers	Funeral Service Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9051	Furnace, Kiln, Oven, Drier, and Kettle Operators and Tenders	Furnace, Kiln, Oven, Drier, and Kettle Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-7021	Furniture Finishers	Furniture Finishers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-3012	Gaming and Sports Book Writers and Runners	Gaming and Sports Book Writers and Runners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-3041	Gaming Cage Workers	Gaming Cage Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-2012	Gaming Change Persons and Booth Cashiers	Gaming Change Persons and Booth Cashiers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-3011	Gaming Dealers	Gaming Dealers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9071	Gaming Managers	Gaming Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-3019	Gaming Service Workers, All Other	Gaming Service Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-1011	Gaming Supervisors	Gaming Supervisors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-9031	Gaming Surveillance Officers and Gaming Investigators	Gaming Surveillance Officers and Gaming Investigators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7071	Gas Compressor and Gas Pumping Station Operators	Gas Compressor and Gas Pumping Station Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-8092	Gas Plant Operators	Gas Plant Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-1021	General and Operations Managers	General and Operations Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-9092	Genetic Counselors	Genetic Counselors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3092	Geographers	Geographers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-4041	Geological and Petroleum Technicians	Geological and Petroleum Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-2042	Geoscientists, Except Hydrologists and Geographers	Geoscientists, Except Hydrologists and Geographers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2121	Glaziers	Glaziers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-2041	Graders and Sorters, Agricultural Products	Graders and Sorters, Agricultural Products		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1024	Graphic Designers	Graphic Designers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9022	Grinding and Polishing Workers, Hand	Grinding and Polishing Workers, Hand		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4033	Grinding, Lapping, Polishing, and Buffing Machine Tool Setters, Operators, and Tenders, Metal and Plastic	Grinding, Lapping, Polishing, and Buffing Machine Tool Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+37-3019	Grounds Maintenance Workers, All Other	Grounds Maintenance Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-5012	Hairdressers, Hairstylists, and Cosmetologists	Hairdressers, Hairstylists, and Cosmetologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-4041	Hazardous Materials Removal Workers	Hazardous Materials Removal Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2111	Health and Safety Engineers, Except Mining Safety Engineers and Inspectors	Health and Safety Engineers, Except Mining Safety Engineers and Inspectors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1199	Health Diagnosing and Treating Practitioners, All Other	Health Diagnosing and Treating Practitioners, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1091	Health Educators	Health Educators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2099	Health Technologists and Technicians, All Other	Health Technologists and Technicians, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-9099	Healthcare Practitioners and Technical Workers, All Other	Healthcare Practitioners and Technical Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1022	Healthcare Social Workers	Healthcare Social Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-9099	Healthcare Support Workers, All Other	Healthcare Support Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2092	Hearing Aid Specialists	Hearing Aid Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4191	Heat Treating Equipment Setters, Operators, and Tenders, Metal and Plastic	Heat Treating Equipment Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9021	Heating, Air Conditioning, and Refrigeration Mechanics and Installers	Heating, Air Conditioning, and Refrigeration Mechanics and Installers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-3032	Heavy and Tractor-Trailer Truck Drivers	Heavy and Tractor-Trailer Truck Drivers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-3019	Helpers, Construction Trades, All Other	Helpers, Construction Trades, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-3011	Helpers--Brickmasons, Blockmasons, Stonemasons, and Tile and Marble Setters	Helpers--Brickmasons, Blockmasons, Stonemasons, and Tile and Marble Setters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-3012	Helpers--Carpenters	Helpers--Carpenters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-3013	Helpers--Electricians	Helpers--Electricians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5081	Helpers--Extraction Workers	Helpers--Extraction Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9098	Helpers--Installation, Maintenance, and Repair Workers	Helpers--Installation, Maintenance, and Repair Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-3014	Helpers--Painters, Paperhangers, Plasterers, and Stucco Masons	Helpers--Painters, Paperhangers, Plasterers, and Stucco Masons		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-3015	Helpers--Pipelayers, Plumbers, Pipefitters, and Steamfitters	Helpers--Pipelayers, Plumbers, Pipefitters, and Steamfitters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9198	Helpers--Production Workers	Helpers--Production Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-3016	Helpers--Roofers	Helpers--Roofers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-4051	Highway Maintenance Workers	Highway Maintenance Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3093	Historians	Historians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7041	Hoist and Winch Operators	Hoist and Winch Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9031	Home Appliance Repairers	Home Appliance Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-1011	Home Health Aides	Home Health Aides		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+00-9010	Homemaker (unpaid) -NIOSH	Homemaker (unpaid) -NIOSH		2.16.840.1.113883.6.243	Occupation (SOC 2000)	PH_Occupation_SOC_2000	2000	SOC
+35-9031	Hosts and Hostesses, Restaurant, Lounge, and Coffee Shop	Hosts and Hostesses, Restaurant, Lounge, and Coffee Shop		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4081	Hotel, Motel, and Resort Desk Clerks	Hotel, Motel, and Resort Desk Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4161	Human Resources Assistants, Except Payroll and Timekeeping	Human Resources Assistants, Except Payroll and Timekeeping		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-3121	Human Resources Managers	Human Resources Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1071	Human Resources Specialists	Human Resources Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-3021	Hunters and Trappers	Hunters and Trappers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-2043	Hydrologists	Hydrologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3026	Industrial Engineering Technicians	Industrial Engineering Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2112	Industrial Engineers	Industrial Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9041	Industrial Machinery Mechanics	Industrial Machinery Mechanics		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-3051	Industrial Production Managers	Industrial Production Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7051	Industrial Truck and Tractor Operators	Industrial Truck and Tractor Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3032	Industrial-Organizational Psychologists	Industrial-Organizational Psychologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4199	Information and Record Clerks, All Other	Information and Record Clerks, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1122	Information Security Analysts	Information Security Analysts		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9061	Inspectors, Testers, Sorters, Samplers, and Weighers	Inspectors, Testers, Sorters, Samplers, and Weighers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9099	Installation, Maintenance, and Repair Workers, All Other	Installation, Maintenance, and Repair Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-9031	Instructional Coordinators	Instructional Coordinators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+00-9900	Insufficient Information - NIOSH	Insufficient Information - NIOSH		2.16.840.1.114222.4.5.330	Occupation CDC SOC 2010	PH_Occupation_CDC_SOC2010	20210308	CDCSOC2010
+47-2131	Insulation Workers, Floor, Ceiling, and Wall	Insulation Workers, Floor, Ceiling, and Wall		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2132	Insulation Workers, Mechanical	Insulation Workers, Mechanical		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1032	Insurance Appraisers, Auto Damage	Insurance Appraisers, Auto Damage		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-9041	Insurance Claims and Policy Processing Clerks	Insurance Claims and Policy Processing Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-3021	Insurance Sales Agents	Insurance Sales Agents		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2053	Insurance Underwriters	Insurance Underwriters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1025	Interior Designers	Interior Designers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1063	Internists, General	Internists, General		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-3091	Interpreters and Translators	Interpreters and Translators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4111	Interviewers, Except Eligibility and Loan	Interviewers, except Eligibility and Loan		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+37-2011	Janitors and Cleaners, Except Maids and Housekeeping Cleaners	Janitors and Cleaners, Except Maids and Housekeeping Cleaners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9071	Jewelers and Precious Stone and Metal Workers	Jewelers and Precious Stone and Metal Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+23-1023	Judges, Magistrate Judges, and Magistrates	Judges, Magistrate Judges, and Magistrates		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+23-1012	Judicial Law Clerks	Judicial Law Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1075	Labor Relations Specialists	Labor Relations Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7062	Laborers and Freight, Stock, and Material Movers, Hand	Laborers and Freight, Stock, and Material Movers, Hand		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-1012	Landscape Architects	Landscape Architects		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+37-3011	Landscaping and Groundskeeping Workers	Landscaping and Groundskeeping Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4034	Lathe and Turning Machine Tool Setters, Operators, and Tenders, Metal and Plastic	Lathe and Turning Machine Tool Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6011	Laundry and Dry-Cleaning Workers	Laundry and Dry-Cleaning Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+23-1011	Lawyers	Lawyers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4192	Layout Workers, Metal and Plastic	Layout Workers, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-6012	Legal Secretaries	Legal Secretaries		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+23-2099	Legal Support Workers, All Other	Legal Support Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-1031	Legislators	Legislators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-4021	Librarians	Librarians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4121	Library Assistants, Clerical	Library Assistants, Clerical		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-4031	Library Technicians	Library Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2061	Licensed Practical and Licensed Vocational Nurses	Licensed Practical and Licensed Vocational Nurses		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1099	Life Scientists, All Other	Life Scientists, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-4099	Life, Physical, and Social Science Technicians, All Other	Life, Physical, and Social Science Technicians, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-9092	Lifeguards, Ski Patrol, and Other Recreational Protective Service Workers	Lifeguards, Ski Patrol, and Other Recreational Protective Service Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-3033	Light Truck or Delivery Services Drivers	Light Truck or Delivery Services Drivers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7033	Loading Machine Operators, Underground Mining	Loading Machine Operators, Underground Mining		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4131	Loan Interviewers and Clerks	Loan Interviewers and Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2072	Loan Officers	Loan Officers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-3093	Locker Room, Coatroom, and Dressing Room Attendants	Locker Room, Coatroom, and Dressing Room Attendants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9094	Locksmiths and Safe Repairers	Locksmiths and Safe Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-4011	Locomotive Engineers	Locomotive Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-4012	Locomotive Firers	Locomotive Firers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9081	Lodging Managers	Lodging Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-4023	Log Graders and Scalers	Log Graders and Scalers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-4022	Logging Equipment Operators	Logging Equipment Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+45-4029	Logging Workers, All Other	Logging Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1081	Logisticians	Logisticians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7063	Machine Feeders and Offbearers	Machine Feeders and Offbearers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4041	Machinists	Machinists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2035	Magnetic Resonance Imaging Technologists	Magnetic Resonance Imaging Technologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+37-2012	Maids and Housekeeping Cleaners	Maids and Housekeeping Cleaners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-9051	Mail Clerks and Mail Machine Operators, Except Postal Service	Mail Clerks and Mail Machine Operators, Except Postal Service		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9071	Maintenance and Repair Workers, General	Maintenance and Repair Workers, General		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9043	Maintenance Workers, Machinery	Maintenance Workers, Machinery		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-5091	Makeup Artists, Theatrical and Performance	Makeup Artists, Theatrical and Performance		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1111	Management Analysts	Management Analysts		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9199	Managers, All Other	Managers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-5092	Manicurists and Pedicurists	Manicurists and Pedicurists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9095	Manufactured Building and Mobile Home Installers	Manufactured Building and Mobile Home Installers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2121	Marine Engineers and Naval Architects	Marine Engineers and Naval Architects		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1161	Market Research Analysts and Marketing Specialists	Market Research Analysts and Marketing Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-2021	Marketing Managers	Marketing Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1013	Marriage and Family Therapists	Marriage and Family Therapists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-9011	Massage Therapists	Massage Therapists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7199	Material Moving Workers, All Other	Material Moving Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2131	Materials Engineers	Materials Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-2032	Materials Scientists	Materials Scientists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-2099	Mathematical Science Occupations, All Other	Mathematical Science Occupations, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-2091	Mathematical Technicians	Mathematical Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-2021	Mathematicians	Mathematicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-3022	Meat, Poultry, and Fish Cutters and Trimmers	Meat, Poultry, and Fish Cutters and Trimmers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9011	Mechanical Door Repairers	Mechanical Door Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3013	Mechanical Drafters	Mechanical Drafters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3027	Mechanical Engineering Technicians	Mechanical Engineering Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2141	Mechanical Engineers	Mechanical Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-4099	Media and Communication Equipment Workers, All Other	Media and Communication Equipment Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-3099	Media and Communication Workers, All Other	Media and Communication Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2012	Medical and Clinical Laboratory Technicians	Medical and Clinical Laboratory Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2011	Medical and Clinical Laboratory Technologists	Medical and Clinical Laboratory Technologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9111	Medical and Health Services Managers	Medical and Health Services Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9082	Medical Appliance Technicians	Medical Appliance Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-9092	Medical Assistants	Medical Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-9093	Medical Equipment Preparers	Medical Equipment Preparers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9062	Medical Equipment Repairers	Medical Equipment Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2071	Medical Records and Health Information Technicians	Medical Records and Health Information Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1042	Medical Scientists, Except Epidemiologists	Medical Scientists, Except Epidemiologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-6013	Medical Secretaries	Medical Secretaries		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-9094	Medical Transcriptionists	Medical Transcriptionists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1121	Meeting, Convention, and Event Planners	Meeting, Convention, and Event Planners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1023	Mental Health and Substance Abuse Social Workers	Mental Health and Substance Abuse Social Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1014	Mental Health Counselors	Mental Health Counselors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1026	Merchandise Displayers and Window Trimmers	Merchandise Displayers and Window Trimmers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4199	Metal Workers and Plastic Workers, All Other	Metal Workers and Plastic Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4051	Metal-Refining Furnace Operators and Tenders	Metal-Refining Furnace Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5041	Meter Readers, Utilities	Meter Readers, Utilities		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1022	Microbiologists	Microbiologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+00-9840	Military, Commissioned Officers and Warrant Officers -NIOSH	Military, Commissioned Officers and Warrant Officers -NIOSH		2.16.840.1.114222.4.5.330	Occupation CDC SOC 2010	PH_Occupation_CDC_SOC2010	20210308	CDCSOC2010
+00-9850	Military, Non-Commissioned Officer and Other Enlisted Personnel -NIOSH	Military, Non-Commissioned Officer and Other Enlisted Personnel -NIOSH		2.16.840.1.114222.4.5.330	Occupation CDC SOC 2010	PH_Occupation_CDC_SOC2010	20210308	CDCSOC2010
+00-9830	Military, Rank Not Specified -NIOSH	Military, Rank Not Specified -NIOSH		2.16.840.1.114222.4.5.330	Occupation CDC SOC 2010	PH_Occupation_CDC_SOC2010	20210308	CDCSOC2010
+51-4035	Milling and Planing Machine Setters, Operators, and Tenders, Metal and Plastic	Milling and Planing Machine Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9044	Millwrights	Millwrights		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5042	Mine Cutting and Channeling Machine Operators	Mine Cutting and Channeling Machine Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7111	Mine Shuttle Car Operators	Mine Shuttle Car Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2151	Mining and Geological Engineers, Including Mining Safety Engineers	Mining and Geological Engineers, Including Mining Safety Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5049	Mining Machine Operators, All Other	Mining Machine Operators, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9023	Mixing and Blending Machine Setters, Operators, and Tenders	Mixing and Blending Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3042	Mobile Heavy Equipment Mechanics, Except Engines	Mobile Heavy Equipment Mechanics, Except Engines		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4061	Model Makers, Metal and Plastic	Model Makers, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-7031	Model Makers, Wood	Model Makers, Wood		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-9012	Models	Models		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9195	Molders, Shapers, and Casters, Except Metal and Plastic	Molders, Shapers, and Casters, Except Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4072	Molding, Coremaking, and Casting Machine Setters, Operators, and Tenders, Metal and Plastic	Molding, Coremaking, and Casting Machine Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-4031	Morticians, Undertakers, and Funeral Directors	Morticians, Undertakers, and Funeral Directors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-3021	Motion Picture Projectionists	Motion Picture Projectionists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-3099	Motor Vehicle Operators, All Other	Motor Vehicle Operators, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3051	Motorboat Mechanics and Service Technicians	Motorboat Mechanics and Service Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-5022	Motorboat Operators	Motorboat Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3052	Motorcycle Mechanics	Motorcycle Mechanics		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1014	Multimedia Artists and Animators	Multimedia Artists and Animators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4081	Multiple Machine Tool Setters, Operators, and Tenders, Metal and Plastic	Multiple Machine Tool Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-4013	Museum Technicians and Conservators	Museum Technicians and Conservators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-2041	Music Directors and Composers	Music Directors and Composers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9063	Musical Instrument Repairers and Tuners	Musical Instrument Repairers and Tuners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-2042	Musicians and Singers	Musicians and Singers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9121	Natural Sciences Managers	Natural Sciences Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1142	Network and Computer Systems Administrators	Network and Computer Systems Administrators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4141	New Accounts Clerks	New Accounts Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-2021	Nonfarm Animal Caretakers	Nonfarm Animal Caretakers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2161	Nuclear Engineers	Nuclear Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2033	Nuclear Medicine Technologists	Nuclear Medicine Technologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-8011	Nuclear Power Reactor Operators	Nuclear Power Reactor Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-4051	Nuclear Technicians	Nuclear Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1151	Nurse Anesthetists	Nurse Anesthetists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1161	Nurse Midwives	Nurse Midwives		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1171	Nurse Practitioners	Nurse Practitioners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-1014	Nursing Assistants	Nursing Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1064	Obstetricians and Gynecologists	Obstetricians and Gynecologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-9011	Occupational Health and Safety Specialists	Occupational Health and Safety Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-9012	Occupational Health and Safety Technicians	Occupational Health and Safety Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1122	Occupational Therapists	Occupational Therapists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-2012	Occupational Therapy Aides	Occupational Therapy Aides		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-2011	Occupational Therapy Assistants	Occupational Therapy Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-9199	Office and Administrative Support Workers, All Other	Office and Administrative Support Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-9061	Office Clerks, General	Office Clerks, General		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-9071	Office Machine Operators, Except Computer	Office Machine Operators, Except Computer		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2073	Operating Engineers and Other Construction Equipment Operators	Operating Engineers and Other Construction Equipment Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-2031	Operations Research Analysts	Operations Research Analysts		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9083	Ophthalmic Laboratory Technicians	Ophthalmic Laboratory Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2057	Ophthalmic Medical Technicians	Ophthalmic Medical Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2081	Opticians, Dispensing	Opticians, Dispensing		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1041	Optometrists	Optometrists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1022	Oral and Maxillofacial Surgeons	Oral and Maxillofacial Surgeons		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4151	Order Clerks	Order Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-1015	Orderlies	Orderlies		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1023	Orthodontists	Orthodontists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2091	Orthotists and Prosthetists	Orthotists and Prosthetists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3053	Outdoor Power Equipment and Other Small Engine Mechanics	Outdoor Power Equipment and Other Small Engine Mechanics		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9111	Packaging and Filling Machine Operators and Tenders	Packaging and Filling Machine Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7064	Packers and Packagers, Hand	Packers and Packagers, Hand		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2141	Painters, Construction and Maintenance	Painters, Construction and Maintenance		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9122	Painters, Transportation Equipment	Painters, Transportation Equipment		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9123	Painting, Coating, and Decorating Workers	Painting, Coating, and Decorating Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9196	Paper Goods Machine Setters, Operators, and Tenders	Paper Goods Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2142	Paperhangers	Paperhangers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+23-2011	Paralegals and Legal Assistants	Paralegals and Legal Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-3041	Parking Enforcement Workers	Parking Enforcement Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-6021	Parking Lot Attendants	Parking Lot Attendants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-2022	Parts Salespersons	Parts Salespersons		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4062	Patternmakers, Metal and Plastic	Patternmakers, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-7032	Patternmakers, Wood	Patternmakers, Wood		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2071	Paving, Surfacing, and Tamping Equipment Operators	Paving, Surfacing, and Tamping Equipment Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-3051	Payroll and Timekeeping Clerks	Payroll and Timekeeping Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1065	Pediatricians, General	Pediatricians, General		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-9021	Personal Care Aides	Personal Care Aides		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-9099	Personal Care and Service Workers, All Other	Personal Care and Service Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2052	Personal Financial Advisors	Personal Financial Advisors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+37-2021	Pest Control Workers	Pest Control Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+37-3012	Pesticide Handlers, Sprayers, and Applicators, Vegetation	Pesticide Handlers, Sprayers, and Applicators, Vegetation		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-2171	Petroleum Engineers	Petroleum Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-8093	Petroleum Pump System Operators, Refinery Operators, and Gaugers	Petroleum Pump System Operators, Refinery Operators, and Gaugers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1051	Pharmacists	Pharmacists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-9095	Pharmacy Aides	Pharmacy Aides		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2052	Pharmacy Technicians	Pharmacy Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-9097	Phlebotomists	Phlebotomists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-4021	Photographers	Photographers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9151	Photographic Process Workers and Processing Machine Operators	Photographic Process Workers and Processing Machine Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-2099	Physical Scientists, All Other	Physical Scientists, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-2022	Physical Therapist Aides	Physical Therapist Aides		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-2021	Physical Therapist Assistants	Physical Therapist Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1123	Physical Therapists	Physical Therapists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1071	Physician Assistants	Physician Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1069	Physicians and Surgeons, All Other	Physicians and Surgeons, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-2012	Physicists	Physicists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2072	Pile-Driver Operators	Pile-Driver Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2151	Pipelayers	Pipelayers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-8099	Plant and System Operators, All Other	Plant and System Operators, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2161	Plasterers and Stucco Masons	Plasterers and Stucco Masons		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4193	Plating and Coating Machine Setters, Operators, and Tenders, Metal and Plastic	Plating and Coating Machine Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2152	Plumbers, Pipefitters, and Steamfitters	Plumbers, Pipefitters, and Steamfitters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1081	Podiatrists	Podiatrists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-3051	Police and Sheriff's Patrol Officers	Police and Sheriff's Patrol Officers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5031	Police, Fire, and Ambulance Dispatchers	Police, Fire, and Ambulance Dispatchers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3094	Political Scientists	Political Scientists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5051	Postal Service Clerks	Postal Service Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5052	Postal Service Mail Carriers	Postal Service Mail Carriers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5053	Postal Service Mail Sorters, Processors, and Processing Machine Operators	Postal Service Mail Sorters, Processors, and Processing Machine Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9131	Postmasters and Mail Superintendents	Postmasters and Mail Superintendents		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-1000	Postsecondary Teachers	Postsecondary Teachers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4052	Pourers and Casters, Metal	Pourers and Casters, Metal		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-8012	Power Distributors and Dispatchers	Power Distributors and Dispatchers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-8013	Power Plant Operators	Power Plant Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9069	Precision Instrument and Equipment Repairers, All Other	Precision Instrument and Equipment Repairers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-5111	Prepress Technicians and Workers	Prepress Technicians and Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-2010	Preschool and Kindergarten Teachers	Preschool and Kindergarten Teachers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6021	Pressers, Textile, Garment, and Related Materials	Pressers, Textile, Garment, and Related Materials		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-5113	Print Binding and Finishing Workers	Print Binding and Finishing Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-5112	Printing Press Operators	Printing Press Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-9021	Private Detectives and Investigators	Private Detectives and Investigators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1092	Probation Officers and Correctional Treatment Specialists	Probation Officers and Correctional Treatment Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-3061	Procurement Clerks	Procurement Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-2012	Producers and Directors	Producers and Directors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9199	Production Workers, All Other	Production Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5061	Production, Planning, and Expediting Clerks	Production, Planning, and Expediting Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-9081	Proofreaders and Copy Markers	Proofreaders and Copy Markers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9141	Property, Real Estate, and Community Association Managers	Property, Real Estate, and Community Association Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1024	Prosthodontists	Prosthodontists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-9099	Protective Service Workers, All Other	Protective Service Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-1013	Psychiatric Aides	Psychiatric Aides		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2053	Psychiatric Technicians	Psychiatric Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1066	Psychiatrists	Psychiatrists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3039	Psychologists, All Other	Psychologists, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-3012	Public Address System and Other Announcers	Public Address System and Other Announcers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-2031	Public Relations and Fundraising Managers	Public Relations and Fundraising Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-3031	Public Relations Specialists	Public Relations Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7072	Pump Operators, Except Wellhead Pumpers	Pump Operators, Except Wellhead Pumpers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1023	Purchasing Agents, Except Wholesale, Retail, and Farm Products	Purchasing Agents, Except Wholesale, Retail, and Farm Products		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-3061	Purchasing Managers	Purchasing Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1124	Radiation Therapists	Radiation Therapists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-3011	Radio and Television Announcers	Radio and Television Announcers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-4013	Radio Operators	Radio Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-2021	Radio, Cellular, and Tower Equipment Installers and Repairers	Radio, Cellular, and Tower Equipment Installers and Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2034	Radiologic Technologists	Radiologic Technologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3043	Rail Car Repairers	Rail Car Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-4099	Rail Transportation Workers, All Other	Rail Transportation Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-4013	Rail Yard Engineers, Dinkey Operators, and Hostlers	Rail Yard Engineers, Dinkey Operators, and Hostlers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-4021	Railroad Brake, Signal, and Switch Operators	Railroad Brake, Signal, and Switch Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-4031	Railroad Conductors and Yardmasters	Railroad Conductors and Yardmasters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-4061	Rail-Track Laying and Maintenance Equipment Operators	Rail-Track Laying and Maintenance Equipment Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-9021	Real Estate Brokers	Real Estate Brokers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-9022	Real Estate Sales Agents	Real Estate Sales Agents		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4171	Receptionists and Information Clerks	Receptionists and Information Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-9032	Recreation Workers	Recreation Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1125	Recreational Therapists	Recreational Therapists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3092	Recreational Vehicle Service Technicians	Recreational Vehicle Service Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9045	Refractory Materials Repairers, Except Brickmasons	Refractory Materials Repairers, Except Brickmasons		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7081	Refuse and Recyclable Material Collectors	Refuse and Recyclable Material Collectors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1141	Registered Nurses	Registered Nurses		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1015	Rehabilitation Counselors	Rehabilitation Counselors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2171	Reinforcing Iron and Rebar Workers	Reinforcing Iron and Rebar Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-2099	Religious Workers, All Other	Religious Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-3022	Reporters and Correspondents	Reporters and Correspondents		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-4181	Reservation and Transportation Ticket Agents and Travel Clerks	Reservation and Transportation Ticket Agents and Travel Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-9041	Residential Advisors	Residential Advisors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1126	Respiratory Therapists	Respiratory Therapists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2054	Respiratory Therapy Technicians	Respiratory Therapy Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-2031	Retail Salespersons	Retail Salespersons		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+00-9060	Retired (unpaid) -NIOSH	Retired (unpaid) -NIOSH		2.16.840.1.113883.6.243	Occupation (SOC 2000)	PH_Occupation_SOC_2000	2000	SOC
+49-9096	Riggers	Riggers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5051	Rock Splitters, Quarry	Rock Splitters, Quarry		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4023	Rolling Machine Setters, Operators, and Tenders, Metal and Plastic	Rolling Machine Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5061	Roof Bolters, Mining	Roof Bolters, Mining		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2181	Roofers	Roofers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5012	Rotary Drill Operators, Oil and Gas	Rotary Drill Operators, Oil and Gas		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5071	Roustabouts, Oil and Gas	Roustabouts, Oil and Gas		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-5011	Sailors and Marine Oilers	Sailors and Marine Oilers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-9099	Sales and Related Workers, All Other	Sales and Related Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-9031	Sales Engineers	Sales Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-2022	Sales Managers	Sales Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-3099	Sales Representatives, Services, All Other	Sales Representatives, Services, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-4010	Sales Representatives, Wholesale and Manufacturing	Sales Representatives, Wholesale and Manufacturing		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-7041	Sawing Machine Setters, Operators, and Tenders, Wood	Sawing Machine Setters, Operators, and Tenders, Wood		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-2030	Secondary School Teachers	Secondary School Teachers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-6014	Secretaries and Administrative Assistants, Except Legal, Medical, and Executive	Secretaries and Administrative Assistants, Except Legal, Medical, and Executive		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-3031	Securities, Commodities, and Financial Services Sales Agents	Securities, Commodities, and Financial Services Sales Agents		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-2098	Security and Fire Alarm Systems Installers	Security and Fire Alarm Systems Installers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-9032	Security Guards	Security Guards		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-4091	Segmental Pavers	Segmental Pavers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-3021	Self-Enrichment Education Teachers	Self-Enrichment Education Teachers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9141	Semiconductor Processors	Semiconductor Processors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9012	Separating, Filtering, Clarifying, Precipitating, and Still Machine Setters, Operators, and Tenders	Separating, Filtering, Clarifying, Precipitating, and Still Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-4071	Septic Tank Servicers and Sewer Pipe Cleaners	Septic Tank Servicers and Sewer Pipe Cleaners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-5013	Service Unit Operators, Oil, Gas, and Mining	Service Unit Operators, Oil, Gas, and Mining		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-1027	Set and Exhibit Designers	Set and Exhibit Designers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6051	Sewers, Hand	Sewers, Hand		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6031	Sewing Machine Operators	Sewing Machine Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-5093	Shampooers	Shampooers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2211	Sheet Metal Workers	Sheet Metal Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-5031	Ship Engineers	Ship Engineers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5071	Shipping, Receiving, and Traffic Clerks	Shipping, Receiving, and Traffic Clerks		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6041	Shoe and Leather Workers and Repairers	Shoe and Leather Workers and Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6042	Shoe Machine Operators and Tenders	Shoe Machine Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9097	Signal and Track Switch Repairers	Signal and Track Switch Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-5094	Skincare Specialists	Skincare Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-3023	Slaughterers and Meat Packers	Slaughterers and Meat Packers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-1012	Slot Supervisors	Slot Supervisors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-9151	Social and Community Service Managers	Social and Community Service Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1093	Social and Human Service Assistants	Social and Human Service Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-4061	Social Science Research Assistants	Social Science Research Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3099	Social Scientists and Related Workers, All Other	Social Scientists and Related Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+21-1029	Social Workers, All Other	Social Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3041	Sociologists	Sociologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1132	Software Developers, Applications	Software Developers, Applications		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1133	Software Developers, Systems Software	Software Developers, Systems Software		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1013	Soil and Plant Scientists	Soil and Plant Scientists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2231	Solar Photovoltaic Installers	Solar Photovoltaic Installers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-4014	Sound Engineering Technicians	Sound Engineering Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-2050	Special Education Teachers	Special Education Teachers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1127	Speech-Language Pathologists	Speech-Language Pathologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-8021	Stationary Engineers and Boiler Operators	Stationary Engineers and Boiler Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-9111	Statistical Assistants	Statistical Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-2041	Statisticians	Statisticians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5081	Stock Clerks and Order Fillers	Stock Clerks and Order Fillers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2022	Stonemasons	Stonemasons		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2221	Structural Iron and Steel Workers	Structural Iron and Steel Workers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-2041	Structural Metal Fabricators and Fitters	Structural Metal Fabricators and Fitters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+00-9070	Student (unpaid) -NIOSH	Student (unpaid) -NIOSH		2.16.840.1.113883.6.243	Occupation (SOC 2000)	PH_Occupation_SOC_2000	2000	SOC
+21-1011	Substance Abuse and Behavioral Disorder Counselors	Substance Abuse and Behavioral Disorder Counselors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-4041	Subway and Streetcar Operators	Subway and Streetcar Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1067	Surgeons	Surgeons		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2055	Surgical Technologists	Surgical Technologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3022	Survey Researchers	Survey Researchers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-3031	Surveying and Mapping Technicians	Surveying and Mapping Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+17-1022	Surveyors	Surveyors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-2011	Switchboard Operators, Including Answering Service	Switchboard Operators, Including Answering Service		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6052	Tailors, Dressmakers, and Custom Sewers	Tailors, Dressmakers, and Custom Sewers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7121	Tank Car, Truck, and Ship Loaders	Tank Car, Truck, and Ship Loaders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2082	Tapers	Tapers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2081	Tax Examiners and Collectors, and Revenue Agents	Tax Examiners and Collectors, and Revenue Agents		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-2082	Tax Preparers	Tax Preparers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-3041	Taxi Drivers and Chauffeurs	Taxi Drivers and Chauffeurs		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-9041	Teacher Assistants	Teacher Assistants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+25-3099	Teachers and Instructors, All Other	Teachers and Instructors, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-2092	Team Assemblers	Team Assemblers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-3042	Technical Writers	Technical Writers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-2022	Telecommunications Equipment Installers and Repairers, Except Line Installers	Telecommunications Equipment Installers and Repairers, Except Line Installers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9052	Telecommunications Line Installers and Repairers	Telecommunications Line Installers and Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-9041	Telemarketers	Telemarketers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-2021	Telephone Operators	Telephone Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-3071	Tellers	Tellers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2053	Terrazzo Workers and Finishers	Terrazzo Workers and Finishers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6061	Textile Bleaching and Dyeing Machine Operators and Tenders	Textile Bleaching and Dyeing Machine Operators and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6062	Textile Cutting Machine Setters, Operators, and Tenders	Textile Cutting Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6063	Textile Knitting and Weaving Machine Setters, Operators, and Tenders	Textile Knitting and Weaving Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6064	Textile Winding, Twisting, and Drawing Out Machine Setters, Operators, and Tenders	Textile Winding, Twisting, and Drawing Out Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6099	Textile, Apparel, and Furnishings Workers, All Other	Textile, Apparel, and Furnishings Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1129	Therapists, All Other	Therapists, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+47-2044	Tile and Marble Setters	Tile and Marble Setters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-2093	Timing Device Assemblers and Adjusters	Timing Device Assemblers and Adjusters		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-9197	Tire Builders	Tire Builders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-3093	Tire Repairers and Changers	Tire Repairers and Changers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+23-2093	Title Examiners, Abstractors, and Searchers	Title Examiners, Abstractors, and Searchers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4111	Tool and Die Makers	Tool and Die Makers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4194	Tool Grinders, Filers, and Sharpeners	Tool Grinders, Filers, and Sharpeners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-7011	Tour Guides and Escorts	Tour Guides and Escorts		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-6041	Traffic Technicians	Traffic Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-3131	Training and Development Managers	Training and Development Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1151	Training and Development Specialists	Training and Development Specialists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-3052	Transit and Railroad Police	Transit and Railroad Police		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-6061	Transportation Attendants, Except Flight Attendants	Transportation Attendants, Except Flight Attendants		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-6051	Transportation Inspectors	Transportation Inspectors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+33-9093	Transportation Security Screeners	Transportation Security Screeners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-6099	Transportation Workers, All Other	Transportation Workers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+11-3071	Transportation, Storage, and Distribution Managers	Transportation, Storage, and Distribution Managers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+41-3041	Travel Agents	Travel Agents		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-7012	Travel Guides	Travel Guides		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+37-3013	Tree Trimmers and Pruners	Tree Trimmers and Pruners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-2023	Umpires, Referees, and Other Sports Officials	Umpires, Referees, and Other Sports Officials		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-6093	Upholsterers	Upholsterers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-3051	Urban and Regional Planners	Urban and Regional Planners		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+39-3031	Ushers, Lobby Attendants, and Ticket Takers	Ushers, Lobby Attendants, and Ticket Takers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-1131	Veterinarians	Veterinarians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+31-9096	Veterinary Assistants and Laboratory Animal Caretakers	Veterinary Assistants and Laboratory Animal Caretakers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+29-2056	Veterinary Technologists and Technicians	Veterinary Technologists and Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+00-9020	Volunteer (unpaid) -NIOSH	Volunteer (unpaid) -NIOSH		2.16.840.1.113883.6.243	Occupation (SOC 2000)	PH_Occupation_SOC_2000	2000	SOC
+35-3031	Waiters and Waitresses	Waiters and Waitresses		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9064	Watch Repairers	Watch Repairers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-8031	Water and Wastewater Treatment Plant and System Operators	Water and Wastewater Treatment Plant and System Operators		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+15-1134	Web Developers	Web Developers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-5111	Weighers, Measurers, Checkers, and Samplers, Recordkeeping	Weighers, Measurers, Checkers, and Samplers, Recordkeeping		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4121	Welders, Cutters, Solderers, and Brazers	Welders, Cutters, Solderers, and Brazers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-4122	Welding, Soldering, and Brazing Machine Setters, Operators, and Tenders	Welding, Soldering, and Brazing Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+53-7073	Wellhead Pumpers	Wellhead Pumpers		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+13-1022	Wholesale and Retail Buyers, Except Farm Products	Wholesale and Retail Buyers, Except Farm Products		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+49-9081	Wind Turbine Service Technicians	Wind Turbine Service Technicians		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-7099	Woodworkers, All Other	Woodworkers, All Other		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+51-7042	Woodworking Machine Setters, Operators, and Tenders, Except Sawing	Woodworking Machine Setters, Operators, and Tenders, Except Sawing		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+43-9022	Word Processors and Typists	Word Processors and Typists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+27-3043	Writers and Authors	Writers and Authors		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010
+19-1023	Zoologists and Wildlife Biologists	Zoologists and Wildlife Biologists		2.16.840.1.114222.4.5.335	Occupation (SOC 2010)	PH_Occupation_SOC_2010	2010	SOC2010

@@ -1,0 +1,14 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Antibiotic Dose Units (Brucellosis)	PHVS_AntibioticDoseUnits_Brucellosis	2.16.840.1.114222.4.11.8036	3	Antibiotic dose units to treat Brucellosis	Published	06/24/2021	Replaced SNOMED codes with UCUM codes
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+g	gram	g		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+[iU]/kg	InternationalUnitsPerKilogram [Arbitrary Concentration Content Units]	units/kg		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+mg	milligram	mg		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+mg/d	milligram per day	mg/day		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+mg/kg	milligram per kilogram	mg/kg		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+mg/kg/d	milligram per kilogram per day	mg/kg/day		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+10*6.[iU]	MillionInternationalUnit	million units		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+OTH	other	other dose unit (specify)		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+[USP'U]	United States Pharmacopeia unit	units		2.16.840.1.113883.6.8	UCUM - Unified Code for Units of Measure	PH_UnitsOfMeasure_UCUM	20171130	UCUM
+UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

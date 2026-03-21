@@ -1,0 +1,9 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Time of Day (Anthrax)	PHVS_TimeofDay_Anthrax	2.16.840.1.114222.4.11.7983	1	The time period during the day when the given place was visited	Published	12/03/2020	v1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+422133006	Afternoon (qualifier value)	Afternoon		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+3157002	Evening (qualifier value)	Evening		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+73775008	Morning (qualifier value)	Morning		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+2546009	Night time (qualifier value)	Night		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+71997007	Noon (qualifier value)	Noon		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT

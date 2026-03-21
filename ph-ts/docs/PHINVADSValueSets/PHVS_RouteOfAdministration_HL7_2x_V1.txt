@@ -1,0 +1,51 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Route of Administration (HL7)	PHVS_RouteOfAdministration_HL7_2x	2.16.840.1.114222.4.11.816	1	User-defined table 0162 contains a list of the routes of administration of a drug or treatment.	Published	10/22/2008	Initial Load VADS 3.0
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+AP	Apply Externally	Apply Externally		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+B	Buccal	Buccal		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+DT	Dental	Dental		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+ET	Endotrachial Tube	Endotrachial Tube		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+EP	Epidural	Epidural		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+GTT	Gastrostomy Tube	Gastrostomy Tube		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+GU	GU Irrigant	GU Irrigant		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IMR	Immerse (Soak) Body Part	Immerse (Soak) Body Part		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IH	Inhalation	Inhalation		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IA	Intra-arterial	Intra-arterial		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IB	Intrabursal	Intrabursal		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IC	Intracardiac	Intracardiac		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+ICV	Intracervical (uterus)	Intracervical (uterus)		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+ID	Intradermal	Intradermal		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IHA	Intrahepatic Artery	Intrahepatic Artery		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IM	Intramuscular	Intramuscular		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IN	Intranasal	Intranasal		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IO	Intraocular	Intraocular		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IP	Intraperitoneal	Intraperitoneal		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IS	Intrasynovial	Intrasynovial		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IT	Intrathecal	Intrathecal		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IU	Intrauterine	Intrauterine		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+IV	Intravenous	Intravenous		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+MTH	Mouth/Throat	Mouth/Throat		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+MM	Mucous Membrane	Mucous Membrane		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+NS	Nasal	Nasal		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+NP	Nasal Prongs	Nasal Prongs		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+NG	Nasogastric	Nasogastric		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+NT	Nasotrachial Tube	Nasotrachial Tube		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+OP	Ophthalmic	Ophthalmic		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+PO	Oral	Oral		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+OTH	Other/Miscellaneous	Other/Miscellaneous		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+OT	Otic	Otic		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+PF	Perfusion	Perfusion		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+RM	Rebreather Mask	Rebreather Mask		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+PR	Rectal	Rectal		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+SD	Soaked Dressing	Soaked Dressing		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+SC	Subcutaneous	Subcutaneous		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+SL	Sublingual	Sublingual		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+TP	Topical	Topical		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+TRA	Tracheostomy	Tracheostomy		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+TD	Transdermal	Transdermal		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+TL	Translingual	Translingual		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+UR	Urethral	Urethral		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+VG	Vaginal	Vaginal		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+VM	Ventimask	Ventimask		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162
+WND	Wound	Wound		2.16.840.1.113883.12.162	Route of administration (HL7)	PH_RouteOfAdministration_HL7_2x	HL7 v2.5	HL70162

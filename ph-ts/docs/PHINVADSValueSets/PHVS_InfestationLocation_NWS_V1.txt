@@ -1,0 +1,7 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Infestation Location (NWS)	PHVS_InfestationLocation_NWS	2.16.840.1.114222.4.11.8092	1	The location of infestation of New World Screw (NWS) worm infection	Published	06/06/2025	V1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+43526002	Operative site (morphologic abnormality)	surgical site		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+304629007	Structure of body orifice mucosa (body structure)	body orifice (mucus membrane)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT
+13924000	Wound (morphologic abnormality)	wound		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20250301	SCT

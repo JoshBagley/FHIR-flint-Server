@@ -1,0 +1,30 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Organism Name (Leptospirosis)	PHVS_OrganismName_Leptospirosis	2.16.840.1.114222.4.11.8071	2	Leptospira species and serovars	Published	11/07/2023	V2:  Added 5 new species and updated Preferred Names for Leptospira species
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+113809009	Leptospira borgpetersenii (organism)	L. borgpetersenii		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+370579003	Leptospira bratislava (organism)	L. bratislava		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+116401006	Leptospira interrogans (organism)	L. interrogans		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+59217001	Leptospira interrogans serogroup Ballum (organism)	Ballum		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+302610000	Leptospira interrogans serovar Pomona (organism)	Pomona		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+C5571764	Leptospira interrogans sv Mankarso	Mankarso		2.16.840.1.113883.6.86	UMLS	PH_UMLS	20210608	UML
+5555002	Leptospira interrogans, serogroup Australis (organism)	Australis		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+45882007	Leptospira interrogans, serogroup Autumnalis (organism)	Autumnalis		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+26870001	Leptospira interrogans, serogroup Bataviae (organism)	Bataviae		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+54933006	Leptospira interrogans, serogroup Canicola (organism)	Canicola		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+86248004	Leptospira interrogans, serogroup Celledoni (organism)	Celledoni		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+44425008	Leptospira interrogans, serogroup cynopteri (organism)	Cynopteri		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+8472006	Leptospira interrogans, serogroup Djasiman (organism)	Djasiman		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+26615002	Leptospira interrogans, serogroup Grippotyphosa (organism)	Grippotyphosa		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+19251003	Leptospira interrogans, serogroup Icterohemorrhagiae (organism)	Icterohaemorrhagiae		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+90646001	Leptospira interrogans, serogroup javanica (organism)	Javanica		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+83409006	Leptospira interrogans, serogroup Pyrogenes (organism)	Pyrogenes		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+37044004	Leptospira interrogans, serogroup Tarassovi (organism)	Tarassovi		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+113811000	Leptospira kirschneri (organism)	L. kirschneri		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+113813002	Leptospira noguchii (organism)	L. noguchii		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+113815009	Leptospira santarosai (organism)	L. santarosai		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+C5571760	Leptospira santarosai sv Alexi	Alexi		2.16.840.1.113883.6.86	UMLS	PH_UMLS	20210608	UML
+C5571761	Leptospira santarosai sv Borincana	Borincana		2.16.840.1.113883.6.86	UMLS	PH_UMLS	20210608	UML
+C3686846	Leptospira santarosai sv Georgia	Georgia		2.16.840.1.113883.6.86	UMLS	PH_UMLS	20210608	UML
+C1889932	Leptospira wolffii	L. wolffi		2.16.840.1.113883.6.86	UMLS	PH_UMLS	20210608	UML
+OTH	other	Other (specify)		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

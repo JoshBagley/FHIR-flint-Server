@@ -1,0 +1,578 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Occupation CDC Census 2018	PHVS_Occupation_CDC_Census2018	2.16.840.1.114222.4.11.8065	1		Published	07/21/2022	V1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+0800	Accountants and auditors	Accountants and Auditors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2700	Actors	Actors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1200	Actuaries	Actuaries		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3261	Acupuncturists	Acupuncturists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8850	Adhesive bonding machine operators and tenders	Adhesive Bonding Machine Operators and Tenders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0101	Administrative services managers	Administrative Services Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0040	Advertising and promotions managers	Advertising and Promotions Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4800	Advertising sales agents	Advertising Sales Agents		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1320	Aerospace engineers	Aerospace Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0500	Agents and business managers of artists, performers, and athletes	Agents and Business Managers of Artists, Performers, and Athletes		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1900	Agricultural and food science technicians	Agricultural and Food Science Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1600	Agricultural and food scientists	Agricultural and Food Scientists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1330	Agricultural engineers	Agricultural Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6010	Agricultural inspectors	Agricultural Inspectors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9040	Air traffic controllers and airfield operations specialists	Air Traffic Controllers and Airfield Operations Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7140	Aircraft mechanics and service technicians	Aircraft Mechanics and Service Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9030	Aircraft pilots and flight engineers	Aircraft Pilots and Flight Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7710	Aircraft structure, surfaces, rigging, and systems assemblers	Aircraft Structure, Surfaces, Rigging, and Systems Assemblers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9110	Ambulance drivers and attendants, except emergency medical technicians	Ambulance Drivers and Attendants, Except Emergency Medical Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6020	Animal breeders	Animal Breeders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4350	Animal caretakers	Animal Caretakers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3900	Animal control workers	Animal Control Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4340	Animal trainers	Animal Trainers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1305	Architects, except landscape and naval	Architects, Except Landscape and Naval		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1541	Architectural and civil drafters	Architectural and Civil Drafters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0300	Architectural and engineering managers	Architectural and Engineering Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2400	Archivists, curators, and museum technicians	Archivists, Curators, and Museum Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2600	Artists and related workers	Artists and Related Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1700	Astronomers and physicists	Astronomers and Physicists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2721	Athletes and sports competitors	Athletes and Sports Competitors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1710	Atmospheric and space scientists	Atmospheric and Space Scientists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3140	Audiologists	Audiologists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7120	Audiovisual equipment installers and repairers	Audiovisual Equipment Installers and Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7150	Automotive body and related repairers	Automotive Body and Related Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7160	Automotive glass installers and repairers	Automotive Glass Installers and Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7200	Automotive service technicians and mechanics	Automotive Service Technicians and Mechanics		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7030	Avionics technicians	Avionics Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4530	Baggage porters, bellhops, and concierges	Baggage Porters, Bellhops, and Concierges		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3801	Bailiffs	Bailiffs		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7800	Bakers	Bakers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4500	Barbers	Barbers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4040	Bartenders	Bartenders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5100	Bill and account collectors	Bill and Account Collectors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5110	Billing and posting clerks	Billing and Posting Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1340	Bioengineers and biomedical engineers	Bioengineers and Biomedical Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1610	Biological scientists	Biological Scientists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1910	Biological technicians	Biological Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6210	Boilermakers	Boilermakers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5120	Bookkeeping, accounting, and auditing clerks	Bookkeeping, Accounting, and Auditing Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6220	Brickmasons, blockmasons, and stonemasons	Brickmasons, Blockmasons, and Stonemasons		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2805	Broadcast announcers and radio disc jockeys	Broadcast Announcers and Radio Disc Jockeys		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2905	Broadcast, sound, and lighting technicians	Broadcast, Sound, and Lighting Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5200	Brokerage clerks	Brokerage Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0820	Budget analysts	Budget Analysts		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7210	Bus and truck mechanics and diesel engine specialists	Bus and Truck Mechanics and Diesel Engine Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9121	Bus drivers, school	Bus Drivers, School		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9122	Bus drivers, transit and intercity	Bus Drivers, Transit and Intercity		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0750	Business operations specialists, all other	Business Operations Specialists, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7810	Butchers and other meat, poultry, and fish processing workers	Butchers and Other Meat, Poultry, and Fish Processing Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0510	Buyers and purchasing agents, farm products	Buyers and Purchasing Agents, Farm Products		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8500	Cabinetmakers and bench carpenters	Cabinetmakers and Bench Carpenters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3321	Cardiovascular technologists and technicians	Cardiovascular Technologists and Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5500	Cargo and freight agents	Cargo and Freight Agents		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6230	Carpenters	Carpenters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6240	Carpet, floor, and tile installers and finishers	Carpet, Floor, and Tile Installers and Finishers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4720	Cashiers	Cashiers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6250	Cement masons, concrete finishers, and terrazzo workers	Cement Masons, Concrete Finishers, and Terrazzo Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4000	Chefs and head cooks	Chefs and Head Cooks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1350	Chemical engineers	Chemical Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8640	Chemical processing machine setters, operators, and tenders	Chemical Processing Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1920	Chemical technicians	Chemical Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1720	Chemists and materials scientists	Chemists and Materials Scientists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0010	Chief executives	Chief Executives		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2011	Child, family, and school social workers	Child, Family, and School Social Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4600	Childcare workers	Childcare Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3000	Chiropractors	Chiropractors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1360	Civil engineers	Civil Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0540	Claims adjusters, appraisers, examiners, and investigators	Claims Adjusters, Appraisers, Examiners, and Investigators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9610	Cleaners of vehicles and equipment	Cleaners of Vehicles and Equipment		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2040	Clergy	Clergy		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1821	Clinical and counseling psychologists	Clinical and Counseling Psychologists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3300	Clinical laboratory technologists and technicians	Clinical Laboratory Technologists and Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2722	Coaches and scouts	Coaches and Scouts		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7510	Coin, vending, and amusement machine servicers and repairers	Coin, Vending, and Amusement Machine Servicers and Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2631	Commercial and industrial designers	Commercial and Industrial Designers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7520	Commercial divers	Commercial Divers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5040	Communications equipment operators, all other	Communications Equipment Operators, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0135	Compensation and benefits managers	Compensation and Benefits Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0640	Compensation, benefits, and job analysis specialists	Compensation, Benefits, and Job Analysis Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0565	Compliance officers	Compliance Officers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1005	Computer and information research scientists	Computer and Information Research Scientists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0110	Computer and information systems managers	Computer and Information Systems Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1400	Computer hardware engineers	Computer Hardware Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1106	Computer network architects	Computer Network Architects		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7905	Computer numerically controlled tool operators and programmers	Computer Numerically Controlled Tool Operators and Programmers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1108	Computer occupations, all other	Computer Occupations, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1010	Computer programmers	Computer Programmers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1050	Computer support specialists	Computer Support Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1006	Computer systems analysts	Computer Systems Analysts		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7010	Computer, automated teller, and office machine repairers	Computer, Automated Teller, and Office Machine Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1640	Conservation scientists and foresters	Conservation Scientists and Foresters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6660	Construction and building inspectors	Construction and Building Inspectors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6305	Construction equipment operators	Construction Equipment Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6260	Construction laborers	Construction Laborers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0220	Construction managers	Construction Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7300	Control and valve installers and repairers	Control and Valve Installers and Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9570	Conveyor, dredge, and hoist and winch operators	Conveyor, Dredge, and Hoist and Winch Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4020	Cooks	Cooks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3802	Correctional officers and jailers	Correctional Officers and Jailers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5210	Correspondence clerks	Correspondence Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0600	Cost estimators	Cost Estimators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2006	Counselors, all other	Counselors, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4740	Counter and rental clerks	Counter and Rental Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5510	Couriers and messengers	Couriers and Messengers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2862	Court reporters and simultaneous captioners	Court Reporters and Simultaneous Captioners		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5220	Court, municipal, and license clerks	Court, Municipal, and License Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9510	Crane and tower operators	Crane and Tower Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0830	Credit analysts	Credit Analysts		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5230	Credit authorizers, checkers, and clerks	Credit Authorizers, Checkers, and Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0910	Credit counselors and loan officers	Credit Counselors and Loan Officers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3940	Crossing guards and flaggers	Crossing Guards and Flaggers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8650	Crushing, grinding, polishing, mixing, and blending workers	Crushing, Grinding, Polishing, Mixing, and Blending Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5240	Customer service representatives	Customer Service Representatives		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8710	Cutting workers	Cutting Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7950	Cutting, punching, and press machine setters, operators, and tenders, metal and plastic	Cutting, Punching, and Press Machine Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2740	Dancers and choreographers	Dancers and Choreographers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5810	Data entry keyers	Data Entry Keyers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1065	Database administrators and architects	Database Administrators and Architects		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8760	Dental and ophthalmic laboratory technicians and medical appliance technicians	Dental and Ophthalmic Laboratory Technicians and Medical Appliance Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3640	Dental assistants	Dental Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3310	Dental hygienists	Dental Hygienists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3010	Dentists	Dentists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6800	Derrick, rotary drill, and service unit operators, oil and gas 	Derrick, Rotary Drill, and Service Unit Operators, Oil and Gas		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5830	Desktop publishers	Desktop Publishers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3820	Detectives and criminal investigators	Detectives and Criminal Investigators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3322	Diagnostic medical sonographers	Diagnostic Medical Sonographers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9100	Did Not Work	Did Not Work		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3430	Dietetic technicians and ophthalmic medical technicians	Dietetic Technicians and Ophthalmic Medical Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3030	Dietitians and nutritionists	Dietitians and Nutritionists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4130	Dining room and cafeteria attendants and bartender helpers	Dining Room and Cafeteria Attendants and Bartender Helpers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2050	Directors, religious activities and education	Directors, Religious Activities and Education		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2755	Disc jockeys, except radio	Disc Jockeys, Except Radio		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4140	Dishwashers	Dishwashers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5522	Dispatchers, except police, fire, and ambulance	Dispatchers, Except Police, Fire, and Ambulance		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4950	Door-to-door sales workers, news and street vendors, and related workers	Door-to-Door Sales Workers, News and Street Vendors, and Related Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9130	Driver/sales workers and truck drivers	Driver/Sales Workers and Truck Drivers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6330	Drywall installers, ceiling tile installers, and tapers	Drywall Installers, Ceiling Tile Installers, and Tapers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6825	Earth drillers, except oil and gas	Earth Drillers, Except Oil and Gas		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1800	Economists	Economists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2830	Editors	Editors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0230	Education and childcare administrators	Education and Childcare Administrators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2002	Educational, guidance, and career counselors and advisors	Educational, Guidance, and Career Counselors and Advisors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7040	Electric motor, power tool, and related repairers	Electric Motor, Power Tool, and Related Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1551	Electrical and electronic engineering technologists and technicians	Electrical and Electronic Engineering Technologists and Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1410	Electrical and electronics engineers	Electrical and Electronics Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7050	Electrical and electronics installers and repairers, transportation equipment	Electrical and Electronics Installers and Repairers, Transportation Equipment		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7100	Electrical and electronics repairers, industrial and utility	Electrical and Electronics Repairers, Industrial and Utility		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7410	Electrical power-line installers and repairers	Electrical Power-Line Installers and Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7720	Electrical, electronics, and electromechanical assemblers	Electrical, Electronics, and Electromechanical Assemblers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6355	Electricians	Electricians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7110	Electronic equipment installers and repairers, motor vehicles	Electronic Equipment Installers and Repairers, Motor Vehicles		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2310	Elementary and middle school teachers	Elementary and Middle School Teachers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6700	Elevator and escalator installers and repairers	Elevator and Escalator Installers and Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5250	Eligibility interviewers, government programs	Eligibility Interviewers, Government Programs		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4461	Embalmers, crematory operators and funeral attendants	Embalmers, Crematory Operators and Funeral Attendants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0425	Emergency management directors	Emergency Management Directors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3401	Emergency medical technicians	Emergency Medical Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3065	Emergency medicine physicians	Emergency Medicine Physicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7730	Engine and other machine assemblers	Engine and Other Machine Assemblers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1530	Engineers, all other	Engineers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2770	Entertainers and performers, sports and related workers, all other	Entertainers and Performers, Sports and Related Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0335	Entertainment and recreation managers	Entertainment and Recreation Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1420	Environmental engineers	Environmental Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1935	Environmental science and geoscience technicians	Environmental Science and Geoscience Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1745	Environmental scientists and specialists, including health	Environmental Scientists and Specialists, Including Health		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8910	Etchers and engravers	Etchers and Engravers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6821	Excavating and loading machine and dragline operators, surface mining	Excavating and Loading Machine and Dragline Operators, Surface Mining		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5710	Executive secretaries and executive administrative assistants	Executive Secretaries and Executive Administrative Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3235	Exercise physiologists	Exercise Physiologists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4621	Exercise trainers and group fitness instructors	Exercise Trainers and Group Fitness Instructors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6835	Explosives workers, ordnance handling experts, and blasters	Explosives Workers, Ordnance Handling Experts, and Blasters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8720	Extruding, forming, pressing, and compacting machine setters, operators, and tenders	Extruding, Forming, Pressing, and Compacting Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0102	Facilities managers	Facilities Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0205	Farmers, ranchers, and other agricultural managers	Farmers, Ranchers, and Other Agricultural Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2632	Fashion designers	Fashion Designers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4055	Fast food and counter workers	Fast Food and Counter Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6710	Fence erectors	Fence Erectors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5260	File clerks	File Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0845	Financial and investment analysts	Financial and Investment Analysts		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5165	Financial clerks, all other	Financial Clerks, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0900	Financial examiners	Financial Examiners		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0120	Financial managers	Financial Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3750	Fire inspectors	Fire Inspectors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3740	Firefighters	Firefighters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6200	First-line supervisors of construction trades and extraction workers	First-Line Supervisors of Construction Trades and Extraction Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3700	First-line supervisors of correctional officers	First-Line Supervisors of Correctional Officers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6005	First-line supervisors of farming, fishing, and forestry workers	First-Line Supervisors of Farming, Fishing, and Forestry Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3720	First-line supervisors of firefighting and prevention workers	First-Line Supervisors of Firefighting and Prevention Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4010	First-line supervisors of food preparation and serving workers	First-Line Supervisors of Food Preparation and Serving Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4200	First-line supervisors of housekeeping and janitorial workers	First-Line Supervisors of Housekeeping and Janitorial Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4210	First-line supervisors of landscaping, lawn service, and groundskeeping workers	First-Line Supervisors of Landscaping, Lawn Service, and Groundskeeping Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7000	First-line supervisors of mechanics, installers, and repairers	First-Line Supervisors of Mechanics, Installers, and Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4710	First-Line supervisors of non-retail sales workers	First-Line Supervisors of Non-Retail Sales Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5000	First-Line supervisors of office and administrative support workers	First-Line Supervisors of Office and Administrative Support Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3710	First-line supervisors of police and detectives	First-Line Supervisors of Police and Detectives		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7700	First-line supervisors of production and operating workers	First-Line Supervisors of Production and Operating Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3735	First-line supervisors of protective service workers, all other	First-Line Supervisors of Protective Service Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4700	First-Line supervisors of retail sales workers	First-Line Supervisors of Retail Sales Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3725	First-line supervisors of security workers	First-Line Supervisors of Security Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3830	Fish and game wardens	Fish and Game Wardens		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6115	Fishing and hunting workers	Fishing and Hunting Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9050	Flight attendants	Flight Attendants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2633	Floral designers	Floral Designers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7830	Food and tobacco roasting, baking, and drying machine operators and tenders	Food and Tobacco Roasting, Baking, and Drying Machine Operators and Tenders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7840	Food batchmakers	Food Batchmakers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7850	Food cooking machine operators and tenders	Food Cooking Machine Operators and Tenders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4160	Food preparation and serving related workers, all other	Food Preparation and Serving Related Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4030	Food preparation workers	Food Preparation Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7855	Food processing workers, all other	Food Processing Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4120	Food servers, nonrestaurant	Food Servers, Nonrestaurant		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0310	Food service managers	Food Service Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6120	Forest and conservation workers	Forest and Conservation Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7925	Forming machine setters, operators, and tenders, metal and plastic	Forming Machine Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0726	Fundraisers	Fundraisers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0325	Funeral home managers	Funeral Home Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8730	Furnace, kiln, oven, drier, and kettle operators and tenders	Furnace, Kiln, Oven, Drier, and Kettle Operators and Tenders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8510	Furniture finishers	Furniture Finishers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5130	Gambling cage workers	Gambling Cage Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4400	Gambling services workers	Gambling Services Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0020	General and operations managers	General and Operations Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1750	Geoscientists and hydrologists, except geographers	Geoscientists and Hydrologists, Except Geographers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6360	Glaziers	Glaziers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6040	Graders and sorters, agricultural products	Graders and Sorters, Agricultural Products		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2634	Graphic designers	Graphic Designers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8000	Grinding, lapping, polishing, and buffing machine tool setters, operators, and tenders, metal and plastic	Grinding, Lapping, Polishing, and Buffing Machine Tool Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4510	Hairdressers, hairstylists, and cosmetologists	Hairdressers, Hairstylists, and Cosmetologists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6720	Hazardous materials removal workers	Hazardous Materials Removal Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3270	Healthcare diagnosing or treating practitioners, all other	Healthcare Diagnosing or Treating Practitioners, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2012	Healthcare social workers	Healthcare Social Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7315	Heating, air conditioning, and refrigeration mechanics and installers	Heating, Air Conditioning, and Refrigeration Mechanics and Installers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7220	Heavy vehicle and mobile equipment service technicians and mechanics	Heavy Vehicle and Mobile Equipment Service Technicians and Mechanics		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6600	Helpers, construction trades	Helpers, Construction Trades		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7610	Helpers--installation, maintenance, and repair workers	Helpers--Installation, Maintenance, and Repair Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8950	Helpers--production workers	Helpers--Production Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6730	Highway maintenance workers	Highway Maintenance Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7320	Home appliance repairers	Home Appliance Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3601	Home health aides	Home Health Aides		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4150	Hosts and hostesses, restaurant, lounge, and coffee shop	Hosts and Hostesses, Restaurant, Lounge, and Coffee Shop		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5300	Hotel, motel, and resort desk clerks	Hotel, Motel, and Resort Desk Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5360	Human resources assistants, except payroll and timekeeping	Human Resources Assistants, Except Payroll and Timekeeping		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0136	Human resources managers	Human Resources Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0630	Human resources workers	Human Resources Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7330	Industrial and refractory machinery mechanics	Industrial and Refractory Machinery Mechanics		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1430	Industrial engineers, including health and safety	Industrial Engineers, Including Health and Safety		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0140	Industrial production managers	Industrial Production Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9600	Industrial truck and tractor operators	Industrial Truck and Tractor Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5420	Information and record clerks, all other	Information and Record Clerks, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1007	Information security analysts	Information Security Analysts		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8740	Inspectors, testers, sorters, samplers, and weighers	Inspectors, Testers, Sorters, Samplers, and Weighers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9900	Insufficient Information	Insufficient Information		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6400	Insulation workers	Insulation Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5840	Insurance claims and policy processing clerks	Insurance Claims and Policy Processing Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4810	Insurance sales agents	Insurance Sales Agents		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0860	Insurance underwriters	Insurance Underwriters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2635	Interior designers	Interior Designers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2861	Interpreters and translators	Interpreters and Translators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5310	Interviewers, except eligibility and loan	Interviewers, Except Eligibility and Loan		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4220	Janitors and building cleaners	Janitors and Building Cleaners		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8750	Jewelers and precious stone and metal workers	Jewelers and Precious Stone and Metal Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2110	Judges, magistrates, and other judicial workers	Judges, Magistrates, and Other Judicial Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2105	Judicial law clerks	Judicial Law Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9620	Laborers and freight, stock, and material movers, hand	Laborers and Freight, Stock, and Material Movers, Hand		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1306	Landscape architects	Landscape Architects		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4251	Landscaping and groundskeeping workers	Landscaping and Groundskeeping Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8300	Laundry and dry-cleaning workers	Laundry and Dry-Cleaning Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2100	Lawyers	Lawyers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5720	Legal secretaries and administrative assistants	Legal Secretaries and Administrative Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2180	Legal support workers, all other	Legal Support Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0030	Legislators	Legislators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2435	Librarians and media collections specialists	Librarians and Media Collections Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5320	Library assistants, clerical	Library Assistants, Clerical		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2440	Library technicians	Library Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3500	Licensed practical and licensed vocational nurses	Licensed Practical and Licensed Vocational Nurses		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1660	Life scientists, all other	Life Scientists, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5330	Loan interviewers and clerks	Loan Interviewers and Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7540	Locksmiths and safe repairers	Locksmiths and Safe Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9210	Locomotive engineers and operators	Locomotive Engineers and Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0340	Lodging managers	Lodging Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6130	Logging workers	Logging Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0700	Logisticians	Logisticians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9630	Machine feeders and offbearers	Machine Feeders and Offbearers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8030	Machinists	Machinists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3324	Magnetic resonance imaging technologists	Magnetic Resonance Imaging Technologists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4230	Maids and housekeeping cleaners	Maids and Housekeeping Cleaners		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5850	Mail clerks and mail machine operators, except postal service	Mail Clerks and Mail Machine Operators, Except Postal Service		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7340	Maintenance and repair workers, general	Maintenance and Repair Workers, General		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7350	Maintenance workers, machinery	Maintenance Workers, Machinery		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0710	Management analysts	Management Analysts		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0440	Managers, all other	Managers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4521	Manicurists and pedicurists	Manicurists and Pedicurists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7550	Manufactured building and mobile home installers	Manufactured Building and Mobile Home Installers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1440	Marine engineers and naval architects	Marine Engineers and Naval Architects		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0735	Market research analysts and marketing specialists	Market Research Analysts and Marketing Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0051	Marketing managers	Marketing Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2003	Marriage and family therapists	Marriage and Family Therapists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3630	Massage therapists	Massage Therapists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1450	Materials engineers	Materials Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1210	Mathematicians	Mathematicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1460	Mechanical engineers	Mechanical Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2970	Media and communication equipment workers, all other	Media and Communication Equipment Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2865	Media and communication workers, all other	Media and Communication Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0350	Medical and health services managers	Medical and Health Services Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3645	Medical assistants	Medical Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3515	Medical records specialists	Medical Records Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1650	Medical scientists	Medical Scientists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5730	Medical secretaries and administrative assistants	Medical Secretaries and Administrative Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3646	Medical transcriptionists	Medical Transcriptionists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0725	Meeting, convention, and event planners	Meeting, Convention, and Event Planners		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2013	Mental health and substance abuse social workers	Mental Health and Substance Abuse Social Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2004	Mental health counselors	Mental Health Counselors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2636	Merchandise displayers and window trimmers	Merchandise Displayers and Window Trimmers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8040	Metal furnace operators, tenders, pourers, and casters	Metal Furnace Operators, Tenders, Pourers, and Casters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5530	Meter readers, utilities	Meter Readers, Utilities		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9830	Military, rank not Specified	Military, Rank Not Specified		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7360	Millwrights	Millwrights		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1500	Mining and geological engineers, including mining safety engineers	Mining and Geological Engineers, Including Mining Safety Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6050	Miscellaneous agricultural workers	Miscellaneous Agricultural Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6765	Miscellaneous construction and related workers	Miscellaneous Construction and Related Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3545	Miscellaneous health technologists and technicians	Miscellaneous Health Technologists and Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8630	Miscellaneous plant and system operators	Miscellaneous Plant and System Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1860	Miscellaneous social scientists and related workers	Miscellaneous Social Scientists and Related Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7260	Miscellaneous vehicle and mobile equipment mechanics, installers, and repairers	Miscellaneous Vehicle and Mobile Equipment Mechanics, Installers, and Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8060	Model makers and patternmakers, metal and plastic	Model Makers and Patternmakers, Metal and Plastic		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4900	Models, demonstrators, and product promoters	Models, Demonstrators, and Product Promoters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8100	Molders and molding machine setters, operators, and tenders, metal and plastic	Molders and Molding Machine Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8920	Molders, shapers, and casters, except metal and plastic	Molders, Shapers, and Casters, Except Metal and Plastic		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4465	Morticians, undertakers, and funeral arrangers	Morticians, Undertakers, and Funeral Arrangers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9150	Motor vehicle operators, all other	Motor Vehicle Operators, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2751	Music directors and composers	Music Directors and Composers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2752	Musicians and singers	Musicians and Singers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0360	Natural sciences managers	Natural Sciences Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1105	Network and computer systems administrators	Network and Computer Systems Administrators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5340	New accounts clerks	New Accounts Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2810	News analysts, reporters, and journalists	News Analysts, Reporters, and Journalists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9840	NIOSH-Armed Forces, Military, Commissioned Officers and Warrant Officers	NIOSH-Armed Forces, Military, Commissioned Officers and Warrant Officers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9850	NIOSH-Armed Forces, Military, Non-Commissioned Officers and Other Enlisted Personnel	NIOSH-Armed Forces, Military, Non-Commissioned Officers and Other Enlisted Personnel		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9010	NIOSH-Homemaker	NIOSH-Homemaker		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1510	Nuclear engineers	Nuclear Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3330	Nuclear medicine technologists and medical dosimetrists	Nuclear Medicine Technologists and Medical Dosimetrists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1940	Nuclear technicians	Nuclear Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3256	Nurse anesthetists	Nurse Anesthetists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3257	Nurse midwives	Nurse Midwives		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3258	Nurse practitioners	Nurse Practitioners		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3603	Nursing assistants	Nursing Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1980	Occupational health and safety specialists and technicians	Occupational Health and Safety Specialists and Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3150	Occupational therapists	Occupational Therapists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3610	Occupational therapy assistants and aides	Occupational Therapy Assistants and Aides		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5940	Office and administrative support workers, all other	Office and Administrative Support Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5860	Office clerks, general	Office Clerks, General		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5900	Office machine operators, except computer	Office Machine Operators, Except Computer		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1220	Operations research analysts	Operations Research Analysts		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3520	Opticians, dispensing	Opticians, Dispensing		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3040	Optometrists	Optometrists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5350	Order clerks	Order Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3605	Orderlies and psychiatric aides	Orderlies and Psychiatric Aides		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7750	Other assemblers and fabricators	Other Assemblers and Fabricators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2025	Other community and social service specialists	Other Community and Social Service Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2640	Other designers	Other Designers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1545	Other drafters	Other Drafters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2555	Other educational instruction and library workers	Other Educational Instruction and Library Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1555	Other engineering technologists and technicians, except drafters	Other Engineering Technologists and Technicians, Except Drafters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4435	Other entertainment attendants and related workers	Other Entertainment Attendants and Related Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6950	Other extraction workers	Other Extraction Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0960	Other financial specialists	Other Financial Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4255	Other grounds maintenance workers	Other Grounds Maintenance Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3550	Other healthcare practitioners and technical occupations	Other Healthcare Practitioners and Technical Occupations		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3655	Other healthcare support workers	Other Healthcare Support Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7640	Other installation, maintenance, and repair workers	Other Installation, Maintenance, and Repair Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1970	Other life, physical, and social science technicians	Other Life, Physical, and Social Science Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8025	Other machine tool setters, operators, and tenders, metal and plastic	Other Machine Tool Setters, Operators, and Tenders, Metal and Plastic		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9760	Other material moving workers	Other Material Moving Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1240	Other mathematical science occupations	Other Mathematical Science Occupations		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8225	Other metal workers and plastic workers	Other Metal Workers and Plastic Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4525	Other personal appearance workers	Other Personal Appearance Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3090	Other physicians	Other Physicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8990	Other production equipment operators and tenders	Other Production Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8865	Other production equipment operators and tenders	Other Production Equipment Operators and Tenders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9005	Other production workers	Supervisors of Transportation and Material Moving Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3960	Other protective service workers	Other Protective Service Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1825	Other psychologists	Other Psychologists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9265	Other rail transportation workers	Other Rail Transportation Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2360	Other teachers and instructors	Other Teachers and Instructors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8465	Other textile, apparel, and furnishings workers	Other Textile, Apparel, and Furnishings Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9430	Other transportation workers	Other Transportation Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8555	Other woodworkers	Other Woodworkers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8800	Packaging and filling machine operators and tenders	Packaging and Filling Machine Operators and Tenders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9640	Packers and packagers, hand	Packers and Packagers, Hand		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6410	Painters and paperhangers	Painters and Paperhangers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8810	Painting workers	Painting Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8930	Paper goods machine setters, operators, and tenders	Paper Goods Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2145	Paralegals and legal assistants	Paralegals and Legal Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3402	Paramedics	Paramedics		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9350	Parking attendants	Parking Attendants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3840	Parking enforcement workers	Parking Enforcement Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4750	Parts salespersons	Parts Salespersons		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9415	Passenger attendants	Passenger Attendants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5140	Payroll and timekeeping clerks	Payroll and Timekeeping Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3602	Personal care aides	Personal Care Aides		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4655	Personal care and service workers, all other	Personal Care and Service Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0850	Personal financial advisors	Personal Financial Advisors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0426	Personal service managers, all other	Personal Service Managers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4240	Pest control workers	Pest Control Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1520	Petroleum engineers	Petroleum Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3050	Pharmacists	Pharmacists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3647	Pharmacy aides	Pharmacy Aides		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3421	Pharmacy technicians	Pharmacy Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3649	Phlebotomists	Phlebotomists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2910	Photographers	Photographers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8830	Photographic process workers and processing machine operators	Photographic Process Workers and Processing Machine Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1760	Physical scientists, all other	Physical Scientists, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3620	Physical therapist assistants and aides	Physical Therapist Assistants and Aides		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3160	Physical therapists	Physical Therapists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3110	Physician assistants	Physician Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6441	Pipelayers	Pipelayers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6460	Plasterers and stucco masons	Plasterers and Stucco Masons		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6442	Plumbers, pipefitters, and steamfitters	Plumbers, Pipefitters, and Steamfitters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3120	Podiatrists	Podiatrists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3870	Police officers	Police Officers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5540	Postal service clerks	Postal Service Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5550	Postal service mail carriers	Postal Service Mail Carriers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5560	Postal service mail sorters, processors, and processing machine operators	Postal Service Mail Sorters, Processors, and Processing Machine Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0400	Postmasters and mail superintendents	Postmasters and Mail Superintendents		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2205	Postsecondary teachers	Postsecondary Teachers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8600	Power plant operators, distributors, and dispatchers	Power Plant Operators, Distributors, and Dispatchers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7430	Precision instrument and equipment repairers	Precision Instrument and Equipment Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8250	Prepress technicians and workers	Prepress Technicians and Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2300	Preschool and kindergarten teachers	Preschool and Kindergarten Teachers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8310	Pressers, textile, garment, and related materials	Pressers, Textile, Garment, and Related Materials		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8256	Print binding and finishing workers	Print Binding and Finishing Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8255	Printing press operators	Printing Press Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3910	Private detectives and investigators	Private Detectives and Investigators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2015	Probation officers and correctional treatment specialists	Probation Officers and Correctional Treatment Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5150	Procurement clerks	Procurement Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2710	Producers and directors	Producers and Directors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5600	Production, planning, and expediting clerks	Production, Planning, and Expediting Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0705	Project management specialists	Project Management Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5910	Proofreaders and copy markers	Proofreaders and Copy Markers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0810	Property appraisers and assessors	Property Appraisers and Assessors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0410	Property, real estate, and community association managers	Property, Real Estate, and Community Association Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3422	Psychiatric technicians	Psychiatric Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0060	Public relations and fundraising managers	Public Relations and Fundraising Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2825	Public relations specialists	Public Relations Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5521	Public safety telecommunicators	Public Safety Telecommunicators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9650	Pumping station operators	Pumping Station Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0530	Purchasing agents, except wholesale, retail, and farm products	Purchasing Agents, Except Wholesale, Retail, and Farm Products		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0150	Purchasing managers	Purchasing Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3200	Radiation therapists	Radiation Therapists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7020	Radio and telecommunications equipment installers and repairers	Radio and Telecommunications Equipment Installers and Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3323	Radiologic technologists and technicians	Radiologic Technologists and Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3070	Radiologists	Radiologists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9240	Railroad conductors and yardmasters	Railroad Conductors and Yardmasters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6740	Rail-track laying and maintenance equipment operators	Rail-Track Laying and Maintenance Equipment Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4920	Real estate brokers and sales agents	Real Estate Brokers and Sales Agents		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5400	Receptionists and information clerks	Receptionists and Information Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4622	Recreation workers	Recreation Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3210	Recreational therapists	Recreational Therapists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9720	Refuse and recyclable material collectors	Refuse and Recyclable Material Collectors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3255	Registered nurses	Registered Nurses		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2005	Rehabilitation counselors	Rehabilitation Counselors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6500	Reinforcing iron and rebar workers	Reinforcing Iron and Rebar Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2060	Religious workers, all other	Religious Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5410	Reservation and transportation ticket agents and travel clerks	Reservation and Transportation Ticket Agents and Travel Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4640	Residential advisors	Residential Advisors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3220	Respiratory therapists	Respiratory Therapists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4760	Retail salespersons	Retail Salespersons		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9060	Retired	Retired		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7560	Riggers	Riggers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6515	Roofers	Roofers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6920	Roustabouts, oil and gas	Roustabouts, Oil and Gas		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9300	Sailors and marine oilers	Sailors and Marine Oilers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4965	Sales and related workers, all other	Sales and Related Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4930	Sales engineers	Sales Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0052	Sales managers	Sales Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4840	Sales representatives of services, except advertising, insurance, financial services, and travel	Sales Representatives of Services, Except Advertising, Insurance, Financial Services, and Travel		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4850	Sales representatives, wholesale and manufacturing	Sales Representatives, Wholesale and Manufacturing		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8530	Sawing machine setters, operators, and tenders, wood	Sawing Machine Setters, Operators, and Tenders, Wood		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3946	School bus monitors	School Bus Monitors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1822	School psychologists	School Psychologists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2320	Secondary school teachers	Secondary School Teachers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5740	Secretaries and administrative assistants, except legal, medical, and executive	Secretaries and Administrative Assistants, Except Legal, Medical, and Executive		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4820	Securities, commodities, and financial services sales agents	Securities, Commodities, and Financial Services Sales Agents		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7130	Security and fire alarm systems installers	Security and Fire Alarm Systems Installers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3930	Security guards and gambling surveillance officers	Security Guards and Gambling Surveillance Officers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6750	Septic tank servicers and sewer pipe cleaners	Septic Tank Servicers and Sewer Pipe Cleaners		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8320	Sewing machine operators	Sewing Machine Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6520	Sheet metal workers	Sheet Metal Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9310	Ship and boat captains and operators	Ship and Boat Captains and Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9330	Ship engineers	Ship Engineers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5610	Shipping, receiving, and inventory clerks	Shipping, Receiving, and Inventory Clerks		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8335	Shoe and leather workers	Shoe and Leather Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9141	Shuttle drivers and chauffeurs	Shuttle Drivers and Chauffeurs		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4522	Skincare specialists	Skincare Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7240	Small engine mechanics	Small Engine Mechanics		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0420	Social and community service managers	Social and Community Service Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2016	Social and human service assistants	Social and Human Service Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1950	Social science research assistants	Social Science Research Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2014	Social workers, all other	Social Workers, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1830	Sociologists	Sociologists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1021	Software developers	Software Developers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1022	Software quality assurance analysts and testers	Software Quality Assurance Analysts and Testers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6540	Solar photovoltaic installers	Solar Photovoltaic Installers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2330	Special education teachers	Special Education Teachers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3230	Speech-language pathologists	Speech-Language Pathologists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8610	Stationary engineers and boiler operators	Stationary Engineers and Boiler Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5920	Statistical assistants	Statistical Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1230	Statisticians	Statisticians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9645	Stockers and order fillers	Stockers and Order Fillers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6530	Structural iron and steel workers	Structural Iron and Steel Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7740	Structural metal fabricators and fitters	Structural Metal Fabricators and Fitters		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9070	Students	Students		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2001	Substance abuse and behavioral disorder counselors	Substance Abuse and Behavioral Disorder Counselors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4330	Supervisors of personal care and service workers	Supervisors of Personal Care and Service Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3100	Surgeons	Surgeons		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3423	Surgical technologists	Surgical Technologists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1815	Survey researchers	Survey Researchers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1560	Surveying and mapping technicians	Surveying and Mapping Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1310	Surveyors, cartographers, and photogrammetrists	Surveyors, Cartographers, and Photogrammetrists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5010	Switchboard operators, including answering service	Switchboard Operators, Including Answering Service		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8350	Tailors, dressmakers, and sewers	Tailors, Dressmakers, and Sewers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0930	Tax examiners and collectors, and revenue agents	Tax Examiners and Collectors, and Revenue Agents		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0940	Tax preparers	Tax Preparers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9142	Taxi drivers	Taxi Drivers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2545	Teaching assistants	Teaching Assistants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2840	Technical writers	Technical Writers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7420	Telecommunications line installers and repairers	Telecommunications Line Installers and Repairers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4940	Telemarketers	Telemarketers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5020	Telephone operators	Telephone Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2920	Television, video, and film camera operators and editors	Television, Video, and Film Camera Operators and Editors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5160	Tellers	Tellers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8365	Textile machine setters, operators, and tenders	Textile Machine Setters, Operators, and Tenders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3245	Therapists, all other	Therapists, All Other		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8940	Tire builders	Tire Builders		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2170	Title examiners, abstractors, and searchers	Title Examiners, Abstractors, and Searchers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8130	Tool and die makers	Tool and Die Makers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4540	Tour and travel guides	Tour and Travel Guides		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0137	Training and development managers	Training and Development Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0650	Training and development specialists	Training and Development Specialists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9410	Transportation inspectors	Transportation Inspectors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3945	Transportation security screeners	Transportation Security Screeners		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9365	Transportation service attendants	Transportation Service Attendants		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0160	Transportation, storage, and distribution managers	Transportation, Storage, and Distribution Managers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4830	Travel agents	Travel Agents		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4252	Tree trimmers and pruners	Tree Trimmers and Pruners		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2350	Tutors	Tutors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2723	Umpires, referees, and other sports officials	Umpires, Referees, and Other Sports Officials		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+6850	Underground mining machine operators	Underground Mining Machine Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8450	Upholsterers	Upholsterers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1840	Urban and regional planners	Urban and Regional Planners		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4420	Ushers, lobby attendants, and ticket takers	Ushers, Lobby Attendants, and Ticket Takers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3250	Veterinarians	Veterinarians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3648	Veterinary assistants and laboratory animal caretakers	Veterinary Assistants and Laboratory Animal Caretakers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+3424	Veterinary technologists and technicians	Veterinary Technologists and Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+9020	Volunteers	Volunteers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+4110	Waiters and waitresses	Waiters and Waitresses		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8620	Water and wastewater treatment plant and system operators	Water and Wastewater Treatment Plant and System Operators		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1032	Web and digital interface designers	Web and Digital Interface Designers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+1031	Web developers	Web Developers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5630	Weighers, measurers, checkers, and samplers, recordkeeping	Weighers, Measurers, Checkers, and Samplers, Recordkeeping		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8140	Welding, soldering, and brazing workers	Welding, Soldering, and Brazing Workers		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+0520	Wholesale and retail buyers, except farm products	Wholesale and Retail Buyers, Except Farm Products		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+7440	Wind turbine service technicians	Wind Turbine Service Technicians		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+8540	Woodworking machine setters, operators, and tenders, except sawing	Woodworking Machine Setters, Operators, and Tenders, Except Sawing		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+5820	Word processors and typists	Word Processors and Typists		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018
+2850	Writers and authors	Writers and Authors		2.16.840.1.114222.4.5.339	Occupation CDC Census 2018	PH_Occupation_CDC_Census2018	20220712	CDCOCCUPATION2018

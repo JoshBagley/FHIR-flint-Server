@@ -1,0 +1,14 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Work Classification (ODH)	PHVS_WorkClassification_ODH	2.16.840.1.114222.4.11.7597	5	A person's relationship to working for pay, family earnings, or training (e.g. having one or more jobs, searching for work, etc.). This value set resides within the Occupational Data for Health (ODH) Code System where concepts are primarily derived from the Systemized Nomenclature of Medicine – Clinical Terms (SNOMED-CT). SNOMED-CT Terms and Conditions: https://www.snomed.org/terms-and-conditions	Published	05/22/2025	Code System: SNOMED-CT Code System OID: 2.16.840.1.113883.6.96
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+452491000124108	Paid work in local government	Paid work, local government		2.16.840.1.114222.4.5.327	Occupational Data for Health (ODH)	PH_OccupationalDataForHealth_ODH	20201030	CDCODH
+452501000124100	Paid work in state government	Paid work, state government		2.16.840.1.114222.4.5.327	Occupational Data for Health (ODH)	PH_OccupationalDataForHealth_ODH	20201030	CDCODH
+452121000124102	Paid work in United States armed forces	Paid work, armed forces		2.16.840.1.114222.4.5.327	Occupational Data for Health (ODH)	PH_OccupationalDataForHealth_ODH	20201030	CDCODH
+452131000124104	Paid work in United States federal government	Paid work, federal government		2.16.840.1.114222.4.5.327	Occupational Data for Health (ODH)	PH_OccupationalDataForHealth_ODH	20201030	CDCODH
+452141000124109	Paid work not self-employed	Paid work, not self-employed		2.16.840.1.114222.4.5.327	Occupational Data for Health (ODH)	PH_OccupationalDataForHealth_ODH	20201030	CDCODH
+452101000124107	Self-employed paid work	Paid work, self-employed		2.16.840.1.114222.4.5.327	Occupational Data for Health (ODH)	PH_OccupationalDataForHealth_ODH	20201030	CDCODH
+452111000124105	Self-employed unpaid work	Unpaid work, self-employed		2.16.840.1.114222.4.5.327	Occupational Data for Health (ODH)	PH_OccupationalDataForHealth_ODH	20201030	CDCODH
+452151000124106	Unpaid work not self-employed	Unpaid work, not self-employed		2.16.840.1.114222.4.5.327	Occupational Data for Health (ODH)	PH_OccupationalDataForHealth_ODH	20201030	CDCODH
+VWDR	Voluntary Disaster Response/First Responder	Voluntary Disaster Response/First Responder		2.16.840.1.114222.4.5.327	Occupational Data for Health (ODH)	PH_OccupationalDataForHealth_ODH	20201030	CDCODH
+160772005	Voluntary worker	Voluntary worker		2.16.840.1.114222.4.5.327	Occupational Data for Health (ODH)	PH_OccupationalDataForHealth_ODH	20201030	CDCODH

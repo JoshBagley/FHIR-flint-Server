@@ -1,0 +1,10 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Performing Laboratory Type (NWS)	PHVS_PerformingLabType_NWS	2.16.840.1.114222.4.11.8095	1	Type of performing laboratory to detect a New World Screw (NWS) worm infection	Published	06/11/2025	V1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+PHC412	CDC laboratory	CDC		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250606	CDCPHINVS
+PHC1509	Clinical Laboratory	Clinical Laboratory		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250606	CDCPHINVS
+PHC645	Commercial laboratory	Commercial Reference Lab		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250606	CDCPHINVS
+PHC929	National Veterinary Services Laboratories	National Veterinary Services Laboratories		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250606	CDCPHINVS
+OTH	other	Other		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+PHC643	Public health laboratory (state or local)	Public Health Laboratory		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250606	CDCPHINVS

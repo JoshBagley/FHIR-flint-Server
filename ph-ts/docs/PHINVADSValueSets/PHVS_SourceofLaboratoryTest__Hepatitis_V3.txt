@@ -1,0 +1,17 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Source of Laboratory Test (Hepatitis)	PHVS_SourceofLaboratoryTest _Hepatitis	2.16.840.1.114222.4.11.8055	3	Source of laboratory test for hepatitis diagnosis
+	Published	08/15/2022	Removed 'Organ or tissue donation' and 'Blood donation' from the value set
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+225728007	Accident and Emergency department (environment)	Emergency department		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+C0442681	Correctional Institutions	Correctional facility (jail, prison, detention center, etc.)		2.16.840.1.113883.6.86	UMLS	PH_UMLS	20210608	UML
+PHC256	Drug treatment facility	Substance use disorder treatment center		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS
+C0681146	Homeless shelter	Homeless shelter		2.16.840.1.113883.6.86	UMLS	PH_UMLS	20210608	UML
+22232009	Hospital (environment)	Hospital/inpatient setting		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+OTH	other	Other source (specifiy)		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+PHC1224	Other Health Department Clinic	Health department, not otherwise specified		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS
+440655000	Outpatient environment (environment)	Outpatient setting		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+PHC2347	Ryan White clinic	Ryan White clinic		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS
+PHC1219	STD Clinic	Sexually transmitted infections clinic		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS
+PHC2348	Syringe services program	Syringe services program		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS
+UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

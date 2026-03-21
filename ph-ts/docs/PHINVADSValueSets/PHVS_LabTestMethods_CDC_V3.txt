@@ -1,0 +1,311 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Observation Method	PHVS_LabTestMethods_CDC	2.16.840.1.114222.4.11.1003	3	Laboratory test method identifiers	Published	05/21/2025	Added OTH. Based on HL7 V3 - 2019-03-20 update
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+0119	3 Self-Sustaining Sequence Replication	3 Self-Sustaining Sequence Replication		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0143	Acid fast stain	Acid fast stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0144	Acid fast stain, fluorochrome	Acid fast stain, fluorochrome		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0145	Acid fast stain, Kinyoun's cold carbolfuchsin	Acid fast stain, Kinyoun's cold carbolfuchsin		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0146	Acid fast stain, Ziehl-Neelsen	Acid fast stain, Ziehl-Neelsen		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0147	Acid phosphatase stain	Acid phosphatase stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0148	Acridine orange stain	Acridine orange stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0149	Active brilliant orange KH stain	Active brilliant orange KH stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0050	Aerobic Culture	Aerobic Culture		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0039	Affinity chromatography	Affinity chromatography		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0065	Agaorse gel electrophoresis	Agaorse gel electrophoresis		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0062	Agar diffusion	Agar diffusion		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0063	Agar Gel Immunodiffusion	Agar Gel Immunodiffusion		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0278	Agar screen	Agar screen		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0014	Agglutination	Agglutination		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0150	Alazarin red S stain	Alazarin red S stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0151	Alcian blue stain	Alcian blue stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0152	Alcian blue with Periodic acid Schiff stain	Alcian blue with Periodic acid Schiff stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+ALGM	algorithm	algorithm		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+_AllergyTestObservationMethod	allergy test observation	allergy test observation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0051	Anaerobic Culture	Anaerobic Culture		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0026	Animal Inoculation	Animal Inoculation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0240	Antibiotic sensitivity, disk	Antibiotic sensitivity, disk		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0257	Anti-complement immunofluorescence (ACIF)	Anti-complement immunofluorescence (ACIF)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0075	API 20 Strep	API 20 Strep		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0076	API 20A	API 20A		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0077	API 20C AUX	API 20C AUX		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0078	API 20E	API 20E		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0079	API 20NE	API 20NE		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0080	API 50 CH	API 50 CH		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0081	API An-IDENT	API An-IDENT		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0082	API Coryne	API Coryne		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0083	API Rapid 20E	API Rapid 20E		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0084	API Staph	API Staph		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0085	API ZYM	API ZYM		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0154	Argentaffin silver stain	Argentaffin silver stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0153	Argentaffin stain	Argentaffin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0263	Atomic absorption spectrophotometry (AAS)	Atomic absorption spectrophotometry (AAS)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0047	Automated count	Automated count		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+AVERAGE	average	average		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0155	Azure-eosin stain	Azure-eosin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0241	BACTEC susceptibility test	BACTEC susceptibility test		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0086	Bacterial identification	Bacterial identification		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0156	Basic Fuschin stain	Basic Fuschin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+BYCL	bayesian calculation	bayesian calculation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0157	Bennhold stain	Bennhold stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0158	Bennhold's Congo red stain	Bennhold's Congo red stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0159	Bielschowsky stain	Bielschowsky stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0160	Bielschowsky's silver stain	Bielschowsky's silver stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0025	Bioassay	Bioassay		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0031	Bioassay, qualitative	Bioassay, qualitative		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0032	Bioassay, quantitative	Bioassay, quantitative		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0161	Bleach stain	Bleach stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0162	Bodian stain	Bodian stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0120	Branched Chain DNA	Branched Chain DNA		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0163	Brown-Brenn stain	Brown-Brenn stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0015	Buffered acidified plate agglutination	Buffered acidified plate agglutination		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0164	Butyrate-esterase stain	Butyrate-esterase stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0165	Calcofluor white fluorescent stain	Calcofluor white fluorescent stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0166	Carbol-fuchsin stain	Carbol-fuchsin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0016	Card agglutination	Card agglutination		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0167	Carmine stain	Carmine stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0033	Chemical method	Chemical method		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0052	Chicken embryo culture	Chicken embryo culture		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0038	Chromatography	Chromatography		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0168	Churukian-Schenk stain	Churukian-Schenk stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0044	Coagulation	Coagulation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+_CommonClinicalObservationMethod	common clinical observation	common clinical observation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0001	Complement fixation	Complement fixation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0002	Computed axial tomography	Computed axial tomography		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0169	Congo red stain	Congo red stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+COUNT	count	count		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0170	Cresyl echt violet stain	Cresyl echt violet stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0171	Crystal violet stain	Crystal violet stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0027	Cytotoxicity	Cytotoxicity		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0108	Darkfield microscopy	Darkfield microscopy		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0172	De Galantha stain	De Galantha stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+_DecisionObservationMethod	DecisionObservationMethod	DecisionObservationMethod		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0053	Delayed secondary enrichment	Delayed secondary enrichment		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0173	Dieterle silver impregnation stain	Dieterle silver impregnation stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0034	Differential light absorption chemical test	Differential light absorption chemical test		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0035	Dipstick	Dipstick		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0036	Dipstick colorimetric laboratory test	Dipstick colorimetric laboratory test		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0242	Disk dilution	Disk dilution		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0279	Disk induction	Disk induction		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+VDOC	document verification	document verification		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0109	Electron microscopy	Electron microscopy		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0110	Electron microscopy tomography	Electron microscopy tomography		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0111	Electron microscopy, negative stain	Electron microscopy, negative stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0112	Electron microscopy, thick section	Electron microscopy, thick section		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0113	Electron microscopy, thin section	Electron microscopy, thin section		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+VTOKEN	electronic token verification	electronic token verification		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0064	Electrophoresis	Electrophoresis		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0066	Electrophoresis, citrate agar	Electrophoresis, citrate agar		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0070	ELISA	ELISA		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0071	ELISA, antigen capture	ELISA, antigen capture		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0072	ELISA, avidin biotin peroxidase complex	ELISA, avidin biotin peroxidase complex		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0074	ELISA, peroxidase-antiperoxidase	ELISA, peroxidase-antiperoxidase		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0028	Embryo infective dose 50	Embryo infective dose 50		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0029	Embryo lethal dose 50	Embryo lethal dose 50		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0250	EMIT	EMIT		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0255	Equilibrium dialysis	Equilibrium dialysis		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0174	Fite-Farco stain	Fite-Farco stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0139	Flocculation	Flocculation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0251	Flow cytometry (FC)	Flow cytometry (FC)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0253	Fluorescence polarization immunoassay (FPIA)	Fluorescence polarization immunoassay (FPIA)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0175	Fontana-Masson silver stain	Fontana-Masson silver stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0176	Fouchet stain	Fouchet stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0265	Gas chromatography (GC)	Gas chromatography (GC)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0040	Gas liquid chromatography	Gas liquid chromatography		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0258	GC/MS	GC/MS		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+_GeneticObservationMethod	GeneticObservationMethod	GeneticObservationMethod		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+GINT	global introspection	global introspection		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0178	Gomori methenamine silver stain	Gomori methenamine silver stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0177	Gomori stain	Gomori stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0179	Gomori-Wheatly trichrome stain	Gomori-Wheatly trichrome stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0275	Gradient Strip	Gradient Strip		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0180	Gridley stain	Gridley stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0181	Grimelius silver stain	Grimelius silver stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0183	Grocott methenamine silver stain	Grocott methenamine silver stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0182	Grocott stain	Grocott stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0184	Hale's colloidal ferric oxide stain	Hale's colloidal ferric oxide stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0185	Hale's colloidal iron stain	Hale's colloidal iron stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0186	Hansel stain	Hansel stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0187	Harris regressive hematoxylin and eosin stain	Harris regressive hematoxylin and eosin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0017	Hemagglutination	Hemagglutination		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0018	Hemagglutination inhibition	Hemagglutination inhibition		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0188	Hematoxylin and eosin stain	Hematoxylin and eosin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0041	High performance liquid chromatography	High performance liquid chromatography		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0189	Highman stain	Highman stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0003	HLAR agar test	HLAR agar test		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0190	Holzer stain	Holzer stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0121	Hybridization Protection Assay	Hybridization Protection Assay		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0269	ICP/MS	ICP/MS		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0260	IgE immunoassay antibody	IgE immunoassay antibody		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0122	Immune blot	Immune blot		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0140	Immune precipitation	Immune precipitation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0095	Immune stain	Immune stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0101	Immunoassay	Immunoassay		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0102	Immunoassay, qualitative, multiple step	Immunoassay, qualitative, multiple step		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0103	Immunoassay, qualitative, single step	Immunoassay, qualitative, single step		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0105	Immunoassay, semi-quantitative, multiple step	Immunoassay, semi-quantitative, multiple step		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0106	Immunoassay, semi-quantitative, single step	Immunoassay, semi-quantitative, single step		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0267	Immunochemiluminescence	Immunochemiluminescence		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0067	Immunoelectrophoresis	Immunoelectrophoresis		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0254	Immunofixation electrophoresis (IFE)	Immunofixation electrophoresis (IFE)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0096	Immunofluorescent antibody, direct	Immunofluorescent antibody, direct		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0097	Immunofluorescent antibody, indirect	Immunofluorescent antibody, indirect		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0098	Immunoperoxidase, Avidin-Biotin Complex	Immunoperoxidase, Avidin-Biotin Complex		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0099	Immunoperoxidase, Peroxidase anti-peroxidase complex	Immunoperoxidase, Peroxidase anti-peroxidase complex		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0100	Immunoperoxidase, Protein A-peroxidase complex	Immunoperoxidase, Protein A-peroxidase complex		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0270	Immunoradiometric assay (IRMA)	Immunoradiometric assay (IRMA)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0123	In-situ hybridization	In-situ hybridization		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0264	Ion selective electrode (ISE)	Ion selective electrode (ISE)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0191	Iron hematoxylin stain	Iron hematoxylin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0266	Isoelectric focusing (IEF)	Isoelectric focusing (IEF)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0193	Jones methenamine silver stain	Jones methenamine silver stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0192	Jones stain	Jones stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0073	Kinetic ELISA	Kinetic ELISA		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0256	Kleihauer-Betke acid elution	Kleihauer-Betke acid elution		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0194	Kossa stain	Kossa stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0019	Latex agglutination	Latex agglutination		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0195	Lawson-Van Gieson stain	Lawson-Van Gieson stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0124	Ligase Chain Reaction	Ligase Chain Reaction		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0125	Ligation Activated Transcription	Ligation Activated Transcription		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0042	Liquid Chromatography	Liquid Chromatography		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0196	Loeffler methylene blue stain	Loeffler methylene blue stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0197	Luxol fast blue with cresyl violet stain	Luxol fast blue with cresyl violet stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0198	Luxol fast blue with Periodic acid-Schiff stain	Luxol fast blue with Periodic acid-Schiff stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0261	Lymphocyte Microcytotoxicity Assay	Lymphocyte Microcytotoxicity Assay		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0199	MacNeal's tetrachrome blood stain	MacNeal's tetrachrome blood stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0004	Macroscopic observation	Macroscopic observation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0005	Magnetic resonance	Magnetic resonance		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0200	Mallory-Heidenhain stain	Mallory-Heidenhain stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0048	Manual cell count	Manual cell count		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0201	Masson trichrome stain	Masson trichrome stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+MAX	maxima	maxima		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0202	Mayer mucicarmine stain	Mayer mucicarmine stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0203	Mayers progressive hematoxylin and eosin stain	Mayers progressive hematoxylin and eosin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0204	May-Grunwald Giemsa stain	May-Grunwald Giemsa stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+MEDIAN	median	median		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0206	Methyl green pyronin stain	Methyl green pyronin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0205	Methyl green stain	Methyl green stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0054	Microaerophilic Culture	Microaerophilic Culture		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0268	Microparticle enzyme immunoassay (MEIA)	Microparticle enzyme immunoassay (MEIA)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0107	Microscopy	Microscopy		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0114	Microscopy, Light	Microscopy, Light		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0141	Milk ring test	Milk ring test		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0087	mini VIDAS	mini VIDAS		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+MIN	minima	minima		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0243	Minimum bactericidal concentration test, macrodilution	Minimum bactericidal concentration test, macrodilution		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0244	Minimum bactericidal concentration test, microdilution	Minimum bactericidal concentration test, microdilution		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0272	Minimum Inhibitory Concentration	Minimum Inhibitory Concentration		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0245	Minimum Inhibitory Concentration, macrodilution	Minimum Inhibitory Concentration, macrodilution		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0246	Minimum Inhibitory Concentration, microdilution	Minimum Inhibitory Concentration, microdilution		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0275a	Minimum Lethal Concentration (MLC)	Minimum Lethal Concentration (MLC)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+MODE	mode	mode		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0207	Modified Gomori-Wheatly trichrome stain	Modified Gomori-Wheatly trichrome stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0208	Modified Masson trichrome stain	Modified Masson trichrome stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0209	Modified trichrome stain	Modified trichrome stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0006	Morphometry	Morphometry		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0030	Mouse intercerebral inoculation	Mouse intercerebral inoculation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0210	Movat pentachrome stain	Movat pentachrome stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0211	Mucicarmine stain	Mucicarmine stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0259	Nephelometry	Nephelometry		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0212	Neutral red stain	Neutral red stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0213	Night blue stain	Night blue stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0214	Non-specific esterase stain	Non-specific esterase stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0127	Nucleic acid probe	Nucleic acid probe		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0126	Nucleic Acid Probe	Nucleic Acid Probe		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0128	Nucleic acid probe with amplification	Nucleic acid probe with amplification		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0129	Nucleic acid probe with target amplification	Nucleic acid probe with target amplification		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0130	Nucleic acid reverse transcription	Nucleic acid reverse transcription		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0131	Nucleic Acid Sequence Based Analysis	Nucleic Acid Sequence Based Analysis		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+_ObservationMethodAggregate	observation method aggregate	observation method aggregate		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0215	Oil red-O stain	Oil red-O stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0216	Orcein stain	Orcein stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+OTH	other	other		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+PCR	PCR	PCR		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0217	Perls' stain	Perls' stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0088	Phage susceptibility typing	Phage susceptibility typing		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0218	Phosphotungstic acid-hematoxylin stain	Phosphotungstic acid-hematoxylin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0271	Photo optical clot detection	Photo optical clot detection		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0020	Plate agglutination	Plate agglutination		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0049	Platelet count, Rees-Ecker	Platelet count, Rees-Ecker		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0115	Polarizing light microscopy	Polarizing light microscopy		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0068	Polyacrylamide gel electrophoresis	Polyacrylamide gel electrophoresis		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0132	Polymerase chain reaction	Polymerase chain reaction		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+STDEV.P	population standard deviation	population standard deviation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+VARIANCE.P	population variance	population variance		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0007	Positron emission tomography	Positron emission tomography		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0219	Potassium ferrocyanide stain	Potassium ferrocyanide stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0142	Precipitin	Precipitin		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0043	Protein A affinity chromatography	Protein A affinity chromatography		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0220	Prussian blue stain	Prussian blue stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0221	Putchler modified Bennhold stain	Putchler modified Bennhold stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0133	Q-Beta Replicase or probe amplification category method	Q-Beta Replicase or probe amplification category method		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0089	Quad-FERM+	Quad-FERM+		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0055	Quantitative microbial culture, cup	Quantitative microbial culture, cup		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0056	Quantitative microbial culture, droplet	Quantitative microbial culture, droplet		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0057	Quantitative microbial culture, filter paper	Quantitative microbial culture, filter paper		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0058	Quantitative microbial culture, pad culture	Quantitative microbial culture, pad culture		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0059	Quantitative microbial culture, pour plate	Quantitative microbial culture, pour plate		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0060	Quantitative microbial culture, surface streak	Quantitative microbial culture, surface streak		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0222	Quinacrine fluorescent stain	Quinacrine fluorescent stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0252	Radial immunodiffusion (RID)	Radial immunodiffusion (RID)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0104	Radioimmunoassay	Radioimmunoassay		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0021	Rapid agglutination	Rapid agglutination		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0090	RAPIDEC Staph	RAPIDEC Staph		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0022	RBC agglutination	RBC agglutination		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0248	Refractometric	Refractometric		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+VREG	registry verification	registry verification		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0134	Restriction Fragment Length Polymorphism	Restriction Fragment Length Polymorphism		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0223	Reticulin stain	Reticulin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0224	Rhodamine stain	Rhodamine stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0023	Rivanol agglutination	Rivanol agglutination		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0225	Safranin stain	Safranin stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0008	SAMHSA confirmation	SAMHSA confirmation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0009	SAMHSA screening	SAMHSA screening		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+STDEV.S	sample standard deviation	sample standard deviation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+VARIANCE.S	sample variance	sample variance		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0116	Scanning electron microscopy	Scanning electron microscopy		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0226	Schmorl stain	Schmorl stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0227	Seiver-Munger stain	Seiver-Munger stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0277	Serum bactericidal titer	Serum bactericidal titer		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0010	Serum Neutralization	Serum Neutralization		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0228	Silver stain	Silver stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0276	Slow Mycobacteria Susceptibility	Slow Mycobacteria Susceptibility		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0061	Somatic Cell culture	Somatic Cell culture		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0135	Southern Blot	Southern Blot		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0229	Specific esterase stain	Specific esterase stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0262	Spectrophotometry	Spectrophotometry		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0091	Staphaurex	Staphaurex		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0069	Starch gel electrophoresis	Starch gel electrophoresis		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0230	Steiner silver stain	Steiner silver stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0136	Strand Displacement Amplification	Strand Displacement Amplification		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0231	Sudan III stain	Sudan III stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0232	Sudan IVI stain	Sudan IVI stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0233	Sulfated alcian blue stain	Sulfated alcian blue stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+SUM	sum	sum		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0234	Supravital stain	Supravital stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0280	Susceptibility Testing	Susceptibility Testing		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0037	Test strip	Test strip		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0249	Thin layer chromatography (TLC)	Thin layer chromatography (TLC)		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0235	Thioflavine-S stain	Thioflavine-S stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0236	Three micron Giemsa stain	Three micron Giemsa stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0045	Tilt tube coagulation time	Tilt tube coagulation time		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0046	Tilt tube reptilase induced coagulation	Tilt tube reptilase induced coagulation		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0011	Titration	Titration		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0137	Transcription Mediated Amplification	Transcription Mediated Amplification		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0117	Transmission electron microscopy	Transmission electron microscopy		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0118	Transparent tape direct examination	Transparent tape direct examination		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0024	Tube agglutination	Tube agglutination		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0247	Turbidometric	Turbidometric		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0012	Ultrasound	Ultrasound		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0237	Vassar-Culling stain	Vassar-Culling stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+_VerificationMethod	VerificationMethod	VerificationMethod		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0092	VIDAS	VIDAS		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0273	Viral Genotype Susceptibility	Viral Genotype Susceptibility		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0274	Viral Phenotype Susceptibility	Viral Phenotype Susceptibility		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0238	Vital Stain	Vital Stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0093	Vitek	Vitek		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0094	VITEK 2	VITEK 2		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+VVOICE	voice-based verification	voice-based verification		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0239	von Kossa stain	von Kossa stain		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0138	Western Blot	Western Blot		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD
+0013	X-ray crystallography	X-ray crystallography		2.16.840.1.113883.5.84	ObservationMethod	PH_ObservationMethod_HL7_V3	20190320	OBSMETHOD

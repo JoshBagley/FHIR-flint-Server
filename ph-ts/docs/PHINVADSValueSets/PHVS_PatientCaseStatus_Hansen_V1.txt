@@ -1,0 +1,11 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Patient Case Status (Hansen)	PHVS_PatientCaseStatus_Hansen	2.16.840.1.114222.4.11.7980	1	Indicate the patient's case status	Published	11/30/2020	V1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+7147002	New (qualifier value)	New		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201026	SCT
+OTH	other	Other patient case status (specify)		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+76561005	Reclassified (qualifier value)	Reclassification		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201026	SCT
+263855007	Relapse phase (qualifier value)	Relapsed		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201026	SCT
+PHC2301	Return Case	Return Case		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201109	CDCPHINVS
+PHC2300	Return Case After Loss to Follow-up	Return Case After Loss to Follow-up		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201109	CDCPHINVS
+PHC2302	Transfer in Case	Transfer in Case		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201109	CDCPHINVS

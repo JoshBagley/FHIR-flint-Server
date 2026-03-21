@@ -1,0 +1,22 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Lab Test Type (Hepatitis)	PHVS_LabTestType_Hepatitis	2.16.840.1.114222.4.11.6013	6	Lab Test Type (Hepatitis)	Published	07/19/2022	Added LOINC values with Preferred Names Total bilirubin and ALT
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+1742-6	Alanine aminotransferase[Enzymatic activity/volume] in Serum or Plasma	ALT		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+42719-5	Bilirubin.total[Mass/volume] in Blood	Total bilirubin		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP16708-7	Hepatitis A virus	HAV RNA		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38316-3	Hepatitis A virus Ab	total anti-HAV		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38318-9	Hepatitis A virus IgM	IgM anti-HAV		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38323-9	Hepatitis B virus core Ab	total anti-HBc		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38325-4	Hepatitis B virus Core IgM	IgM anti-HBc		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38320-5	Hepatitis B virus DNA	HBV DNA		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38329-6	Hepatitis B virus e Ag	HBeAg		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38331-2	Hepatitis B virus surface Ag	HBsAg		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38332-0	Hepatitis C virus Ab	anti-HCV		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP200104-0	Hepatitis C virus core Ag	HCV antigen		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38335-3	Hepatitis C virus RNA	HCV RNA		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38345-2	Hepatitis D virus Ab	anti-HDV		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP418766-4	Hepatitis D virus RNA panel	HDV RNA		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38351-0	Hepatitis E virus Ab IgG	IgG anti-HEV		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP38352-8	Hepatitis E virus Ab IgM	IgM anti-HEV		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN
+LP418768-0	Hepatitis E virus RNA panel	HEV RNA		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.72	LN

@@ -1,0 +1,276 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Industry CDC Census 2012	PHVS_Industry_CDC_Census2012	2.16.840.1.114222.4.11.8027	1	2012 Industry coding system used by CDC (NIOSH & NCHS) for coding industry text. Industry describes an economic/business sector comprised of businesses/ enterprises concerned with the output of a specified category of products or services (e.g., the construction industry or the agriculture industry). This industry code system includes 2012 U.S. Census Bureau industry codes and additional codes developed by CDC for military and unpaid workers. The 2012 Census industry categories are based on the 2012 North American Industry Classification System (NAICS). The PH_Occupation_CDC_Census2012 code system should be used in conjunction with this industry code system when coding both industry and occupation. For more information and instructions on using this coding system, see the instruction manual for CDC-Census I&O coding at: http://www.cdc.gov/niosh/topics/coding/	Published	03/19/2021	v1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+7280	Accounting, Tax Preparation, Bookkeeping, and Payroll Services	Accounting, Tax Preparation, Bookkeeping, and Payroll Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9570	Administration of Economic Programs and Space Research	Administration of Economic Programs and Space Research		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9490	Administration of Environmental Quality and Housing Programs	Administration of Environmental Quality and Housing Programs		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9480	Administration of Human Resource Programs	Administration of Human Resource Programs		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7470	Advertising, Public Relations, and Related Services	Advertising, Public Relations, and Related Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3590	Aerospace Products and Parts Manufacturing	Aerospace Products and Parts Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2180	Agricultural Chemical Manufacturing	Agricultural Chemical Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3070	Agricultural Implement Manufacturing	Agricultural Implement Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6070	Air Transportation	Air Transportation		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3580	Aircraft and Parts Manufacturing	Aircraft and Parts Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4560	Alcoholic Beverages Merchant Wholesalers	Alcoholic Beverages Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2680	Aluminum Production and Processing	Aluminum Production and Processing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1070	Animal Food, Grain and Oilseed Milling	Animal Food, Grain and Oilseed Milling		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0180	Animal Production and Aquaculture	Animal Production and Aquaculture		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1180	Animal Slaughtering and Processing	Animal Slaughtering and Processing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1690	Apparel Accessories and Other Apparel Manufacturing	Apparel Accessories and Other Apparel Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4390	Apparel, Piece Goods, and Notions Merchant Wholesalers	Apparel, Piece Goods, and Notions Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7290	Architectural, Engineering, and Related Services	Architectural, Engineering, and Related Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9790	Armed Forces, Branch Not Specified	Armed Forces, Branch Not Specified		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4670	Automobile Dealers	Automobile Dealers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7080	Automotive Equipment Rental and Leasing	Automotive Equipment Rental and Leasing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4690	Automotive Parts, Accessories, and Tire Stores	Automotive Parts, Accessories, and Tire Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8770	Automotive Repair and Maintenance	Automotive Repair and Maintenance		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1270	Bakeries and Tortilla Manufacturing, except Retail Bakeries	Bakeries and Tortilla Manufacturing, except Retail Bakeries		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6870	Banking and Related Activities	Banking and Related Activities		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8970	Barber Shops	Barber Shops		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8980	Beauty Salons	Beauty Salons		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4990	Beer, Wine, and Liquor Stores	Beer, Wine, and Liquor Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1370	Beverage Manufacturing	Beverage Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5370	Book Stores and News Dealers	Book Stores and News Dealers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8580	Bowling Centers	Bowling Centers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6670	Broadcasting (except Internet)	Broadcasting (except Internet)		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4870	Building Material and Supplies Dealers	Building Material and Supplies Dealers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6180	Bus Service and Urban Transit	Bus Service and Urban Transit		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7590	Business Support Services	Business Support Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9190	Business, Professional, Political, and Similar Organizations	Business, Professional, Political, and Similar Organizations		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7880	Business, Technical, and Trade Schools and Training	Business, Technical, and Trade Schools and Training		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8780	Car Washes	Car Washes		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1570	Carpet and Rug Mills	Carpet and Rug Mills		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2570	Cement, Concrete, Lime, and Gypsum Product Manufacturing	Cement, Concrete, Lime, and Gypsum Product Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8470	Child Day Care Services	Child Day Care Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9170	Civic, Social, Advocacy Organizations, and Grantmaking and Giving Services	Civic, Social, Advocacy Organizations, and Grantmaking and Giving Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2480	Clay Building Material and Refractories Manufacturing	Clay Building Material and Refractories Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5170	Clothing Stores	Clothing Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0380	Coal Mining	Coal Mining		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2890	Coating, Engraving, Heat Treating, and Allied Activities	Coating, Engraving, Heat Treating, and Allied Activities		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7870	Colleges, Universities, and Professional Schools, including Junior Colleges	Colleges, Universities, and Professional Schools, including Junior Colleges		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8870	Commercial and Industrial Machinery and Equipment Repair and Maintenance	Commercial and Industrial Machinery and Equipment Repair and Maintenance		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3095	Commercial and Service Industry Machinery Manufacturing	Commercial and Service Industry Machinery Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7190	Commercial, Industrial, and Other Intangible Assets Rental and Leasing	Commercial, Industrial, and Other Intangible Assets Rental and Leasing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3370	Communications, Audio, and Video Equipment Manufacturing	Communications, Audio, and Video Equipment Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8380	Community Food and Housing, and Emergency Services	Community Food and Housing, and Emergency Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3365	Computer and Peripheral Equipment Manufacturing	Computer and Peripheral Equipment Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7380	Computer Systems Design and Related Services	Computer Systems Design and Related Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0770	Construction	Construction		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3080	Construction, and Mining and Oil and Gas Field Machinery Manufacturing	Construction, and Mining and Oil and Gas Field Machinery Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6380	Couriers and Messengers	Couriers and Messengers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0170	Crop Production	Crop Production		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1680	Cut and Sew Apparel Manufacturing	Cut and Sew Apparel Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2790	Cutlery and Hand Tool Manufacturing	Cutlery and Hand Tool Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1170	Dairy Product Manufacturing	Dairy Product Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6695	Data Processing, Hosting, and Related Services	Data Processing, Hosting, and Related Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5380	Department Stores and Discount Stores	Department Stores and Discount Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8690	Drinking Places, Alcoholic Beverages	Drinking Places, Alcoholic Beverages		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4380	Drugs, Sundries, and Chemical and Allied Products Merchant Wholesalers	Drugs, Sundries, and Chemical and Allied Products Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9070	Drycleaning and Laundry Services	Drycleaning and Laundry Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0590	Electric and Gas, and Other Combinations	Electric and Gas, and Other Combinations		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3490	Electric Lighting and Electrical Equipment Manufacturing, and Other Electrical Component Manufacturing, N.E.C.	Electric Lighting and Electrical Equipment Manufacturing, and Other Electrical Component Manufacturing, N.E.C.		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0570	Electric Power Generation, Transmission and Distribution	Electric Power Generation, Transmission and Distribution		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8790	Electronic and Precision Equipment Repair and Maintenance	Electronic and Precision Equipment Repair and Maintenance		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5591	Electronic Auctions	Electronic Auctions		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3390	Electronic Component and Product Manufacturing, N.E.C.	Electronic Component and Product Manufacturing, N.E.C.		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5590	Electronic Shopping	Electronic Shopping		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4795	Electronics Stores	Electronics Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7860	Elementary and Secondary Schools	Elementary and Secondary Schools		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7580	Employment Services	Employment Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3180	Engine, Turbine, and Power Transmission Equipment Manufacturing	Engine, Turbine, and Power Transmission Equipment Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9370	Executive Offices and Legislative Bodies	Executive Offices and Legislative Bodies		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1480	Fabric Mills, except Knitting Mills	Fabric Mills, except Knitting Mills		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4480	Farm Product Raw Material Merchant Wholesalers	Farm Product Raw Material Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4570	Farm Supplies Merchant Wholesalers	Farm Supplies Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1470	Fiber, Yarn, and Thread Mills	Fiber, Yarn, and Thread Mills		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0280	Fishing, Hunting and Trapping	Fishing, Hunting and Trapping		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8890	Footwear and Leather Goods Repair	Footwear and Leather Goods Repair		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1770	Footwear Manufacturing	Footwear Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0190	Forestry except Logging	Forestry except Logging		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2770	Foundries	Foundries		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1090	Fruit and Vegetable Preserving and Specialty Food Manufacturing	Fruit and Vegetable Preserving and Specialty Food Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5680	Fuel Dealers	Fuel Dealers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9080	Funeral Homes, and Cemeteries and Crematories	Funeral Homes, and Cemeteries and Crematories		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4080	Furniture and Home Furnishing Merchant Wholesalers	Furniture and Home Furnishing Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4770	Furniture and Home Furnishings Stores	Furniture and Home Furnishings Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3895	Furniture and Related Product Manufacturing	Furniture and Related Product Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5090	Gasoline Stations	Gasoline Stations		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5570	Gift, Novelty, and Souvenir Shops	Gift, Novelty, and Souvenir Shops		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2490	Glass and Glass Product Manufacturing	Glass and Glass Product Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4470	Grocery and Related Product Merchant Wholesalers	Grocery and Related Product Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4970	Grocery Stores	Grocery Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4880	Hardware Stores	Hardware Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4265	Hardware, Plumbing and Heating Equipment, and Supplies Merchant Wholesalers	Hardware, Plumbing and Heating Equipment, and Supplies Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5080	Health and Personal Care, except Drug, Stores	Health and Personal Care, except Drug, Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8170	Home Health Care Services	Home Health Care Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8190	Hospitals	Hospitals		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3470	Household Appliance Manufacturing	Household Appliance Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4780	Household Appliance Stores	Household Appliance Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4195	Household Appliances and Electrical and Electronic Goods Merchant Wholesalers	Household Appliances and Electrical and Electronic Goods Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8370	Individual and Family Services	Individual and Family Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2290	Industrial and Miscellaneous Chemicals	Industrial and Miscellaneous Chemicals		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6990	Insurance Carriers and Related Activities	Insurance Carriers and Related Activities		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6672	Internet Publishing and Broadcasting and Web Search Portals	Internet Publishing and Broadcasting and Web Search Portals		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7680	Investigation and Security Services	Investigation and Security Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2670	Iron and Steel Mills and Steel Product Manufacturing	Iron and Steel Mills and Steel Product Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5190	Jewelry, Luggage, and Leather Goods Stores	Jewelry, Luggage, and Leather Goods Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9470	Justice, Public Order, and Safety Activities	Justice, Public Order, and Safety Activities		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1670	Knitting Fabric Mills, and Apparel Knitting Mills	Knitting Fabric Mills, and Apparel Knitting Mills		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9180	Labor Unions	Labor Unions		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7770	Landscaping Services	Landscaping Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4890	Lawn and Garden Equipment and Supplies Stores	Lawn and Garden Equipment and Supplies Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1790	Leather Tanning and Finishing and Other Allied Products Manufacturing	Leather Tanning and Finishing and Other Allied Products Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7270	Legal Services	Legal Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6770	Libraries and Archives	Libraries and Archives		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0270	Logging	Logging		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4090	Lumber and Other Construction Materials Merchant Wholesalers	Lumber and Other Construction Materials Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2880	Machine Shops; Turned Product; Screw, Nut, and Bolt Manufacturing	Machine Shops; Turned Product; Screw, Nut, and Bolt Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3190	Machinery Manufacturing, N.E.C.	Machinery Manufacturing, N.E.C.		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4270	Machinery, Equipment, and Supplies Merchant Wholesalers	Machinery, Equipment, and Supplies Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5592	Mail-Order Houses	Mail-Order Houses		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7570	Management of Companies and Enterprises	Management of Companies and Enterprises		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7390	Management, Scientific, and Technical Consulting Services	Management, Scientific, and Technical Consulting Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3960	Medical Equipment and Supplies Manufacturing	Medical Equipment and Supplies Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2780	Metal Forgings and Stampings	Metal Forgings and Stampings		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0390	Metal Ore Mining	Metal Ore Mining		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4180	Metals and Minerals, except Petroleum, Merchant Wholesalers	Metals and Minerals, except Petroleum, Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3170	Metalworking Machinery Manufacturing	Metalworking Machinery Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9870	Military Reserves or National Guard	Military Reserves or National Guard		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4290	Miscellaneous Durable Goods Merchant Wholesalers	Miscellaneous Durable Goods Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2980	Miscellaneous Fabricated Metal Products Manufacturing	Miscellaneous Fabricated Metal Products Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5390	Miscellaneous General Merchandise Stores	Miscellaneous General Merchandise Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3980	Miscellaneous Manufacturing, N.E.C.	Miscellaneous Manufacturing, N.E.C.		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4580	Miscellaneous Nondurable Goods Merchant Wholesalers	Miscellaneous Nondurable Goods Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2590	Miscellaneous Nonmetallic Mineral Product Manufacturing	Miscellaneous Nonmetallic Mineral Product Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1890	Miscellaneous Paper and Pulp Products	Miscellaneous Paper and Pulp Products		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2090	Miscellaneous Petroleum and Coal Products	Miscellaneous Petroleum and Coal Products		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5580	Miscellaneous Retail Stores	Miscellaneous Retail Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3875	Miscellaneous Wood Products	Miscellaneous Wood Products		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6570	Motion Pictures and Video Industries	Motion Pictures and Video Industries		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4070	Motor Vehicle and Motor Vehicle Parts and Supplies Merchant Wholesalers	Motor Vehicle and Motor Vehicle Parts and Supplies Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3570	Motor Vehicles and Motor Vehicle Equipment Manufacturing	Motor Vehicles and Motor Vehicle Equipment Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8570	Museums, Art Galleries, Historical Sites, and Similar Institutions	Museums, Art Galleries, Historical Sites, and Similar Institutions		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5295	Musical Instrument and Supplies Stores	Musical Instrument and Supplies Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8990	Nail Salons and Other Personal Care Services	Nail Salons and Other Personal Care Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9590	National Security and International Affairs	National Security and International Affairs		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0580	Natural Gas Distribution	Natural Gas Distribution		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3380	Navigational, Measuring, Electromedical, and Control Instruments Manufacturing	Navigational, Measuring, Electromedical, and Control Instruments Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6470	Newspaper Publishers	Newspaper Publishers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9990	NIOSH-Insufficient Information	NIOSH-Insufficient Information		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9890	NIOSH-Non-Paid Workers	NIOSH-Non-Paid Workers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9880	NIOSH-Retired	NIOSH-Retired		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6890	Nondepository Credit and Related Activities	Nondepository Credit and Related Activities		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2690	Nonferrous Metal (except Aluminum) Production and Processing	Nonferrous Metal (except Aluminum) Production and Processing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0470	Nonmetallic Mineral Mining and Quarrying	Nonmetallic Mineral Mining and Quarrying		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1290	Not Specified Food Industries	Not Specified Food Industries		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3290	Not Specified Machinery Manufacturing	Not Specified Machinery Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3990	Not Specified Manufacturing Industries	Not Specified Manufacturing Industries		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2990	Not Specified Metal Industries	Not Specified Metal Industries		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5790	Not Specified Retail Trade	Not Specified Retail Trade		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0480	Not Specified Type of Mining	Not Specified Type of Mining		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0690	Not Specified Utilities	Not Specified Utilities		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4590	Not Specified Wholesale Trade	Not Specified Wholesale Trade		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8270	Nursing Care Facilities (Skilled Nursing Facilities)	Nursing Care Facilities (Skilled Nursing Facilities)		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5480	Office Supplies and Stationery Stores	Office Supplies and Stationery Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7990	Offices of Chiropractors	Offices of Chiropractors		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7980	Offices of Dentists	Offices of Dentists		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8070	Offices of Optometrists	Offices of Optometrists		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8080	Offices of Other Health Practitioners	Offices of Other Health Practitioners		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7970	Offices of Physicians	Offices of Physicians		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0370	Oil and Gas Extraction	Oil and Gas Extraction		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2970	Ordnance	Ordnance		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7780	Other Administrative and Other Support Services	Other Administrative and Other Support Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8590	Other Amusement, Gambling, and Recreation Industries	Other Amusement, Gambling, and Recreation Industries		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7180	Other Consumer Goods Rental	Other Consumer Goods Rental		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5690	Other Direct Selling Establishments	Other Direct Selling Establishments		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9390	Other General Government and Support	Other General Government and Support		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8180	Other Health Care Services	Other Health Care Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6780	Other Information Services, except Libraries and Archives, and Internet Publishing and Broadcasting and Web Search Portals	Other Information Services, except Libraries and Archives, and Internet Publishing and Broadcasting and Web Search Portals		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4680	Other Motor Vehicle Dealers	Other Motor Vehicle Dealers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9090	Other Personal Services	Other Personal Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7490	Other Professional, Scientific, and Technical Services	Other Professional, Scientific, and Technical Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7890	Other Schools and Instruction, and Educational Support Services	Other Schools and Instruction, and Educational Support Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3690	Other Transportation Equipment Manufacturing	Other Transportation Equipment Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8090	Outpatient Care Centers	Outpatient Care Centers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2270	Paint, Coating, and Adhesive Manufacturing	Paint, Coating, and Adhesive Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4370	Paper and Paper Products Merchant Wholesalers	Paper and Paper Products Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1880	Paperboard Container Manufacturing	Paperboard Container Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8560	Performing Arts, Spectator Sports, and Related Industries	Performing Arts, Spectator Sports, and Related Industries		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6480	Periodical, Book, and Directory Publishers	Periodical, Book, and Directory Publishers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8880	Personal and Household Goods Repair and Maintenance	Personal and Household Goods Repair and Maintenance		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4490	Petroleum and Petroleum Products Merchant Wholesalers	Petroleum and Petroleum Products Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2070	Petroleum Refining	Petroleum Refining		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2190	Pharmaceutical and Medicine Manufacturing	Pharmaceutical and Medicine Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5070	Pharmacies and Drug Stores	Pharmacies and Drug Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6270	Pipeline Transportation	Pipeline Transportation		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2370	Plastics Product Manufacturing	Plastics Product Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6370	Postal Service	Postal Service		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2470	Pottery, Ceramics, and Plumbing Fixture Manufacturing	Pottery, Ceramics, and Plumbing Fixture Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3790	Prefabricated Wood Buildings and Mobile Homes	Prefabricated Wood Buildings and Mobile Homes		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1990	Printing and Related Support Activities	Printing and Related Support Activities		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9290	Private Households	Private Households		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4170	Professional and Commercial Equipment and Supplies Merchant Wholesalers	Professional and Commercial Equipment and Supplies Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9380	Public Finance Activities	Public Finance Activities		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1870	Pulp, Paper, and Paperboard Mills	Pulp, Paper, and Paperboard Mills		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6080	Rail Transportation	Rail Transportation		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3670	Railroad Rolling Stock Manufacturing	Railroad Rolling Stock Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7070	Real Estate	Real Estate		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8670	Recreational Vehicle Parks and Camps, and Rooming and Boarding Houses	Recreational Vehicle Parks and Camps, and Rooming and Boarding Houses		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4280	Recyclable Material Merchant Wholesalers	Recyclable Material Merchant Wholesalers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9160	Religious Organizations	Religious Organizations		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8290	Residential Care Facilities, except Skilled Nursing Facilities	Residential Care Facilities, except Skilled Nursing Facilities		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2170	Resin, Synthetic Rubber, and Fibers and Filaments Manufacturing	Resin, Synthetic Rubber, and Fibers and Filaments Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8680	Restaurants and Other Food Services	Restaurants and Other Food Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1190	Retail Bakeries	Retail Bakeries		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5470	Retail Florists	Retail Florists		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2390	Rubber Products, except Tires, Manufacturing	Rubber Products, except Tires, Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6880	Savings Institutions, including Credit Unions	Savings Institutions, including Credit Unions		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3770	Sawmills and Wood Preservation	Sawmills and Wood Preservation		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6280	Scenic and Sightseeing Transportation	Scenic and Sightseeing Transportation		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7460	Scientific Research and Development Services	Scientific Research and Development Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1280	Seafood and Other Miscellaneous Foods, N.E.C.	Seafood and Other Miscellaneous Foods, N.E.C.		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6970	Securities, Commodities, Funds, Trusts, and Other Financial Investments	Securities, Commodities, Funds, Trusts, and Other Financial Investments		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6290	Services Incidental to Transportation	Services Incidental to Transportation		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7690	Services to Buildings and Dwellings (except Cleaning During Construction and Immediately after Construction)	Services to Buildings and Dwellings (except Cleaning During Construction and Immediately after Construction)		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0680	Sewage Treatment Facilities	Sewage Treatment Facilities		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5280	Sewing, Needlework, and Piece Goods Stores	Sewing, Needlework, and Piece Goods Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3680	Ship and Boat Building	Ship and Boat Building		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5180	Shoe Stores	Shoe Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2280	Soap, Cleaning Compound, and Cosmetics Manufacturing	Soap, Cleaning Compound, and Cosmetics Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6490	Software Publishers	Software Publishers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6590	Sound Recording Industries	Sound Recording Industries		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7370	Specialized Design Services	Specialized Design Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4980	Specialty Food Stores	Specialty Food Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3970	Sporting and Athletic Goods, and Doll, Toy and Game Manufacturing	Sporting and Athletic Goods, and Doll, Toy and Game Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5275	Sporting Goods, and Hobby and Toy Stores	Sporting Goods, and Hobby and Toy Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2870	Structural Metals, and Boiler, Tank, and Shipping Container Manufacturing	Structural Metals, and Boiler, Tank, and Shipping Container Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1080	Sugar and Confectionery Products	Sugar and Confectionery Products		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0290	Support Activities For Agriculture and Forestry	Support Activities For Agriculture and Forestry		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0490	Support Activities For Mining	Support Activities For Mining		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6190	Taxi and Limousine Service	Taxi and Limousine Service		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6690	Telecommunications, except Wired Telecommunications Carriers	Telecommunications, except Wired Telecommunications Carriers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1490	Textile and Fabric Finishing and Fabric Coating Mills	Textile and Fabric Finishing and Fabric Coating Mills		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1590	Textile Product Mills, except Carpet and Rug	Textile Product Mills, except Carpet and Rug		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+2380	Tire Manufacturing	Tire Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+1390	Tobacco Manufacturing	Tobacco Manufacturing		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7670	Travel Arrangements and Reservation Services	Travel Arrangements and Reservation Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8660	Traveler Accommodation	Traveler Accommodation		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6170	Truck Transportation	Truck Transportation		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9680	U. S. Air Force	U. S. Air Force		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9670	U. S. Army	U. S. Army		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9780	U. S. Coast Guard	U. S. Coast Guard		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9770	U. S. Marines	U. S. Marines		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+9690	U. S. Navy	U. S. Navy		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5490	Used Merchandise Stores	Used Merchandise Stores		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+5670	Vending Machine Operators	Vending Machine Operators		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+3780	Veneer, Plywood, and Engineered Wood Products	Veneer, Plywood, and Engineered Wood Products		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7480	Veterinary Services	Veterinary Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7170	Video Tape and Disk Rental	Video Tape and Disk Rental		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+8390	Vocational Rehabilitation Services	Vocational Rehabilitation Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6390	Warehousing and Storage	Warehousing and Storage		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+7790	Waste Management and Remediation Services	Waste Management and Remediation Services		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6090	Water Transportation	Water Transportation		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+0670	Water, Steam, Air-Conditioning, and Irrigation Systems	Water, Steam, Air-Conditioning, and Irrigation Systems		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+4585	Wholesale Electronic Markets and Agents and Brokers	Wholesale Electronic Markets and Agents and Brokers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012
+6680	Wired Telecommunications Carriers	Wired Telecommunications Carriers		2.16.840.1.114222.4.5.331	Industry CDC Census 2012	PH_Industry_CDC_Census2012	20210308	CDCINDUSTRY2012

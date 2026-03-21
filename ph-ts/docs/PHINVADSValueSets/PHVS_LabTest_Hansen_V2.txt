@@ -1,0 +1,8 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Lab Test (Hansen)	PHVS_LabTest_Hansen	2.16.840.1.114222.4.11.8030	2	Lab test for Hansen's Disease  	Published	08/26/2021	Added unknown value
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+86273004	Biopsy (procedure)	Biopsy		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+608995009	Microscopic examination of bacterial smear of specimen from skin (procedure)	Skin smear		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+OTH	other	Other lab tests		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

@@ -1,0 +1,9 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Total Doses of Vaccine (Anthrax)	PHVS_TotalDosesofVaccine_Anthrax	2.16.840.1.114222.4.11.8021	1	Total doses of Anthrax vaccine administered	Published	12/16/2020	v1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+PHC2312	More than three	3 or more		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201204	CDCPHINVS
+38112003	One (qualifier value)	1		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201211	SCT
+79605009	Three (qualifier value)	3		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201211	SCT
+19338005	Two (qualifier value)	2		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201211	SCT
+UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

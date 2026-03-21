@@ -1,0 +1,7 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Sexual Contact (FDD)	PHVS_SexualContact_FDD	2.16.840.1.114222.4.11.7634	1	Sexual contact answer list for FDD MMG	Published	11/16/2017	Sexual contact answer list for FDD MMG
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+F	Female	Female		2.16.840.1.113883.5.1	AdministrativeGender	PH_AdministrativeGender_HL7_V3	20090501	HITSP-CS-1
+M	Male	Male		2.16.840.1.113883.5.1	AdministrativeGender	PH_AdministrativeGender_HL7_V3	20090501	HITSP-CS-1
+UNK	Unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

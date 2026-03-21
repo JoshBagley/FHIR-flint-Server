@@ -1,0 +1,224 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Lab Test Type (TBRD)	PHVS_LabTestType_TBRD	2.16.840.1.114222.4.11.7835	7	Epidemiologic interpretation of the type of test(s) performed for this case.	Published	02/25/2026	V7: Added 48981-5 Anaplasma sp [Presence] in Specimen by Light microscopy to value set
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+101409-1	Anaplasma phagocytophilum & Babesia microti & Ehrlichia chaffeensis Ab.IgG panel:-:Pt:Ser:-:	Anaplasma phagocytophilum, Babesia microti and Ehrlichia chaffeensis IgGpanel - Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+93370-5	Anaplasma phagocytophilum & Ehrlichia chaffeensis Ab.IgG & IgM panel:-:Pt:Ser:-:	Anaplasma phagocytophilum and Ehrlichia chaffeensis IgG and IgM panel - Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+91899-5	Anaplasma phagocytophilum & Ehrlichia chaffeensis DNA panel:-:Pt:Bld:-:	Anaplasma phagocytophilum and Ehrlichia chaffeensis DNA panel - Blood		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+77165-9	Anaplasma phagocytophilum & Ehrlichia chaffeensis IgG panel:Titr:Pt:Ser:SemiQn:	Anaplasma phagocytophilum and Ehrlichia chaffeensis IgG panel [Titer] - Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+87548-4	Anaplasma phagocytophilum & Ehrlichia sp groEL gene panel:-:Pt:Bld:Ord:Non-probe.amp.tar	Anaplasma phagocytophilum and Ehrlichia sp DNA panel - Blood Qualitative by NAA with non-probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+55150-7	Anaplasma phagocytophilum Ab.IgG & IgM panel:-:Pt:Ser:Ord:	Anaplasma phagocytophilum IgG and IgM panel - Serum Qualitative		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+16808-8	Anaplasma phagocytophilum Ab.IgG:ACnc:Pt:Ser:Qn:	Anaplasma phagocytophilum IgG Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29844-8	Anaplasma phagocytophilum Ab.IgG:PrThr:Pt:CSF:Ord:	Anaplasma phagocytophilum IgG Ab [Presence] in Cerebral spinal fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29806-7	Anaplasma phagocytophilum Ab.IgG:PrThr:Pt:CSF:Ord:IB	Anaplasma phagocytophilum IgG Ab [Presence] in Cerebral spinal fluid by Immunoblot		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29856-2	Anaplasma phagocytophilum Ab.IgG:PrThr:Pt:Ser:Ord:	Anaplasma phagocytophilum IgG Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29819-0	Anaplasma phagocytophilum Ab.IgG:PrThr:Pt:Ser:Ord:IB	Anaplasma phagocytophilum IgG Ab [Presence] in Serum by Immunoblot		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29832-3	Anaplasma phagocytophilum Ab.IgG:PrThr:Pt:XXX:Ord:	Anaplasma phagocytophilum IgG Ab [Presence] in Specimen		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29793-7	Anaplasma phagocytophilum Ab.IgG:PrThr:Pt:XXX:Ord:IB	Anaplasma phagocytophilum IgG Ab [Presence] in Specimen by Immunoblot		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49213-2	Anaplasma phagocytophilum Ab.IgG:Titr:Pt:Body fld:SemiQn:	Anaplasma phagocytophilum IgG Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48877-5	Anaplasma phagocytophilum Ab.IgG:Titr:Pt:Body fld:SemiQn:IF	Anaplasma phagocytophilum IgG Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+32691-8	Anaplasma phagocytophilum Ab.IgG:Titr:Pt:Ser:SemiQn:	Anaplasma phagocytophilum IgG Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+23877-4	Anaplasma phagocytophilum Ab.IgG:Titr:Pt:Ser:SemiQn:IF	Anaplasma phagocytophilum IgG Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+16809-6	Anaplasma phagocytophilum Ab.IgM:ACnc:Pt:Ser:Qn:	Anaplasma phagocytophilum IgM Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29845-5	Anaplasma phagocytophilum Ab.IgM:PrThr:Pt:CSF:Ord:	Anaplasma phagocytophilum IgM Ab [Presence] in Cerebral spinal fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29807-5	Anaplasma phagocytophilum Ab.IgM:PrThr:Pt:CSF:Ord:IB	Anaplasma phagocytophilum IgM Ab [Presence] in Cerebral spinal fluid by Immunoblot		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29857-0	Anaplasma phagocytophilum Ab.IgM:PrThr:Pt:Ser:Ord:	Anaplasma phagocytophilum IgM Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29820-8	Anaplasma phagocytophilum Ab.IgM:PrThr:Pt:Ser:Ord:IB	Anaplasma phagocytophilum IgM Ab [Presence] in Serum by Immunoblot		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29833-1	Anaplasma phagocytophilum Ab.IgM:PrThr:Pt:XXX:Ord:	Anaplasma phagocytophilum IgM Ab [Presence] in Specimen		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29794-5	Anaplasma phagocytophilum Ab.IgM:PrThr:Pt:XXX:Ord:IB	Anaplasma phagocytophilum IgM Ab [Presence] in Specimen by Immunoblot		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49214-0	Anaplasma phagocytophilum Ab.IgM:Titr:Pt:Body fld:SemiQn:	Anaplasma phagocytophilum IgM Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48876-7	Anaplasma phagocytophilum Ab.IgM:Titr:Pt:Body fld:SemiQn:IF	Anaplasma phagocytophilum IgM Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+32692-6	Anaplasma phagocytophilum Ab.IgM:Titr:Pt:Ser:SemiQn:	Anaplasma phagocytophilum IgM Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+23878-2	Anaplasma phagocytophilum Ab.IgM:Titr:Pt:Ser:SemiQn:IF	Anaplasma phagocytophilum IgM Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+31363-5	Anaplasma phagocytophilum Ab:ACnc:Pt:Ser:Qn:	Anaplasma phagocytophilum Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+43992-7	Anaplasma phagocytophilum Ab:Imp:Pt:Ser:Nom:IF	Anaplasma phagocytophilum Ab [Interpretation] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+7877-4	Anaplasma phagocytophilum Ab:PrThr:Pt:Ser:Ord:	Anaplasma phagocytophilum Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+6403-0	Anaplasma phagocytophilum Ab:PrThr:Pt:Ser:Ord:IA	Anaplasma phagocytophilum Ab [Presence] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+33609-9	Anaplasma phagocytophilum Ab:Titr:Pt:Ser:SemiQn:	Anaplasma phagocytophilum Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+30338-8	Anaplasma phagocytophilum Ab:Titr:Pt:Ser:SemiQn:IF	Anaplasma phagocytophilum Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+54034-4	Anaplasma phagocytophilum Ag:PrThr:Pt:Tiss:Ord:Immune stain	Anaplasma phagocytophilum Ag [Presence] in Tissue by Immune stain		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+30039-2	Anaplasma phagocytophilum DNA:PrThr:Pt:Bld:Ord:Probe.amp.tar	Anaplasma phagocytophilum DNA [Presence] in Blood by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29560-0	Anaplasma phagocytophilum DNA:PrThr:Pt:XXX:Ord:Probe.amp.tar	Anaplasma phagocytophilum DNA [Presence] in Specimen by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+87558-3	Anaplasma phagocytophilum groEL gene:PrThr:Pt:Bld:Ord:Non-probe.amp.tar	Anaplasma phagocytophilum groEL gene [Presence] in Blood by NAA with non-probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48872-6	Anaplasma phagocytophilum:PrThr:Pt:XXX:Ord:Organism specific culture	Anaplasma phagocytophilum [Presence] in Specimen by Organism specific culture		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22800-7	Anaplasma sp:Prid:Pt:Bld:Nom:Modified Giemsa	Anaplasma sp identified in Blood by Modified Giemsa stain		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48981-5	Anaplasma sp:PrThr:Pt:XXX:Ord:Microscopy.light	Anaplasma sp [Presence] in Specimen by Light microscopy		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49122-5	Anaplasma Spec Seq	Anaplasma sp identified in Specimen by Sequencing		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+87547-6	Borrelia burgdorferi Ab & Anaplasma phagocytophilum & Babesia microti & Ehrlichia chaffeensis Ab.IgG panel:-:Pt:Ser:-:	Borrelia burgdorferi Ab and Anaplasma phagocytophilum, Babesia microti and Ehrlichia chaffeensis IgG panel - Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+87560-9	Ehrlichia canis+ewingii groEL gene:PrThr:Pt:Bld:Ord:Non-probe.amp.tar	Ehrlichia canis+ewingii groEL gene [Presence] in Blood by NAA with non-probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+45059-3	Ehrlichia chaffeensis Ab.IgG & IgM panel:Titr:XXX:Ser:SemiQn:IF	Ehrlichia chaffeensis IgG and IgM panel [Titer] - unspecifiedtime Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22284-4	Ehrlichia chaffeensis Ab.IgG:ACnc:Pt:Ser:Qn:	Ehrlichia chaffeensis IgG Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+7875-8	Ehrlichia chaffeensis Ab.IgG:ACnc:Pt:Ser:Qn:IA	Ehrlichia chaffeensis IgG Ab [Units/volume] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+32678-5	Ehrlichia chaffeensis Ab.IgG:PrThr:Pt:CSF:Ord:	Ehrlichia chaffeensis IgG Ab [Presence] in Cerebral spinal fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22283-6	Ehrlichia chaffeensis Ab.IgG:PrThr:Pt:Ser:Ord:	Ehrlichia chaffeensis IgG Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+6401-4	Ehrlichia chaffeensis Ab.IgG:PrThr:Pt:Ser:Ord:IA	Ehrlichia chaffeensis IgG Ab [Presence] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49180-3	Ehrlichia chaffeensis Ab.IgG:Titr:Pt:Body fld:SemiQn:	Ehrlichia chaffeensis IgG Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48894-0	Ehrlichia chaffeensis Ab.IgG:Titr:Pt:Body fld:SemiQn:IF	Ehrlichia chaffeensis IgG Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+9783-2	Ehrlichia chaffeensis Ab.IgG:Titr:Pt:Ser:SemiQn:	Ehrlichia chaffeensis IgG Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+47405-6	Ehrlichia chaffeensis Ab.IgG:Titr:Pt:Ser:SemiQn:IF	Ehrlichia chaffeensis IgG Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+51760-7	Ehrlichia chaffeensis Ab.IgG+IgM:PrThr:Pt:Ser/Plas:Ord:	Ehrlichia chaffeensis IgG+IgM Ab [Presence] in Serum or Plasma		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+31362-7	Ehrlichia chaffeensis Ab.IgM:ACnc:Pt:Ser:Qn:	Ehrlichia chaffeensis IgM Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+32679-3	Ehrlichia chaffeensis Ab.IgM:PrThr:Pt:CSF:Ord:	Ehrlichia chaffeensis IgM Ab [Presence] in Cerebral spinal fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+7876-6	Ehrlichia chaffeensis Ab.IgM:PrThr:Pt:Ser:Ord:	Ehrlichia chaffeensis IgM Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+6402-2	Ehrlichia chaffeensis Ab.IgM:PrThr:Pt:Ser:Ord:IA	Ehrlichia chaffeensis IgM Ab [Presence] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49179-5	Ehrlichia chaffeensis Ab.IgM:Titr:Pt:Body fld:SemiQn:	Ehrlichia chaffeensis IgM Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48895-7	Ehrlichia chaffeensis Ab.IgM:Titr:Pt:Body fld:SemiQn:IF	Ehrlichia chaffeensis IgM Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+9784-0	Ehrlichia chaffeensis Ab.IgM:Titr:Pt:Ser:SemiQn:	Ehrlichia chaffeensis IgM Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48850-2	Ehrlichia chaffeensis Ab.IgM:Titr:Pt:Ser:SemiQn:IF	Ehrlichia chaffeensis IgM Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+13195-3	Ehrlichia chaffeensis Ab:ACnc:Pt:Ser:Qn:	Ehrlichia chaffeensis Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+32172-9	Ehrlichia chaffeensis Ab:PrThr:Pt:Ser:Ord:	Ehrlichia chaffeensis Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+41752-7	Ehrlichia chaffeensis Ab:Titr:Pt:Ser:SemiQn:	Ehrlichia chaffeensis Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+68949-7	Ehrlichia chaffeensis Ab:Titr:Pt:Ser:SemiQn:IF	Ehrlichia chaffeensis Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+54035-1	Ehrlichia chaffeensis Ag:PrThr:Pt:Tiss:Ord:Immune stain	Ehrlichia chaffeensis Ag [Presence] in Tissue by Immune stain		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+27994-3	Ehrlichia chaffeensis DNA:PrThr:Pt:Bld:Ord:Probe.amp.tar	Ehrlichia chaffeensis DNA [Presence] in Blood by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+24042-4	Ehrlichia chaffeensis DNA:PrThr:Pt:XXX:Ord:Probe.amp.tar	Ehrlichia chaffeensis DNA [Presence] in Specimen by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+87559-1	Ehrlichia chaffeensis groEL gene:PrThr:Pt:Bld:Ord:Non-probe.amp.tar	Ehrlichia chaffeensis groEL gene [Presence] in Blood by NAA with non-probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48865-0	Ehrlichia ewingii DNA:PrThr:Pt:XXX:Ord:Probe.amp.tar	Ehrlichia ewingii DNA [Presence] in Specimen by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+87561-7	Ehrlichia muris eauclairensis groEL gene:PrThr:Pt:Bld:Ord:Non-probe.amp.tar	Ehrlichia muris eauclairensis groEL gene [Presence] in Blood by NAA with non-probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+13196-1	Ehrlichia sp Ab.IgG:PrThr:Pt:Ser:Ord:	Ehrlichia sp IgG Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+32011-9	Ehrlichia sp Ab.IgG:Titr:Pt:Ser:SemiQn:	Ehrlichia sp IgG Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+13197-9	Ehrlichia sp Ab.IgM:PrThr:Pt:Ser:Ord:	Ehrlichia sp IgM Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+32012-7	Ehrlichia sp Ab.IgM:Titr:Pt:Ser:SemiQn:	Ehrlichia sp IgM Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+7879-0	Ehrlichia sp Ab:PrThr:Pt:Ser:Ord:	Ehrlichia sp Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+6405-5	Ehrlichia sp Ab:PrThr:Pt:Ser:Ord:IA	Ehrlichia sp Ab [Presence] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+43039-7	Ehrlichia sp Ab:Titr:Pt:Ser:SemiQn:	Ehrlichia sp Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+34285-7	Ehrlichia sp Ab:Titr:Pt:Ser:SemiQn:Comp fix	Ehrlichia sp Ab [Titer] in Serum by Complement fixation		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48866-8	Ehrlichia sp DNA:PrThr:Pt:XXX:Ord:Probe.amp.tar	Ehrlichia sp DNA [Presence] in Specimen by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48873-4	Ehrlichia sp identified:Prid:Pt:XXX:Nom:Organism specific culture	Ehrlichia sp identified in Specimen by Organism specific culture		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49125-8	Ehrlichia sp identified:Prid:Pt:XXX:Nom:Sequencing	Ehrlichia sp identified in Specimen by Sequencing		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48982-3	Ehrlichia sp:PrThr:Pt:XXX:Ord:Microscopy.light	Ehrlichia sp [Presence] in Specimen by Light microscopy		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+LAB716	Morulae Visualization	Morulae Visualization		2.16.840.1.114222.4.5.232	PHIN Questions	PH_PHINQuestions_CDC	20211027	PHINQUESTION
+LAB608	Other Test Type	Other Test Type		2.16.840.1.114222.4.5.232	PHIN Questions	PH_PHINQuestions_CDC	20211027	PHINQUESTION
+49159-7	Rickettsia africae Ab.IgG:Titr:Pt:Body fld:SemiQn:	Rickettsia africae IgG Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48903-9	Rickettsia africae Ab.IgG:Titr:Pt:Body fld:SemiQn:IF	Rickettsia africae IgG Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49161-3	Rickettsia africae Ab.IgG:Titr:Pt:Ser:SemiQn:	Rickettsia africae IgG Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48858-5	Rickettsia africae Ab.IgG:Titr:Pt:Ser:SemiQn:IF	Rickettsia africae IgG Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49160-5	Rickettsia africae Ab.IgM:Titr:Pt:Body fld:SemiQn:	Rickettsia africae IgM Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48902-1	Rickettsia africae Ab.IgM:Titr:Pt:Body fld:SemiQn:IF	Rickettsia africae IgM Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49162-1	Rickettsia africae Ab.IgM:Titr:Pt:Ser:SemiQn:	Rickettsia africae IgM Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48857-7	Rickettsia africae Ab.IgM:Titr:Pt:Ser:SemiQn:IF	Rickettsia africae IgM Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49158-9	Rickettsia akari Ab.IgG:Titr:Pt:Body fld:SemiQn:	Rickettsia akari IgG Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48904-7	Rickettsia akari Ab.IgG:Titr:Pt:Body fld:SemiQn:IF	Rickettsia akari IgG Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49157-1	Rickettsia akari Ab.IgG:Titr:Pt:Ser:SemiQn:	Rickettsia akari IgG Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48859-3	Rickettsia akari Ab.IgG:Titr:Pt:Ser:SemiQn:IF	Rickettsia akari IgG Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49156-3	Rickettsia akari Ab.IgM:Titr:Pt:Body fld:SemiQn:	Rickettsia akari IgM Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48905-4	Rickettsia akari Ab.IgM:Titr:Pt:Body fld:SemiQn:IF	Rickettsia akari IgM Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49155-5	Rickettsia akari Ab.IgM:Titr:Pt:Ser:SemiQn:	Rickettsia akari IgM Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48860-1	Rickettsia akari Ab.IgM:Titr:Pt:Ser:SemiQn:IF	Rickettsia akari IgM Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+31595-2	Rickettsia akari Ab:ACnc:Pt:Ser:Qn:	Rickettsia akari Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29681-4	Rickettsia akari Ab:PrThr:Pt:Ser:Ord:	Rickettsia akari Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29708-5	Rickettsia akari Ab:PrThr:Pt:Ser:Ord:IF	Rickettsia akari Ab [Presence] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29680-6	Rickettsia akari Ab:Titr:Pt:Ser:SemiQn:	Rickettsia akari Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29707-7	Rickettsia akari Ab:Titr:Pt:Ser:SemiQn:IF	Rickettsia akari Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+100895-2	Rickettsia conorii Ab.IgG & IgM:Imp:Pt:Ser:Nom:	Rickettsia conorii IgG and IgM [Interpretation] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+13199-5	Rickettsia conorii Ab.IgG:ACnc:Pt:Ser:Qn:	Rickettsia conorii IgG Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+51804-3	Rickettsia conorii Ab.IgG:ACnc:Pt:Ser:Qn:IA	Rickettsia conorii IgG Ab [Units/volume] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+87924-7	Rickettsia conorii Ab.IgG:PrThr:Pt:Ser:Ord:IA	Rickettsia conorii IgG Ab [Presence] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49154-8	Rickettsia conorii Ab.IgG:Titr:Pt:Body fld:SemiQn:	Rickettsia conorii IgG Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48907-0	Rickettsia conorii Ab.IgG:Titr:Pt:Body fld:SemiQn:IF	Rickettsia conorii IgG Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+58809-5	Rickettsia conorii Ab.IgG:Titr:Pt:CSF:SemiQn:IF	Rickettsia conorii IgG Ab [Titer] in Cerebral spinal fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+21492-4	Rickettsia conorii Ab.IgG:Titr:Pt:Ser:SemiQn:	Rickettsia conorii IgG Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+25749-3	Rickettsia conorii Ab.IgG:Titr:Pt:Ser:SemiQn:IF	Rickettsia conorii IgG Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+13200-1	Rickettsia conorii Ab.IgM:ACnc:Pt:Ser:Qn:	Rickettsia conorii IgM Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+51805-0	Rickettsia conorii Ab.IgM:ACnc:Pt:Ser:Qn:IA	Rickettsia conorii IgM Ab [Units/volume] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+87923-9	Rickettsia conorii Ab.IgM:PrThr:Pt:Ser:Ord:IA	Rickettsia conorii IgM Ab [Presence] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49153-0	Rickettsia conorii Ab.IgM:Titr:Pt:Body fld:SemiQn:	Rickettsia conorii IgM Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48906-2	Rickettsia conorii Ab.IgM:Titr:Pt:Body fld:SemiQn:IF	Rickettsia conorii IgM Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+21493-2	Rickettsia conorii Ab.IgM:Titr:Pt:Ser:SemiQn:	Rickettsia conorii IgM Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+25750-1	Rickettsia conorii Ab.IgM:Titr:Pt:Ser:SemiQn:IF	Rickettsia conorii IgM Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+31597-8	Rickettsia conorii Ab:ACnc:Pt:Ser:Qn:	Rickettsia conorii Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+26624-7	Rickettsia conorii Ab:PrThr:Pt:Ser:Ord:	Rickettsia conorii Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29702-8	Rickettsia conorii Ab:PrThr:Pt:Ser:Ord:IF	Rickettsia conorii Ab [Presence] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29678-0	Rickettsia conorii Ab:Titr:Pt:Ser:SemiQn:	Rickettsia conorii Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29665-7	Rickettsia conorii Ab:Titr:Pt:Ser:SemiQn:IF	Rickettsia conorii Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49149-8	Rickettsia parkeri Ab.IgG:Titr:Pt:Body fld:SemiQn:	Rickettsia parkeri IgG Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48909-6	Rickettsia parkeri Ab.IgG:Titr:Pt:Body fld:SemiQn:IF	Rickettsia parkeri IgG Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49151-4	Rickettsia parkeri Ab.IgG:Titr:Pt:Ser:SemiQn:	Rickettsia parkeri IgG Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48862-7	Rickettsia parkeri Ab.IgG:Titr:Pt:Ser:SemiQn:IF	Rickettsia parkeri IgG Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49150-6	Rickettsia parkeri Ab.IgM:Titr:Pt:Body fld:SemiQn:	Rickettsia parkeri IgM Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48908-8	Rickettsia parkeri Ab.IgM:Titr:Pt:Body fld:SemiQn:IF	Rickettsia parkeri IgM Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49152-2	Rickettsia parkeri Ab.IgM:Titr:Pt:Ser:SemiQn:	Rickettsia parkeri IgM Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48861-9	Rickettsia parkeri Ab.IgM:Titr:Pt:Ser:SemiQn:IF	Rickettsia parkeri IgM Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+93511-4	Rickettsia rickettsii & Coxiella burnetii phase 1 & Coxiella burnetii phase 2 Ab.IgG panel:-:Pt:Ser:-:	Rickettsia rickettsii and Coxiella burnetii phase 1 and Coxiella burnetii phase 2 IgG panel - Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+35563-6	Rickettsia rickettsii Ab.IgG & IgM panel:-:Pt:Ser:-:	Rickettsia rickettsii IgG and IgM panel - Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+18429-1	Rickettsia rickettsii Ab.IgG:ACnc:Pt:CSF:Qn:	Rickettsia rickettsii IgG Ab [Units/volume] in Cerebral spinal fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+8003-6	Rickettsia rickettsii Ab.IgG:ACnc:Pt:Ser:Qn:	Rickettsia rickettsii IgG Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+42968-8	Rickettsia rickettsii Ab.IgG:PrThr:Pt:Ser:Ord:	Rickettsia rickettsii IgG Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+41476-3	Rickettsia rickettsii Ab.IgG:PrThr:Pt:Ser:Ord:IA	Rickettsia rickettsii IgG Ab [Presence] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49145-6	Rickettsia rickettsii Ab.IgG:Titr:Pt:Body fld:SemiQn:	Rickettsia rickettsii IgG Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48913-8	Rickettsia rickettsii Ab.IgG:Titr:Pt:Body fld:SemiQn:IF	Rickettsia rickettsii IgG Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+47477-5	Rickettsia rickettsii Ab.IgG:Titr:Pt:CSF:SemiQn:	Rickettsia rickettsii IgG Ab [Titer] in Cerebral spinal fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+47069-0	Rickettsia rickettsii Ab.IgG:Titr:Pt:CSF:SemiQn:IF	Rickettsia rickettsii IgG Ab [Titer] in Cerebral spinal fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22482-4	Rickettsia rickettsii Ab.IgG:Titr:Pt:Ser:SemiQn:	Rickettsia rickettsii IgG Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+5307-4	Rickettsia rickettsii Ab.IgG:Titr:Pt:Ser:SemiQn:IF	Rickettsia rickettsii IgG Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+18430-9	Rickettsia rickettsii Ab.IgM:ACnc:Pt:CSF:Qn:	Rickettsia rickettsii IgM Ab [Units/volume] in Cerebral spinal fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+8004-4	Rickettsia rickettsii Ab.IgM:ACnc:Pt:Ser:Qn:	Rickettsia rickettsii IgM Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+42969-6	Rickettsia rickettsii Ab.IgM:PrThr:Pt:Ser:Ord:	Rickettsia rickettsii IgM Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+41475-5	Rickettsia rickettsii Ab.IgM:PrThr:Pt:Ser:Ord:IA	Rickettsia rickettsii IgM Ab [Presence] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49146-4	Rickettsia rickettsii Ab.IgM:Titr:Pt:Body fld:SemiQn:	Rickettsia rickettsii IgM Ab [Titer] in Body fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48912-0	Rickettsia rickettsii Ab.IgM:Titr:Pt:Body fld:SemiQn:IF	Rickettsia rickettsii IgM Ab [Titer] in Body fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+47478-3	Rickettsia rickettsii Ab.IgM:Titr:Pt:CSF:SemiQn:	Rickettsia rickettsii IgM Ab [Titer] in Cerebral spinal fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+47070-8	Rickettsia rickettsii Ab.IgM:Titr:Pt:CSF:SemiQn:IF	Rickettsia rickettsii IgM Ab [Titer] in Cerebral spinal fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22483-2	Rickettsia rickettsii Ab.IgM:Titr:Pt:Ser:SemiQn:	Rickettsia rickettsii IgM Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+5308-2	Rickettsia rickettsii Ab.IgM:Titr:Pt:Ser:SemiQn:IF	Rickettsia rickettsii IgM Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+31603-4	Rickettsia rickettsii Ab:ACnc:Pt:Ser:Qn:	Rickettsia rickettsii Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+31604-2	Rickettsia rickettsii Ab:PrThr:Pt:Ser:Ord:	Rickettsia rickettsii Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29706-9	Rickettsia rickettsii Ab:PrThr:Pt:Ser:Ord:IF	Rickettsia rickettsii Ab [Presence] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29737-4	Rickettsia rickettsii Ab:Titr:Pt:Ser:SemiQn:	Rickettsia rickettsii Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+29705-1	Rickettsia rickettsii Ab:Titr:Pt:Ser:SemiQn:IF	Rickettsia rickettsii Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+6543-3	Rickettsia rickettsii Ag:Prid:Pt:Tiss:Nom:IF	Rickettsia rickettsii Ag [Identifier] in Tissue by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48868-4	Rickettsia rickettsii DNA:PrThr:Pt:XXX:Ord:Probe.amp.tar	Rickettsia rickettsii DNA [Presence] in Specimen by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+8005-1	Rickettsia rickettsii RNA:PrThr:Pt:Ser:Ord:Probe.amp.tar	Rickettsia rickettsii RNA [Presence] in Serum by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+11482-7	Rickettsia rickettsii RNA:PrThr:Pt:Tiss:Ord:Probe.amp.tar	Rickettsia rickettsii RNA [Presence] in Tissue by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+35740-0	Rickettsia sp Ab.IgG & IgM panel:-:Pt:Ser:Qn:	Rickettsia sp IgG and IgM panel - Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+35877-0	Rickettsia sp Ab.IgG:ACnc:Pt:Ser:Qn:	Rickettsia sp IgG Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+35876-2	Rickettsia sp Ab.IgM:ACnc:Pt:Ser:Qn:	Rickettsia sp IgM Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+7994-7	Rickettsia sp Ab:ACnc:Pt:Ser:Qn:	Rickettsia sp Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22484-0	Rickettsia sp Ab:Titr:Pt:Ser:SemiQn:	Rickettsia sp Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+5306-6	Rickettsia sp Ab:Titr:Pt:Ser:SemiQn:Comp fix	Rickettsia sp Ab [Titer] in Serum by Complement fixation		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+67726-0	Rickettsia sp DNA:Prid:Pt:XXX:Nom:Probe.amp.tar	Rickettsia sp DNA [Identifier] in Specimen by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48863-5	Rickettsia sp DNA:Prid:Pt:XXX:Nom:RFLP	Rickettsia sp DNA [Identifier] in Specimen by RFLP		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+53608-6	Rickettsia sp DNA:PrThr:Pt:Bld:Ord:Probe.amp.tar	Rickettsia sp DNA [Presence] in Blood by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48869-2	Rickettsia sp DNA:PrThr:Pt:XXX:Ord:Probe.amp.tar	Rickettsia sp DNA [Presence] in Specimen by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+5878-4	Rickettsia sp identified:Prid:Pt:Bld:Nom:Organism specific culture	Rickettsia sp identified in Blood by Organism specific culture		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+6544-1	Rickettsia sp identified:Prid:Pt:Genital:Nom:Organism specific culture	Rickettsia sp identified in Genital specimen by Organism specific culture		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+6545-8	Rickettsia sp identified:Prid:Pt:Sputum:Nom:Organism specific culture	Rickettsia sp identified in Sputum by Organism specific culture		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+6546-6	Rickettsia sp identified:Prid:Pt:XXX:Nom:Organism specific culture	Rickettsia sp identified in Specimen by Organism specific culture		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+49127-4	Rickettsia sp identified:Prid:Pt:XXX:Nom:Sequencing	Rickettsia sp identified in Specimen by Sequencing		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+20949-4	Rickettsia sp:PrThr:Pt:Bld:Ord:Microscopy.light	Rickettsia sp [Presence] in Blood by Light microscopy		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+90260-1	Rickettsia spotted fever group Ab.IgG & IgM panel:Titr:Pt:Ser:SemiQn:	Rickettsia spotted fever group Ab.IgG and IgM panel [Titer] - Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+7998-8	Rickettsia spotted fever group Ab.IgG:ACnc:Pt:Ser:Qn:	Rickettsia spotted fever group IgG Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+5312-4	Rickettsia spotted fever group Ab.IgG:ACnc:Pt:Ser:Qn:IA	Rickettsia spotted fever group IgG Ab [Units/volume] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+32999-5	Rickettsia spotted fever group Ab.IgG:PrThr:Pt:Ser:Ord:	Rickettsia spotted fever group IgG Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22476-6	Rickettsia spotted fever group Ab.IgG:Titr:Pt:CSF:SemiQn:	Rickettsia spotted fever group IgG Ab [Titer] in Cerebral spinal fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+21494-0	Rickettsia spotted fever group Ab.IgG:Titr:Pt:CSF:SemiQn:IF	Rickettsia spotted fever group IgG Ab [Titer] in Cerebral spinal fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22477-4	Rickettsia spotted fever group Ab.IgG:Titr:Pt:Ser:SemiQn:	Rickettsia spotted fever group IgG Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+5313-2	Rickettsia spotted fever group Ab.IgG:Titr:Pt:Ser:SemiQn:IF	Rickettsia spotted fever group IgG Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+24281-8	Rickettsia spotted fever group Ab.IgG^1st specimen:Titr:Pt:Ser:SemiQn:	Rickettsia spotted fever group IgG Ab [Titer] in Serum --1st specimen		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+24207-3	Rickettsia spotted fever group Ab.IgG^1st specimen:Titr:Pt:Ser:SemiQn:IF	Rickettsia spotted fever group IgG Ab [Titer] in Serum by Immunofluorescence --1st specimen		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+24282-6	Rickettsia spotted fever group Ab.IgG^2nd specimen:Titr:Pt:Ser:SemiQn:	Rickettsia spotted fever group IgG Ab [Titer] in Serum --2nd specimen		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+24208-1	Rickettsia spotted fever group Ab.IgG^2nd specimen:Titr:Pt:Ser:SemiQn:IF	Rickettsia spotted fever group IgG Ab [Titer] in Serum by Immunofluorescence --2nd specimen		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+31601-8	Rickettsia spotted fever group Ab.IgM:ACnc:Pt:CSF:Qn:	Rickettsia spotted fever group IgM Ab [Units/volume] in Cerebral spinal fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+7999-6	Rickettsia spotted fever group Ab.IgM:ACnc:Pt:Ser:Qn:	Rickettsia spotted fever group IgM Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+5314-0	Rickettsia spotted fever group Ab.IgM:ACnc:Pt:Ser:Qn:IA	Rickettsia spotted fever group IgM Ab [Units/volume] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+33000-1	Rickettsia spotted fever group Ab.IgM:PrThr:Pt:Ser:Ord:	Rickettsia spotted fever group IgM Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22478-2	Rickettsia spotted fever group Ab.IgM:Titr:Pt:CSF:SemiQn:	Rickettsia spotted fever group IgM Ab [Titer] in Cerebral spinal fluid		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+21495-7	Rickettsia spotted fever group Ab.IgM:Titr:Pt:CSF:SemiQn:IF	Rickettsia spotted fever group IgM Ab [Titer] in Cerebral spinal fluid by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22479-0	Rickettsia spotted fever group Ab.IgM:Titr:Pt:Ser:SemiQn:	Rickettsia spotted fever group IgM Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+5315-7	Rickettsia spotted fever group Ab.IgM:Titr:Pt:Ser:SemiQn:IF	Rickettsia spotted fever group IgM Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+70135-9	Rickettsia spotted fever group Ab.IgM^1st specimen:Titr:Pt:Ser:SemiQn:IF	Rickettsia spotted fever group IgM Ab [Titer] in Serum by Immunofluorescence --1st specimen		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+70136-7	Rickettsia spotted fever group Ab.IgM^2nd specimen:Titr:Pt:Ser:SemiQn:IF	Rickettsia spotted fever group IgM Ab [Titer] in Serum by Immunofluorescence --2nd specimen		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+7997-0	Rickettsia spotted fever group Ab:ACnc:Pt:Ser:Qn:	Rickettsia spotted fever group Ab [Units/volume] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+5309-0	Rickettsia spotted fever group Ab:ACnc:Pt:Ser:Qn:IA	Rickettsia spotted fever group Ab [Units/volume] in Serum by Immunoassay		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22474-1	Rickettsia spotted fever group Ab:PrThr:Pt:Ser:Ord:	Rickettsia spotted fever group Ab [Presence] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+23776-8	Rickettsia spotted fever group Ab:PrThr:Pt:Ser:Ord:IF	Rickettsia spotted fever group Ab [Presence] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+5310-8	Rickettsia spotted fever group Ab:PrThr:Pt:Ser:Ord:LA	Rickettsia spotted fever group Ab [Presence] in Serum by Latex agglutination		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+22475-8	Rickettsia spotted fever group Ab:Titr:Pt:Ser:SemiQn:	Rickettsia spotted fever group Ab [Titer] in Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+5311-6	Rickettsia spotted fever group Ab:Titr:Pt:Ser:SemiQn:IF	Rickettsia spotted fever group Ab [Titer] in Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+54033-6	Rickettsia spotted fever group Ag:PrThr:Pt:Tiss:Ord:Immune stain	Rickettsia spotted fever group Ag [Presence] in Tissue by Immune stain		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+48870-0	Rickettsia spotted fever group DNA:PrThr:Pt:XXX:Ord:Probe.amp.tar	Rickettsia spotted fever group DNA [Presence] in Specimen by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+17538-0	Rickettsia spotted fever group RNA:PrThr:Pt:Ser:Ord:Probe	Rickettsia spotted fever group RNA [Presence] in Serum by Probe		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+17537-2	Rickettsia spotted fever group RNA:PrThr:Pt:Ser:Ord:Probe.amp.tar	Rickettsia spotted fever group RNA [Presence] in Serum by NAA with probe detection		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+41876-4	Rickettsia typhi & Rickettsia spotted fever group Ab.IgG & IgM panel:-:Pt:Ser:-:	Rickettsia typhi and Rickettsia spotted fever group IgG and IgM panel - Serum		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+66718-8	Rickettsia typhi & Rickettsia spotted fever group Ab.IgG & IgM:Imp:Pt:XXX:Nom:	Rickettsia typhi and Rickettsia spotted fever group IgG and IgM [Interpretation] in Specimen		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN
+70130-0	Rickettsia typhus group & Rickettsia spotted fever group acute & convalescent Ab.IgG & IgM panel:-:-:Ser:-:IF	Rickettsia typhus group and Rickettsia spotted fever group acute and convalescent IgG and IgM panel - Serum by Immunofluorescence		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.81	LN

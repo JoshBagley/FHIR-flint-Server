@@ -1,0 +1,10 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Food Product Consumed (Brucellosis)	PHVS_FoodProductConsumed_Brucellosis	2.16.840.1.114222.4.11.8015	2	Type of food exposure to Brucellosis	Published	05/17/2022	Removed 'None' from the value set
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+C4029659	consumed raw or undercooked meat	Undercooked meat		2.16.840.1.113883.6.86	UMLS	PH_UMLS	20210608	UML
+226857008	Fromage frais (substance)	Fresh cheese		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+70813002	Milk (substance)	Milk		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+OTH	other	Other		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+226848002	Soft cheese (substance)	Soft cheese		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

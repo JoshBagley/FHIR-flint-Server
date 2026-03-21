@@ -1,0 +1,8 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Antimicrobials (Anthrax)	PHVS_Antimicrobials_Anthrax	2.16.840.1.114222.4.11.8005	1	Antimicrobials not taken or discontinued for Anthrax	Published	12/08/2020	v1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+261015003	Full (qualifier value)	Full		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+PHC2305	Medication partially completed	Medication partially completed		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201124	CDCPHINVS
+260413007	None (qualifier value)	None		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+UNK	unknown	unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

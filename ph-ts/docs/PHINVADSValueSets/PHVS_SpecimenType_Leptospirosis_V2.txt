@@ -1,0 +1,13 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Specimen Type (Leptospirosis)	PHVS_SpecimenType_Leptospirosis	2.16.840.1.114222.4.11.7974	2	Indicates type of specimen used in selected laboratory test	Published	05/24/2023	V2: Added Isolate and Swab
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+258450006	Cerebrospinal fluid sample (specimen)	Cerebrospinal fluid		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+PHC1543	Isolate	Isolate		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20230410	CDCPHINVS
+OTH	other	Other specimen type (specify)		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+119364003	Serum specimen (specimen)	Serum		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+257261003	Swab (specimen)	Swab		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+119376003	Tissue specimen (specimen)	Tissue		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+122575003	Urine specimen (specimen)	Urine		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT
+258580003	Whole blood sample (specimen)	Whole blood		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20230301	SCT

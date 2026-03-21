@@ -1,0 +1,26 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Lab Test Interpretation (VPD)	PHVS_LabTestInterpretation_VPD	2.16.840.1.114222.4.11.3301	7	Epidemiologic interpretation of the results of the tests performed for Vaccine Preventable Disease (VPD).	Published	02/17/2022	v7: Updated the DEPRECATED SNOMED codes for Alpha, Beta and Gamma variants and updated PLR codes for SARS-CoV-2 variants to replace those codes.  Added two new codes for Delta and Omicron variants.
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+280414007	Equivocal result (qualifier value)	Equivocal result		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+82334004	Indeterminate	Indeterminate		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+260385009	Negative	Negative		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+PHC401	No significant rise in IgG	No significant rise in IgG		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS
+385660001	Not done	Not done		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+OTH	other	other		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+PHC2325	Other variant (organism)	Other variant (specify)		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS
+I	Pending	Pending		2.16.840.1.113883.12.85	Observation result status (HL7)	PH_ObservationResultStatus_HL7_2x	HL7 v2.5	HL70085
+10828004	Positive	Positive		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+467951000124101	Severe acute respiratory syndrome coronavirus 2 - B.1.1.7 lineage (organism)	DEPRECATED SARS-CoV-2 variant B.1.1.7 (501Y.V1)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+467961000124104	Severe acute respiratory syndrome coronavirus 2 - B.1.351 lineage (organism)	DEPRECATED SARS-CoV-2 variant B.1.351 (501Y.V2)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+467971000124106	Severe acute respiratory syndrome coronavirus 2 - P.1 lineage (organism)	DEPRECATED SARS-CoV-2 variant P.1 (501Y.V3)		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+PLR5346	Severe acute respiratory syndrome coronavirus 2 variant B.1.1.529 lineage (organism)	SARS-CoV-2 B.1.1.529 lineage, Omicron variant		2.16.840.1.114222.4.5.289	Lab Result (PHLIP)	PH_LabResult_PHLIP	1.34	PLR
+PLR4366	Severe acute respiratory syndrome coronavirus 2 variant B.1.1.7 lineage (organism)	SARS-CoV-2 B.1.1.7 (501Y.V1) lineage , Alpha variant		2.16.840.1.114222.4.5.289	Lab Result (PHLIP)	PH_LabResult_PHLIP	1.34	PLR
+PLR4367	Severe acute respiratory syndrome coronavirus 2 variant B.1.351 lineage (organism)	SARS-CoV-2 variant B.1.351 (501Y.V2) lineage, Beta variant		2.16.840.1.114222.4.5.289	Lab Result (PHLIP)	PH_LabResult_PHLIP	1.34	PLR
+PLR4495	Severe acute respiratory syndrome coronavirus 2 variant B.1.617.2 lineage (organism)	SARS-CoV-2 B.1.617.2 lineage, Delta variant		2.16.840.1.114222.4.5.289	Lab Result (PHLIP)	PH_LabResult_PHLIP	1.34	PLR
+PLR4368	Severe acute respiratory syndrome coronavirus 2 variant P.1 lineage (organism)	SARS-CoV-2 variant P.1 (501Y.V3) lineage, Gamma variant		2.16.840.1.114222.4.5.289	Lab Result (PHLIP)	PH_LabResult_PHLIP	1.34	PLR
+PHC402	Significant rise in IgG	Significant rise in IgG		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS
+UNK	Unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+255370002	Unsatisfactory (qualifier value)	Unsatisfactory		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
+PHC126	Vaccine Type Strain	Vaccine Type Strain		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS
+PHC127	Wild Type Strain	Wild Type Strain		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS

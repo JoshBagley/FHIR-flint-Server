@@ -1,0 +1,11 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Skin Smear Interpretation (Hansen)	PHVS_SkinSmearInterpretation_Hansen	2.16.840.1.114222.4.11.8022	1	Skin smear interpretation score +1 through +6 represents the logarithmic scale for density of bacilli per average field 	Published	12/16/2020	v1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+PHC2298	1+	1+		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201204	CDCPHINVS
+PHC2297	2+	2+		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201204	CDCPHINVS
+PHC2296	3+	3+		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201204	CDCPHINVS
+PHC2295	4+	4+		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201204	CDCPHINVS
+PHC2294	5+	5+		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201204	CDCPHINVS
+PHC2293	6+	6+		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201204	CDCPHINVS
+PHC2299	None Found	NF		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201204	CDCPHINVS

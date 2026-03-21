@@ -1,0 +1,8 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Previous Treatment Duration (Hansen)	PHVS_PreviousTreatmentDuration_Hansen	2.16.840.1.114222.4.11.7979	1	Previous duration of treatment for Hansen's Disease	Published	11/30/2020	V1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+12mo	12 months	12 months		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201109	CDCPHINVS
+PHC2292	24 months	24 months		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201109	CDCPHINVS
+OTH	other	Other previous treatment duration (specify)		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

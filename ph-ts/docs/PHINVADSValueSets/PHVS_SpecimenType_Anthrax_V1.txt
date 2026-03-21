@@ -1,0 +1,17 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Specimen Type (Anthrax)	PHVS_SpecimenType_Anthrax	2.16.840.1.114222.4.11.7990	1	Indicates the type of specimen used for testing.	Published	12/07/2020	v1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+309201001	Ascitic fluid sample (specimen)	Ascites		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+119297000	Blood specimen (specimen)	Blood		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+65216001	Cerebrospinal fluid (substance)	Cerebrospinal fluid		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+258441009	Exudate sample (specimen)	Exudate		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+119303007	Microbial isolate specimen (specimen)	Isolate		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+OTH	other	Other specimen (specify)		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+119361006	Plasma specimen (specimen)	Plasma		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+418564007	Pleural fluid specimen (specimen)	Pleural fluid		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+67922002	Serum (substance)	Serum		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+119365002	Specimen from wound (specimen)	Wound		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+257261003	Swab (specimen)	Swab		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+119376003	Tissue specimen (specimen)	Tissue		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
+UNK	unknown	Unknown specimen	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

@@ -1,0 +1,15 @@
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Exposure Source (Anthrax)	PHVS_ExposureSource_Anthrax	2.16.840.1.114222.4.11.8013	1	Answer list for how the case should be classified by source of exposure	Published	12/15/2020	v1
+
+Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
+PHC2288	Animal contact	Animal contact		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201204	CDCPHINVS
+412103003	Bone meal (substance)	Bone meal		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201209	SCT
+116517003	Fertilizer (substance)	Fertilizer		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201209	SCT
+741063003	Illicit drug injection in last 12 months (finding)	Illicit Drug Injectable		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201209	SCT
+307052004	Illicit drug use (finding)	Illicit Drug Non Injectable		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201209	SCT
+702869004	Incident site (environment)	Participated in Incident Response		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201209	SCT
+261904005	Laboratory (environment)	Lab		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201209	SCT
+OTH	other	Other		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+PHC2316	Similar illness contact	Similar illness contact		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201204	CDCPHINVS
+UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
+PHC2315	Worked with soil	Gardened or other work with soil		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20201204	CDCPHINVS
