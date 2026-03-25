@@ -177,7 +177,8 @@ Once registered, `$lookup` and `$expand` calls referencing that system URL will 
 | `migration/import_hl7_v2_tables.py` | packages.fhir.org (`hl7.terminology.r4 5.5.0`) | `complete` | ~200 v2 table CodeSystems |
 | `migration/import_icd9cm.py` | NLM ClinicalTables API | `complete` | ~14 k codes |
 | `migration/phinvads_migrate.py` | PHIN VADS STU3 API | `complete` / `fragment` | 300 CodeSystems (limited by API pagination) |
-| `migration/import_phinvads_txt.py` | PHIN VADS .txt downloads (`docs/PHINVADSValueSets/`) | `complete` | 1,994 of 1,998 ValueSets (4 have malformed metadata) |
+| `migration/import_phinvads_txt.py` | PHIN VADS .txt downloads (`docs/PHINVADSValueSets/`) | `complete` | 1,995 of 1,998 ValueSets (3 have malformed metadata) |
+| `migration/repair_empty_phinvads_valuesets.py` | PHIN VADS STU3 API (targeted repair) | `complete` | Re-fetches concepts for ValueSets imported with empty `compose.include`; PUTs to existing records by ID; safe to re-run |
 
 ```bash
 # Import HL7 FHIR R4 core administrative code systems (no license required)
@@ -474,5 +475,6 @@ Full documentation: `docs/validation_guide.md`
 - **PHIN VADS LOINC CodeSystem 500 error** — The LOINC CodeSystem (`2.16.840.1.113883.6.1`) consistently returns HTTP 500 when imported; expected — LOINC is too large for local storage and should remain a delegated stub.
 - **PHIN VADS Preferred Concept Name** — Only present in the Excel download, not always in the FHIR STU3 API `designation` arrays. The migration preserves designations when present but cannot reconstruct them from the API if absent.
 - **`import_phinvads_txt.py` duplicate-key 500s on re-run** — With `CONCURRENT_POSTS=10`, the dedup `GET /ValueSet?url=...` check can race against concurrent POSTs and miss an in-flight insert. The POST then hits `idx_unique_resource_url_version` and returns HTTP 500. Safe to ignore — data is in the DB. Re-runs are idempotent for already-imported resources.
-- **4 PHIN VADS `.txt` files unparseable** — `PHVS_AdministrativeProcedure_CDC_ICD-10PCS_V11.txt`, `PHVS_LabTestName_CDC_V10.txt`, `PHVS_LabTestResultCoded_CDC_V2.txt`, and `Vaccines Administered (Pediatric Flu).txt` have malformed metadata rows (OID field empty or missing). These 4 cannot be auto-imported and are not in the DB.
+- **3 PHIN VADS `.txt` files unparseable** — `PHVS_AdministrativeProcedure_CDC_ICD-10PCS_V11.txt`, `PHVS_LabTestName_CDC_V10.txt`, and `PHVS_LabTestResultCoded_CDC_V2.txt` have malformed metadata rows (OID field empty or missing). These 3 cannot be auto-imported and are not in the DB. (`Vaccines Administered (Pediatric Flu).txt` ghost records were cleaned up 2026-03-25.)
+- **`import_phinvads_txt.py` double-blank-line parse bug (fixed 2026-03-25)** — Some PHIN VADS `.txt` files have two blank lines between the metadata section and the concept section. The parser was using the second blank line as the `csv.DictReader` header row, yielding 0 concepts. Fixed by skipping all leading blank lines before the concept section.
 - **ES nested object limit** — Raised to 50,000 via `PUT /fhir_resources/_settings {"index.mapping.nested_objects.limit": 50000}` to support large PHIN VADS ValueSets. Default is 10,000. If the setting resets after an ES container restart, re-apply it before running large imports.

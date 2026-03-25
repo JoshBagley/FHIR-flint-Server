@@ -213,7 +213,11 @@ def parse_phinvads_txt(path: Path) -> Optional[Dict]:
     vs_url = f"https://phinvads.cdc.gov/baseStu3/ValueSet/{oid}" if oid else None
 
     # --- Parse concepts (section 2) ---
-    concept_section = "\r\n".join(lines[blank_idx + 1:])
+    # Skip any additional blank lines after the separator (some files have two)
+    concept_start = blank_idx + 1
+    while concept_start < len(lines) and not lines[concept_start].strip():
+        concept_start += 1
+    concept_section = "\r\n".join(lines[concept_start:])
     concept_reader = csv.DictReader(io.StringIO(concept_section), delimiter="\t")
 
     # Group concepts by code system OID → compose.include entries

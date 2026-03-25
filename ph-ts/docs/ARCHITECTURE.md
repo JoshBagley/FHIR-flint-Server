@@ -1,5 +1,7 @@
 # Architecture
 
+> For a visual Mermaid diagram of the full stack (all services, data flows, external SDOs, AI providers, and migration scripts), see [ARCHITECTURE_DIAGRAM.md](ARCHITECTURE_DIAGRAM.md).
+
 ## System Overview
 
 PH-TS is a containerised FHIR R4 terminology server. All components run via Docker Compose and communicate over an internal bridge network (`phts-network`). External traffic enters through Nginx on port 80.
