@@ -107,6 +107,26 @@ async def search_concepts(
     }
 
 
+@router.get("/snomed/children/{concept_id}")
+async def snomed_children(
+    concept_id: str,
+    edition: str = Query("international", description="international | us"),
+):
+    """
+    Return direct children (and parent) of a SNOMED CT concept for lazy tree navigation.
+
+    Delegates to tx.fhir.org CodeSystem/$lookup with property=child/parent.
+    Falls back to International Edition when the US Edition module is unavailable.
+    """
+    try:
+        result = await external_cs.get_snomed_children(concept_id, edition)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"SNOMED hierarchy lookup failed: {e}")
+    return result
+
+
 @router.get("/lookup")
 async def lookup_code(
     system: str = Query(..., description="System ID: snomed | loinc | icd10cm"),

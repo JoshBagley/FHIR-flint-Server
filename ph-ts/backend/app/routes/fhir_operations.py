@@ -16,6 +16,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import os
 
 from app import state
 from app.services import external_cs
@@ -1318,3 +1319,158 @@ async def get_statistics():
             {'name': 'total_conceptmaps', 'valueInteger': cm_count or 0},
         ]
     }
+
+
+# ---------------------------------------------------------------------------
+# Disease / Condition Views  (Option A — useContext-based)
+# ---------------------------------------------------------------------------
+
+_VIEWS_CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "disease_views.json")
+
+def _load_views() -> List[Dict]:
+    try:
+        with open(_VIEWS_CONFIG_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+
+
+@router.get("/ValueSet/$views")
+async def list_disease_views():
+    """
+    Return the catalogue of disease/condition views available in this server.
+
+    Each entry contains:
+    - id          — slug used in /ValueSet?context-value-code=
+    - display     — human-readable name
+    - system      — code system of the condition code (SNOMED CT)
+    - code        — condition code
+    - description — plain-text description of the view
+    - count       — number of ValueSets currently tagged with this view
+
+    To browse ValueSets for a view, call:
+        GET /ValueSet?context-value-code={code}&_summary=true
+    """
+    views = _load_views()
+    if not views:
+        return {"views": []}
+
+    # Count ValueSets tagged with each view's condition code in one query
+    codes = [v["code"] for v in views]
+    async with state.db.pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT coding->>'code' AS condition_code, COUNT(*) AS cnt
+            FROM fhir_resources,
+                 jsonb_array_elements(COALESCE(data->'useContext', '[]'::jsonb)) AS uc,
+                 jsonb_array_elements(COALESCE(uc->'valueCodeableConcept'->'coding', '[]'::jsonb)) AS coding
+            WHERE resource_type = 'ValueSet'
+              AND archived = FALSE
+              AND coding->>'code' = ANY($1::text[])
+            GROUP BY coding->>'code'
+            """,
+            codes,
+        )
+    count_map = {row["condition_code"]: row["cnt"] for row in rows}
+
+    return {
+        "views": [
+            {
+                **v,
+                "count": count_map.get(v["code"], 0),
+            }
+            for v in views
+        ]
+    }
+
+
+@router.post("/ValueSet/$tag-view")
+async def tag_value_set_with_view(
+    resource_id: str = Query(..., description="ValueSet resource ID to tag"),
+    view_id: str = Query(..., description="View ID from GET /ValueSet/$views"),
+):
+    """
+    Add a useContext entry to a ValueSet to associate it with a disease/condition view.
+
+    Idempotent — if the condition code is already present in useContext, the call succeeds
+    without creating a duplicate.
+    """
+    views = _load_views()
+    view = next((v for v in views if v["id"] == view_id), None)
+    if not view:
+        raise HTTPException(status_code=400, detail=f"Unknown view id '{view_id}'")
+
+    resource = await state.db.get_resource(resource_id)
+    if not resource or resource.get("resourceType") != "ValueSet":
+        raise HTTPException(status_code=404, detail=f"ValueSet/{resource_id} not found")
+
+    use_context: List[Dict] = resource.get("useContext") or []
+
+    # Check for existing tag to stay idempotent
+    already_tagged = any(
+        any(
+            c.get("code") == view["code"]
+            for c in (uc.get("valueCodeableConcept") or {}).get("coding", [])
+        )
+        for uc in use_context
+    )
+    if already_tagged:
+        return {"resourceId": resource_id, "viewId": view_id, "tagged": False, "reason": "already tagged"}
+
+    new_context_entry = {
+        "code": {
+            "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+            "code": "focus",
+            "display": "Clinical Focus",
+        },
+        "valueCodeableConcept": {
+            "coding": [
+                {
+                    "system": view["system"],
+                    "code": view["code"],
+                    "display": view["display"],
+                }
+            ],
+            "text": view["display"],
+        },
+    }
+    use_context.append(new_context_entry)
+    resource["useContext"] = use_context
+
+    await state.db.update_resource(resource_id, resource)
+    await state.cache.invalidate_pattern(f"ValueSet:{resource_id}:*")
+    await state.cache.invalidate_pattern("ValueSet:*")
+
+    return {"resourceId": resource_id, "viewId": view_id, "tagged": True}
+
+
+@router.delete("/ValueSet/$tag-view")
+async def untag_value_set_from_view(
+    resource_id: str = Query(..., description="ValueSet resource ID"),
+    view_id: str = Query(..., description="View ID to remove"),
+):
+    """Remove a disease/condition view tag from a ValueSet."""
+    views = _load_views()
+    view = next((v for v in views if v["id"] == view_id), None)
+    if not view:
+        raise HTTPException(status_code=400, detail=f"Unknown view id '{view_id}'")
+
+    resource = await state.db.get_resource(resource_id)
+    if not resource or resource.get("resourceType") != "ValueSet":
+        raise HTTPException(status_code=404, detail=f"ValueSet/{resource_id} not found")
+
+    original = resource.get("useContext") or []
+    filtered = [
+        uc for uc in original
+        if not any(
+            c.get("code") == view["code"]
+            for c in (uc.get("valueCodeableConcept") or {}).get("coding", [])
+        )
+    ]
+    resource["useContext"] = filtered
+
+    await state.db.update_resource(resource_id, resource)
+    await state.cache.invalidate_pattern(f"ValueSet:{resource_id}:*")
+    await state.cache.invalidate_pattern("ValueSet:*")
+
+    return {"resourceId": resource_id, "viewId": view_id, "removed": len(original) - len(filtered)}

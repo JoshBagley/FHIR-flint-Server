@@ -1,0 +1,93 @@
+[
+  {
+    "id": "covid-19",
+    "display": "COVID-19",
+    "system": "http://snomed.info/sct",
+    "code": "840539006",
+    "description": "Value sets used in COVID-19 reporting, surveillance, and case notification."
+  },
+  {
+    "id": "influenza",
+    "display": "Influenza",
+    "system": "http://snomed.info/sct",
+    "code": "6142004",
+    "description": "Value sets supporting influenza surveillance, immunization information systems, and reporting."
+  },
+  {
+    "id": "tuberculosis",
+    "display": "Tuberculosis (TB)",
+    "system": "http://snomed.info/sct",
+    "code": "56717001",
+    "description": "Value sets used in tuberculosis case reporting and surveillance."
+  },
+  {
+    "id": "hiv",
+    "display": "HIV",
+    "system": "http://snomed.info/sct",
+    "code": "86406008",
+    "description": "Value sets supporting HIV/AIDS surveillance, case reporting, and prevention programs."
+  },
+  {
+    "id": "hepatitis",
+    "display": "Viral Hepatitis",
+    "system": "http://snomed.info/sct",
+    "code": "3738000",
+    "description": "Value sets for hepatitis A, B, and C case reporting and surveillance."
+  },
+  {
+    "id": "std",
+    "display": "Sexually Transmitted Diseases",
+    "system": "http://snomed.info/sct",
+    "code": "8098009",
+    "description": "Value sets supporting STD surveillance and case notification."
+  },
+  {
+    "id": "foodborne",
+    "display": "Foodborne Illness",
+    "system": "http://snomed.info/sct",
+    "code": "75570004",
+    "description": "Value sets for foodborne illness reporting, outbreak investigation, and enteric disease surveillance."
+  },
+  {
+    "id": "cancer",
+    "display": "Cancer / Neoplasm",
+    "system": "http://snomed.info/sct",
+    "code": "363346000",
+    "description": "Value sets used in cancer registry reporting and tumor classification."
+  },
+  {
+    "id": "lead",
+    "display": "Lead Exposure",
+    "system": "http://snomed.info/sct",
+    "code": "88519001",
+    "description": "Value sets supporting childhood lead poisoning surveillance and reporting."
+  },
+  {
+    "id": "newborn-screening",
+    "display": "Newborn Screening",
+    "system": "http://snomed.info/sct",
+    "code": "428447004",
+    "description": "Value sets for newborn screening programs and metabolic disorder reporting."
+  },
+  {
+    "id": "immunization",
+    "display": "Immunization",
+    "system": "http://snomed.info/sct",
+    "code": "127785005",
+    "description": "Value sets used in immunization information systems (IIS) and vaccine administration reporting."
+  },
+  {
+    "id": "lab-reporting",
+    "display": "Laboratory Reporting",
+    "system": "http://snomed.info/sct",
+    "code": "108252007",
+    "description": "Value sets for laboratory test ordering, result reporting, and electronic lab reporting (ELR)."
+  },
+  {
+    "id": "emergency-response",
+    "display": "Emergency Response / Biosurveillance",
+    "system": "http://snomed.info/sct",
+    "code": "409137002",
+    "description": "Value sets used across public health emergency response and syndromic surveillance systems."
+  }
+]

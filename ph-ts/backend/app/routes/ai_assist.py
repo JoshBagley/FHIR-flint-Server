@@ -20,9 +20,11 @@ import asyncio
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from app.services import external_cs
+from app import state
 
 router = APIRouter(prefix="/ai", tags=["AI Assistant"])
 logger = logging.getLogger(__name__)
@@ -209,6 +211,23 @@ class MapRequest(BaseModel):
     codes: list[dict]
     source_system: str
     target_system: str
+
+
+class MapSaveRequest(BaseModel):
+    mappings: list[dict]
+    source_system_url: str   # canonical system URL (from selected codes' .system field)
+    target_system: str       # SDO id e.g. "icd10cm", "snomed", "rxnorm"
+    name: str                # machine-readable UpperCamelCase name
+    title: str               # human-readable title
+    description: Optional[str] = None
+    purpose: Optional[str] = None
+    status: str = "draft"
+
+
+def _sdo_id_to_url(sdo_id: str) -> str:
+    """Resolve an SDO short-id to its canonical FHIR system URL."""
+    info = next((s for s in external_cs.list_systems() if s["id"] == sdo_id), {})
+    return info.get("url", sdo_id)
 
 
 class ChatTurn(BaseModel):
@@ -436,6 +455,61 @@ Respond ONLY with valid JSON (no markdown, no explanation outside the JSON):
     except Exception as e:
         logger.error("Unexpected error in /ai/map: %s", e, exc_info=True)
         raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e
+
+
+@router.post("/map-save", status_code=201)
+async def save_map_as_concept_map(req: MapSaveRequest):
+    """
+    Persist AI mapping results as a FHIR R4 ConceptMap resource.
+
+    Transforms AiMapResponse.mappings[] into a ConceptMap group, storing
+    each mapping's rationale as a target.comment and the AI equivalence value
+    directly as the FHIR equivalence code.
+    """
+    source_url = req.source_system_url
+    target_url = _sdo_id_to_url(req.target_system)
+
+    elements = []
+    for m in req.mappings:
+        if m.get("target_code"):
+            target_entry: dict = {
+                "code": m["target_code"],
+                "display": m.get("target_display") or "",
+                "equivalence": m.get("equivalence", "inexact"),
+            }
+            if m.get("rationale"):
+                target_entry["comment"] = m["rationale"]
+            targets = [target_entry]
+        else:
+            targets = [{"equivalence": "unmatched"}]
+
+        elements.append({
+            "code": m.get("source_code", ""),
+            "display": m.get("source_display", ""),
+            "target": targets,
+        })
+
+    concept_map: dict = {
+        "resourceType": "ConceptMap",
+        "name": req.name,
+        "title": req.title,
+        "status": req.status,
+        "group": [{
+            "source": source_url,
+            "target": target_url,
+            "element": elements,
+        }],
+    }
+    if req.description:
+        concept_map["description"] = req.description
+    if req.purpose:
+        concept_map["purpose"] = req.purpose
+
+    resource_id = await state.db.create_resource("ConceptMap", concept_map)
+    await state.search_engine.index_resource(concept_map)
+    await state.cache.invalidate_pattern("ConceptMap:*")
+    saved = await state.db.get_resource(resource_id)
+    return JSONResponse(content=saved, status_code=201)
 
 
 @router.post("/chat")

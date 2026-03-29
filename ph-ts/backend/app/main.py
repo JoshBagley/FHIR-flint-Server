@@ -589,6 +589,31 @@ class DatabaseManager:
             values.append(params['content'])
             param_idx += 1
 
+        if 'context-value-code' in params:
+            # Match any useContext entry whose valueCodeableConcept.coding[].code matches
+            conditions.append(f"""
+                EXISTS (
+                    SELECT 1
+                    FROM jsonb_array_elements(COALESCE(data->'useContext', '[]'::jsonb)) AS uc,
+                         jsonb_array_elements(COALESCE(uc->'valueCodeableConcept'->'coding', '[]'::jsonb)) AS coding
+                    WHERE coding->>'code' = ${param_idx}
+                )
+            """)
+            values.append(params['context-value-code'])
+            param_idx += 1
+
+        if 'context-type' in params:
+            # Match useContext entries whose code.code equals the requested type (e.g. 'focus')
+            conditions.append(f"""
+                EXISTS (
+                    SELECT 1
+                    FROM jsonb_array_elements(COALESCE(data->'useContext', '[]'::jsonb)) AS uc
+                    WHERE uc->'code'->>'code' = ${param_idx}
+                )
+            """)
+            values.append(params['context-type'])
+            param_idx += 1
+
         if summary:
             # Return metadata only — strips concept/compose arrays for fast list queries.
             # ~10-50x less data transferred for CodeSystems/ValueSets with large concept lists.
@@ -604,7 +629,20 @@ class DatabaseManager:
                 'content', data->>'content',
                 'publisher', data->>'publisher',
                 'date', data->>'date',
-                'identifier', data->'identifier'
+                'identifier', data->'identifier',
+                'extension', data->'extension',
+                'useContext', data->'useContext',
+                '_conceptCount', CASE
+                    WHEN resource_type = 'CodeSystem' THEN
+                        jsonb_array_length(COALESCE(data->'concept', '[]'::jsonb))
+                    WHEN resource_type = 'ValueSet' THEN
+                        COALESCE((
+                            SELECT SUM(jsonb_array_length(inc->'concept'))
+                            FROM jsonb_array_elements(COALESCE(data#>'{compose,include}', '[]'::jsonb)) AS inc
+                            WHERE jsonb_typeof(inc->'concept') = 'array'
+                        ), 0)::int
+                    ELSE 0
+                END
             )"""
         else:
             select_expr = "data"
@@ -1026,6 +1064,8 @@ async def search_value_sets(
     url: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     q: Optional[str] = Query(None),
+    context_value_code: Optional[str] = Query(None, alias="context-value-code"),
+    context_type: Optional[str] = Query(None, alias="context-type"),
     _summary: bool = Query(False, alias="_summary"),
 ):
     if q:
@@ -1039,10 +1079,14 @@ async def search_value_sets(
         params['url'] = url
     if status:
         params['status'] = status
+    if context_value_code:
+        params['context-value-code'] = context_value_code
+    if context_type:
+        params['context-type'] = context_type
 
     # Cache list results — key includes all filter params so different searches cache independently.
     # Invalidated automatically by invalidate_pattern("ValueSet:*") on create/update/delete/archive.
-    cache_key = f"ValueSet:list:{name or ''}:{url or ''}:{status or ''}:{_summary}"
+    cache_key = f"ValueSet:list:{name or ''}:{url or ''}:{status or ''}:{context_value_code or ''}:{_summary}"
     cached = await state.cache.get(cache_key)
     if cached:
         return cached

@@ -56,18 +56,19 @@ After changing `.env`, restart the backend: `docker compose up -d backend`
 ph-ts/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py                  # FastAPI app, router registration
+│   │   ├── main.py                  # FastAPI app, router registration, search_resources()
+│   │   ├── disease_views.json       # Condition/disease view definitions (13 PH views)
 │   │   ├── routes/
-│   │   │   ├── fhir_operations.py   # FHIR R4 ValueSet/CodeSystem endpoints
-│   │   │   ├── sdo_search.py        # GET /sdo/systems, /sdo/search, /sdo/lookup
-│   │   │   └── ai_assist.py         # POST /ai/suggest, /ai/describe, /ai/map, GET /ai/provider
+│   │   │   ├── fhir_operations.py   # FHIR R4 ops + $views/$tag-view disease view endpoints
+│   │   │   ├── sdo_search.py        # GET /sdo/systems, /sdo/search, /sdo/lookup, /sdo/snomed/children/{id}
+│   │   │   └── ai_assist.py         # POST /ai/suggest, /ai/describe, /ai/map, /ai/map-save, GET /ai/provider
 │   │   └── services/
 │   │       └── external_cs.py       # SDO connector (SNOMED, ICD-10-CM, LOINC, RxNorm, VSAC)
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── App.tsx                  # Main app shell; early-return pattern for full-page views
+│   │   ├── App.tsx                  # Main app shell; disease view filter in ValueSet browser
 │   │   └── ValueSetBuilder.tsx      # 3-panel value set creation page
 │   └── vite.config.ts               # Contains usePolling:true for Windows Docker HMR
 ├── infrastructure/
@@ -87,6 +88,9 @@ ph-ts/
 - **SDO connectors** in `external_cs.py` use per-request `aiohttp.ClientSession` with `ClientTimeout(total=15)`.
 - **AI provider abstraction** in `ai_assist.py`: a single `_complete(prompt)` function dispatches to Anthropic, OpenAI, or Gemini based on `AI_PROVIDER` env var. All three SDKs are installed.
 - **AI fan-out pattern:** `POST /ai/suggest` searches SDOs in parallel with `asyncio.gather()` + `asyncio.wait_for(timeout=8.0)` per system, then passes candidates to the AI for ranking.
+- **Summary mode:** `search_resources(summary=True)` uses `jsonb_build_object()` to return metadata only (no `concept`/`compose` arrays). Always includes a precomputed `_conceptCount` field so the UI can display accurate counts without fetching full resources. Also includes `extension` and `useContext` fields for provenance and view tags.
+- **Redis list caching:** List endpoints (`GET /ValueSet`, `GET /CodeSystem`) cache results for 120 s. Cache key includes all filter params. Invalidated on any write via `invalidate_pattern("ValueSet:*")`.
+- **Custom extension pattern:** `http://phts.local/StructureDefinition/source` tracks import provenance (e.g. `phinvads`, `hl7`, `internal`). Same mechanism used for reading disease view tags from `useContext`.
 
 ---
 
@@ -419,6 +423,12 @@ system that needs to confirm a code is valid in a given code system or ValueSet.
 | `GET /ConceptMap/$translate?system=&code=[&url=][&target=]` | Translate a code to another system via ConceptMap |
 | `GET /CodeSystem/$subsumes?system=&codeA=&codeB=` | Check hierarchy relationship between two codes |
 | `GET /ValueSet/$expand?url=...fhir_vs=isa/{id}` | Expand all descendants of a SNOMED CT concept |
+| `GET /sdo/snomed/children/{concept_id}?edition=` | Lazy hierarchy tree node — returns direct children + parent |
+| `POST /ai/map-save` | Save AI cross-system mapping results as a FHIR R4 ConceptMap |
+| `GET /ValueSet/$views` | List disease/condition views with live tagged-ValueSet counts |
+| `POST /ValueSet/$tag-view?resource_id=&view_id=` | Tag a ValueSet with a disease/condition view (idempotent) |
+| `DELETE /ValueSet/$tag-view?resource_id=&view_id=` | Remove a disease/condition view tag from a ValueSet |
+| `GET /ValueSet?context-value-code={code}` | Filter ValueSets by condition code in `useContext` |
 
 **Quick examples:**
 
@@ -461,8 +471,102 @@ Full documentation: `docs/validation_guide.md`
 
 ---
 
+## Disease / Condition Views
+
+PH-TS supports PHIN VADS-style condition/disease views using the FHIR R4 `useContext` mechanism (Option A — no schema change required).
+
+### How It Works
+
+Each "view" is a named grouping of ValueSets associated with a public health disease or condition. The association is stored directly on the ValueSet as a `useContext` entry:
+
+```json
+{
+  "code": {
+    "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+    "code": "focus",
+    "display": "Clinical Focus"
+  },
+  "valueCodeableConcept": {
+    "coding": [{ "system": "http://snomed.info/sct", "code": "840539006", "display": "COVID-19" }],
+    "text": "COVID-19"
+  }
+}
+```
+
+### View Definitions
+
+Defined in `backend/app/disease_views.json` — 13 public health views with SNOMED CT codes:
+
+| View ID | Display | SNOMED Code |
+|---|---|---|
+| `covid-19` | COVID-19 | 840539006 |
+| `influenza` | Influenza | 6142004 |
+| `tuberculosis` | Tuberculosis (TB) | 56717001 |
+| `hiv` | HIV | 86406008 |
+| `hepatitis` | Viral Hepatitis | 3738000 |
+| `std` | Sexually Transmitted Diseases | 8098009 |
+| `foodborne` | Foodborne Illness | 75570004 |
+| `cancer` | Cancer / Neoplasm | 363346000 |
+| `lead` | Lead Exposure | 88519001 |
+| `newborn-screening` | Newborn Screening | 428447004 |
+| `immunization` | Immunization | 127785005 |
+| `lab-reporting` | Laboratory Reporting | 108252007 |
+| `emergency-response` | Emergency Response / Biosurveillance | 409137002 |
+
+To add new views: edit `backend/app/disease_views.json` and restart the backend.
+
+### Tagging ValueSets
+
+```bash
+# Tag a ValueSet with the COVID-19 view
+curl -X POST "http://localhost/ValueSet/\$tag-view?resource_id=YOUR_ID&view_id=covid-19"
+
+# Remove a tag
+curl -X DELETE "http://localhost/ValueSet/\$tag-view?resource_id=YOUR_ID&view_id=covid-19"
+
+# Browse the view catalogue (with live counts)
+curl "http://localhost/ValueSet/\$views"
+
+# Filter ValueSets by condition code
+curl "http://localhost/ValueSet?context-value-code=840539006&_summary=true"
+```
+
+The `$tag-view` POST is idempotent — calling it twice does not create duplicate `useContext` entries.
+
+### UI
+
+The ValueSet browser in `App.tsx` shows a **"Condition / View"** dropdown filter when `GET /ValueSet/$views` returns results. The dropdown lists all views with their current counts; selecting one issues a `?context-value-code=` query to the backend. Only views with no tags return count=0 — they still appear in the dropdown to support bootstrapping.
+
+### Curation Status
+
+As of 2026-03-29, no ValueSets have been tagged yet. Use the `$tag-view` API or (future) bulk-tagging UI to populate the views. See the backlog for an AI-assisted auto-tagging proposal.
+
+---
+
+## SNOMED CT Hierarchy Tree
+
+The ValueSet Builder includes a lazy-loaded hierarchy tree for SNOMED CT concept browsing.
+
+**Backend:** `GET /sdo/snomed/children/{concept_id}?edition=international|us`
+- Uses `tx.fhir.org ValueSet/$expand` with ECL operators: `<!{id}` (direct children) and `>!{id}` (direct parents), fetched concurrently with a display name lookup
+- Returns: `{ conceptId, display, system, children: [{code, display}], childCount, parent, edition }`
+- Falls back to International Edition if US Edition module is not available on tx.fhir.org
+- Note: `CodeSystem/$lookup?property=child` was tried first but tx.fhir.org does not reliably return child properties for SNOMED CT — ECL `$expand` is the correct approach
+
+**Frontend (ValueSetBuilder.tsx):**
+- Toggle between **flat results** (existing ECL search) and **tree view** via "Browse Tree" button
+- Tree nodes lazy-expand on chevron click — only fetches children when a node is opened
+- Hover to reveal "+" button to add a concept to the basket
+- Shows "(International Edition fallback)" warning when US was requested but unavailable
+
+---
+
 ## Known Issues / History
 
+- **ValueSet list concept count showed 0 (fixed 2026-03-29)** — `_summary=true` stripped `compose`/`concept` arrays so `countConcepts()` returned 0 for all resources. Fixed by adding `_conceptCount` to the `jsonb_build_object()` summary query (computed inline via `jsonb_array_length` for CodeSystems and a correlated subquery for ValueSets).
+- **SNOMED CT US Edition 404/422 on `$expand`** — tx.fhir.org does not have the US Edition module (`731000124108`) loaded. `expand_snomed_ecl_us()` now tries the US module URL first, then silently falls back to International Edition, labelling results with the actual edition used.
+- **SNOMED hierarchy tree showed 0 children (fixed 2026-03-29)** — `get_snomed_children()` was using `CodeSystem/$lookup?property=child` which tx.fhir.org does not reliably return for SNOMED CT. Fixed to use `ValueSet/$expand` with ECL operators: `<!{id}` for direct children and `>!{id}` for direct parents. These are fetched concurrently alongside the display name lookup, with the same US→International fallback pattern.
+- **HL7 v2 search returned "Unknown system"** — `hl7v2` was in the `SYSTEMS` dict but not in `_SEARCH_FNS`. Fixed by adding `_search_hl7v2_local()` which queries locally-imported HL7 v2 table CodeSystems in PostgreSQL directly.
 - **LOINC fhir.loinc.org returns 401** — switched to NLM ClinicalTables as the LOINC source. `LOINC_USERNAME`/`LOINC_PASSWORD` are no longer used.
 - **Gemini free tier quota** — `gemini-2.0-flash` requires billing enabled on the Google Cloud project. The free tier limit is 0 RPM for this model.
 - **Vite HMR on Windows Docker** — requires `usePolling: true` in `vite.config.ts`. This is already set.

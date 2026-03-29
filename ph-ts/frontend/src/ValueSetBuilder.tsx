@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Search, Plus, Trash2, Save, Sparkles, ChevronLeft, Loader2,
   AlertCircle, CheckCircle, BookOpen, ArrowRightLeft, Info, X,
-  RefreshCw, ChevronDown, MessageSquare, Send, GitBranch, Map, ChevronRight,
+  RefreshCw, ChevronDown, MessageSquare, Send, GitBranch, Map, ChevronRight, BookmarkPlus, ExternalLink,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -235,6 +235,29 @@ export default function ValueSetBuilder({ onBack }: Props) {
   const [translateResults, setTranslateResults] = useState<TranslateResult[] | null>(null);
   const [translateLoading, setTranslateLoading] = useState(false);
 
+  // Save AI mapping as ConceptMap
+  const [mapSaveOpen, setMapSaveOpen] = useState(false);
+  const [mapSaveName, setMapSaveName] = useState('');
+  const [mapSaveTitle, setMapSaveTitle] = useState('');
+  const [mapSaving, setMapSaving] = useState(false);
+  const [mapSavedId, setMapSavedId] = useState<string | null>(null);
+  const [mapSourceUrl, setMapSourceUrl] = useState('');
+
+  // SNOMED hierarchy tree view
+  type TreeChild = { code: string; display: string };
+  type TreeNodeData = {
+    conceptId: string; display: string;
+    children: TreeChild[]; childCount: number;
+    parent: TreeChild | null; edition: string;
+  };
+  const [snomedHierarchyView, setSnomedHierarchyView] = useState<'flat' | 'tree'>('flat');
+  const [treeData, setTreeData] = useState<Record<string, TreeNodeData>>({});
+  const [treeRootId, setTreeRootId] = useState<string | null>(null);
+  const [treeExpandedIds, setTreeExpandedIds] = useState<Set<string>>(new Set());
+  const [treeLoadingIds, setTreeLoadingIds] = useState<Set<string>>(new Set());
+  const [treeLoading, setTreeLoading] = useState(false);
+  const [treeError, setTreeError] = useState<string | null>(null);
+
   // LOINC property detail per search result
   const [loincDetailCode, setLoincDetailCode] = useState<string | null>(null);
   const [loincDetailCache, setLoincDetailCache] = useState<Record<string, LoincProperty[]>>({});
@@ -444,6 +467,79 @@ export default function ValueSetBuilder({ onBack }: Props) {
     }
   };
 
+  // Load the root concept for the hierarchy tree
+  const handleTreeLoad = async () => {
+    const conceptId = eclConceptId.trim();
+    if (!conceptId) return;
+    setTreeLoading(true);
+    setTreeError(null);
+    setTreeData({});
+    setTreeRootId(null);
+    setTreeExpandedIds(new Set());
+    try {
+      const data = await apiFetch<{ conceptId: string; display: string; children: {code:string;display:string}[]; childCount: number; parent: {code:string;display:string}|null; edition: string }>(
+        `/sdo/snomed/children/${encodeURIComponent(conceptId)}?edition=${snomedEdition}`
+      );
+      setTreeData({ [conceptId]: data });
+      setTreeRootId(conceptId);
+      setTreeExpandedIds(new Set([conceptId]));
+    } catch (e) {
+      setTreeError((e as Error).message);
+    } finally {
+      setTreeLoading(false);
+    }
+  };
+
+  // Lazy-expand a tree node
+  const handleExpandTreeNode = async (code: string) => {
+    if (treeData[code]) {
+      setTreeExpandedIds(prev => {
+        const next = new Set(prev);
+        if (next.has(code)) next.delete(code); else next.add(code);
+        return next;
+      });
+      return;
+    }
+    setTreeLoadingIds(prev => new Set(prev).add(code));
+    try {
+      const data = await apiFetch<{ conceptId: string; display: string; children: {code:string;display:string}[]; childCount: number; parent: {code:string;display:string}|null; edition: string }>(
+        `/sdo/snomed/children/${encodeURIComponent(code)}?edition=${snomedEdition}`
+      );
+      setTreeData(prev => ({ ...prev, [code]: data }));
+      setTreeExpandedIds(prev => new Set(prev).add(code));
+    } catch {
+      // silently ignore per-node expansion errors
+    } finally {
+      setTreeLoadingIds(prev => { const next = new Set(prev); next.delete(code); return next; });
+    }
+  };
+
+  // Save AI mapping results as a ConceptMap
+  const handleSaveAsConceptMap = async () => {
+    if (!mapResults || !mapSaveName.trim()) return;
+    setMapSaving(true);
+    try {
+      const saved = await apiFetch<{ id: string }>('/ai/map-save', {
+        method: 'POST',
+        body: JSON.stringify({
+          mappings: mapResults.mappings,
+          source_system_url: mapSourceUrl,
+          target_system: mapTarget,
+          name: mapSaveName.trim(),
+          title: mapSaveTitle.trim() || mapSaveName.trim(),
+          status: 'draft',
+        }),
+      });
+      setMapSavedId(saved.id);
+      setMapSaveOpen(false);
+      setToast({ message: `ConceptMap "${mapSaveTitle || mapSaveName}" saved as draft.`, type: 'success' });
+    } catch (e) {
+      setToast({ message: `Save failed: ${(e as Error).message}`, type: 'error' });
+    } finally {
+      setMapSaving(false);
+    }
+  };
+
   const handleAiMap = async () => {
     if (selectedCodes.length === 0) {
       setToast({ message: 'Select some codes first to map.', type: 'error' });
@@ -451,6 +547,9 @@ export default function ValueSetBuilder({ onBack }: Props) {
     }
     setMapLoading(true);
     setMapResults(null);
+    setMapSavedId(null);
+    setMapSaveOpen(false);
+    setMapSourceUrl(selectedCodes[0]?.system ?? '');
     try {
       const result = await apiFetch<AiMapResponse>('/ai/map', {
         method: 'POST',
@@ -720,29 +819,46 @@ export default function ValueSetBuilder({ onBack }: Props) {
                     <p className="text-xs text-gray-400 mt-1">US Extension preferred; falls back to International Edition if unavailable on tx.fhir.org</p>
                   )}
                 </div>
-                <label className="text-xs font-medium text-gray-500 uppercase block">Parent Concept ID</label>
+                {/* Flat vs Tree view toggle */}
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs font-medium">
+                  <button
+                    onClick={() => { setSnomedHierarchyView('flat'); setTreeData({}); setTreeRootId(null); setTreeError(null); }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 transition-colors ${snomedHierarchyView === 'flat' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    <GitBranch className="w-3.5 h-3.5" /> Expand All
+                  </button>
+                  <button
+                    onClick={() => { setSnomedHierarchyView('tree'); setEclResults([]); setEclError(null); }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 transition-colors ${snomedHierarchyView === 'tree' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" /> Browse Tree
+                  </button>
+                </div>
+                <label className="text-xs font-medium text-gray-500 uppercase block">Concept ID</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     placeholder="e.g. 840539006"
                     value={eclConceptId}
                     onChange={e => setEclConceptId(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleEclExpand(); }}
+                    onKeyDown={e => { if (e.key === 'Enter') snomedHierarchyView === 'tree' ? handleTreeLoad() : handleEclExpand(); }}
                     className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 font-mono"
                   />
                   <button
-                    onClick={handleEclExpand}
-                    disabled={eclLoading || !eclConceptId.trim()}
+                    onClick={snomedHierarchyView === 'tree' ? handleTreeLoad : handleEclExpand}
+                    disabled={(snomedHierarchyView === 'flat' ? eclLoading : treeLoading) || !eclConceptId.trim()}
                     className="flex items-center gap-1 text-sm bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors whitespace-nowrap"
                   >
-                    {eclLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitBranch className="w-4 h-4" />}
-                    Expand
+                    {(snomedHierarchyView === 'flat' ? eclLoading : treeLoading)
+                      ? <Loader2 className="w-4 h-4 animate-spin" />
+                      : snomedHierarchyView === 'tree' ? <ChevronRight className="w-4 h-4" /> : <GitBranch className="w-4 h-4" />}
+                    {snomedHierarchyView === 'tree' ? 'Browse' : 'Expand'}
                   </button>
                 </div>
                 <p className="text-xs text-gray-400">
-                  {snomedEdition === 'us'
-                    ? 'Returns concept + descendants from SNOMED CT US Edition via NLM VSAC.'
-                    : 'Returns concept + descendants from SNOMED CT International via tx.fhir.org.'}
+                  {snomedHierarchyView === 'tree'
+                    ? 'Lazy tree — click nodes to expand children one level at a time.'
+                    : 'Returns all descendants in a flat list (up to 200).'}
                 </p>
               </div>
             ) : (
@@ -768,54 +884,129 @@ export default function ValueSetBuilder({ onBack }: Props) {
             {/* ECL results (SNOMED hierarchy mode) */}
             {selectedSystem === 'snomed' && snomedMode === 'hierarchy' && (
               <>
-                {eclError && (
-                  <div className="p-3 flex items-start gap-2 text-red-600 text-xs">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span>{eclError}</span>
-                  </div>
-                )}
-                {eclLoading && (
-                  <div className="p-4 flex items-center justify-center gap-2 text-sm text-gray-400">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Expanding hierarchy…
-                  </div>
-                )}
-                {!eclLoading && eclResults.length === 0 && !eclError && (
-                  <p className="p-4 text-sm text-gray-400 text-center">Enter a SNOMED CT concept ID and click Expand</p>
-                )}
-                {eclResults.length > 0 && (
+                {/* ── Flat expand results ── */}
+                {snomedHierarchyView === 'flat' && (
                   <>
-                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
-                        {eclResults.length} concept{eclResults.length !== 1 ? 's' : ''}
-                        {eclTotal != null && eclTotal > eclResults.length ? ` (showing ${eclResults.length} of ${eclTotal.toLocaleString()})` : ''}
-                      </span>
-                      <button
-                        onClick={() => eclResults.forEach(r => addCode(r))}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
-                      >
-                        Add all
-                      </button>
-                    </div>
-                    {eclResults.map((r, i) => {
-                      const key = codeKey(r.code, r.system);
-                      const added = selectedCodes.some(c => c.key === key);
-                      return (
-                        <div key={i} className="flex items-start gap-3 px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-blue-50 transition-colors group">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-mono text-blue-600">{r.code}</p>
-                            <p className="text-sm text-gray-800 line-clamp-2">{r.display}</p>
-                          </div>
+                    {eclError && (
+                      <div className="p-3 flex items-start gap-2 text-red-600 text-xs">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>{eclError}</span>
+                      </div>
+                    )}
+                    {eclLoading && (
+                      <div className="p-4 flex items-center justify-center gap-2 text-sm text-gray-400">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Expanding hierarchy…
+                      </div>
+                    )}
+                    {!eclLoading && eclResults.length === 0 && !eclError && (
+                      <p className="p-4 text-sm text-gray-400 text-center">Enter a SNOMED CT concept ID and click Expand</p>
+                    )}
+                    {eclResults.length > 0 && (
+                      <>
+                        <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                          <span className="text-xs text-gray-500">
+                            {eclResults.length} concept{eclResults.length !== 1 ? 's' : ''}
+                            {eclTotal != null && eclTotal > eclResults.length ? ` (showing ${eclResults.length} of ${eclTotal.toLocaleString()})` : ''}
+                          </span>
                           <button
-                            onClick={() => addCode(r)}
-                            disabled={added}
-                            title={added ? 'Already added' : 'Add to value set'}
-                            className={`flex-shrink-0 mt-0.5 p-1.5 rounded-full transition-colors ${added ? 'bg-green-100 text-green-600 cursor-default' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}
+                            onClick={() => eclResults.forEach(r => addCode(r))}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
                           >
-                            {added ? <CheckCircle className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                            Add all
                           </button>
                         </div>
+                        {eclResults.map((r, i) => {
+                          const key = codeKey(r.code, r.system);
+                          const added = selectedCodes.some(c => c.key === key);
+                          return (
+                            <div key={i} className="flex items-start gap-3 px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-blue-50 transition-colors group">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-mono text-blue-600">{r.code}</p>
+                                <p className="text-sm text-gray-800 line-clamp-2">{r.display}</p>
+                              </div>
+                              <button
+                                onClick={() => addCode(r)}
+                                disabled={added}
+                                title={added ? 'Already added' : 'Add to value set'}
+                                className={`flex-shrink-0 mt-0.5 p-1.5 rounded-full transition-colors ${added ? 'bg-green-100 text-green-600 cursor-default' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}
+                              >
+                                {added ? <CheckCircle className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </>
+                    )}
+                  </>
+                )}
+
+                {/* ── Lazy tree view ── */}
+                {snomedHierarchyView === 'tree' && (
+                  <>
+                    {treeError && (
+                      <div className="p-3 flex items-start gap-2 text-red-600 text-xs">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>{treeError}</span>
+                      </div>
+                    )}
+                    {treeLoading && (
+                      <div className="p-4 flex items-center justify-center gap-2 text-sm text-gray-400">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Loading concept…
+                      </div>
+                    )}
+                    {!treeLoading && !treeRootId && !treeError && (
+                      <p className="p-4 text-sm text-gray-400 text-center">Enter a SNOMED CT concept ID and click Browse</p>
+                    )}
+                    {treeRootId && treeData[treeRootId] && (() => {
+                      // Recursive tree node renderer
+                      const renderNode = (code: string, display: string, depth: number): React.ReactNode => {
+                        const node = treeData[code];
+                        const isExpanded = treeExpandedIds.has(code);
+                        const isNodeLoading = treeLoadingIds.has(code);
+                        const hasChildren = !node || node.childCount > 0;
+                        const added = selectedCodes.some(c => c.code === code && c.system === 'http://snomed.info/sct');
+                        const sysName = snomedEdition === 'us' ? 'SNOMED CT US Edition' : 'SNOMED CT';
+                        return (
+                          <div key={code}>
+                            <div
+                              className="flex items-center gap-1 py-1.5 pr-3 hover:bg-blue-50 group transition-colors"
+                              style={{ paddingLeft: `${depth * 16 + 8}px` }}
+                            >
+                              <button
+                                onClick={() => hasChildren && handleExpandTreeNode(code)}
+                                className={`w-5 h-5 flex items-center justify-center flex-shrink-0 rounded ${!hasChildren ? 'invisible' : 'text-gray-400 hover:text-blue-600'}`}
+                              >
+                                {isNodeLoading
+                                  ? <Loader2 className="w-3 h-3 animate-spin" />
+                                  : <ChevronRight className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />}
+                              </button>
+                              <span className="font-mono text-xs text-blue-600 flex-shrink-0 w-28 truncate">{code}</span>
+                              <span className="text-sm text-gray-700 flex-1 truncate">{display || node?.display || ''}</span>
+                              <button
+                                onClick={() => addCode({ code, display: display || node?.display || '', system: 'http://snomed.info/sct', systemName: sysName })}
+                                disabled={added}
+                                title={added ? 'Already added' : 'Add to value set'}
+                                className={`flex-shrink-0 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all ${added ? 'opacity-100 text-green-500' : 'text-blue-500 hover:text-blue-700 hover:bg-blue-100'}`}
+                              >
+                                {added ? <CheckCircle className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                              </button>
+                            </div>
+                            {isExpanded && node?.children.map(child => renderNode(child.code, child.display, depth + 1))}
+                          </div>
+                        );
+                      };
+                      const root = treeData[treeRootId];
+                      return (
+                        <>
+                          <div className="px-3 py-2 bg-gray-50 border-b border-gray-100 text-xs text-gray-500 flex items-center gap-1.5">
+                            <GitBranch className="w-3.5 h-3.5" />
+                            {root.display} — {root.childCount} direct {root.childCount === 1 ? 'child' : 'children'}
+                            {root.edition !== snomedEdition && <span className="text-amber-500 ml-1">(International Edition fallback)</span>}
+                          </div>
+                          {renderNode(treeRootId, root.display, 0)}
+                        </>
                       );
-                    })}
+                    })()}
                   </>
                 )}
               </>
@@ -1187,6 +1378,72 @@ export default function ValueSetBuilder({ onBack }: Props) {
                     {mapResults.notes && (
                       <p className="px-3 py-2 text-xs text-gray-400 border-t border-gray-100">{mapResults.notes}</p>
                     )}
+
+                    {/* Save as ConceptMap */}
+                    <div className="px-3 py-2 border-t border-gray-100 bg-gray-50">
+                      {mapSavedId ? (
+                        <div className="flex items-center gap-2 text-xs text-green-700">
+                          <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span>Saved as ConceptMap</span>
+                          <a
+                            href={`/ConceptMap/${mapSavedId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-auto flex items-center gap-1 text-blue-600 hover:underline"
+                          >
+                            {mapSavedId} <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      ) : !mapSaveOpen ? (
+                        <button
+                          onClick={() => setMapSaveOpen(true)}
+                          className="flex items-center gap-1.5 text-xs text-purple-700 hover:text-purple-900 transition-colors"
+                        >
+                          <BookmarkPlus className="w-3.5 h-3.5" /> Save as ConceptMap
+                        </button>
+                      ) : (
+                        <div className="flex flex-col gap-2">
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <label className="text-xs text-gray-500 block mb-0.5">Name <span className="text-red-500">*</span></label>
+                              <input
+                                type="text"
+                                placeholder="UpperCamelCase"
+                                value={mapSaveName}
+                                onChange={e => setMapSaveName(e.target.value)}
+                                className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:ring-1 focus:ring-purple-400"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <label className="text-xs text-gray-500 block mb-0.5">Title</label>
+                              <input
+                                type="text"
+                                placeholder="Human-readable title"
+                                value={mapSaveTitle}
+                                onChange={e => setMapSaveTitle(e.target.value)}
+                                className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:ring-1 focus:ring-purple-400"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={handleSaveAsConceptMap}
+                              disabled={mapSaving || !mapSaveName.trim()}
+                              className="flex items-center gap-1 text-xs bg-purple-600 text-white px-2.5 py-1 rounded hover:bg-purple-700 disabled:opacity-40 transition-colors"
+                            >
+                              {mapSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                              Save
+                            </button>
+                            <button
+                              onClick={() => { setMapSaveOpen(false); setMapSaveName(''); setMapSaveTitle(''); }}
+                              className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 

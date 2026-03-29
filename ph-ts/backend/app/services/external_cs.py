@@ -606,6 +606,114 @@ async def expand_snomed_ecl_us(ecl: str, filter_text: str, count: int) -> list:
     return results
 
 
+async def get_snomed_children(concept_id: str, edition: str = "international") -> dict:
+    """
+    Return the display name, direct children, and parent of a SNOMED CT concept.
+
+    Uses tx.fhir.org ValueSet/$expand with SNOMED ECL operators:
+      <!{id}  — direct children (direct subtypes only)
+      >!{id}  — direct parents (direct supertypes only)
+
+    This approach is more reliable than CodeSystem/$lookup?property=child
+    because tx.fhir.org does not consistently return child/parent properties
+    via $lookup for SNOMED CT.
+
+    Falls back to the International Edition when the US Edition module is not
+    available on tx.fhir.org (module 731000124108).
+
+    Returns:
+        {
+          "conceptId": str,
+          "display": str,
+          "system": "http://snomed.info/sct",
+          "children": [{"code": str, "display": str}, ...],
+          "childCount": int,
+          "parent": {"code": str, "display": str} | None,
+          "edition": "international" | "us",
+        }
+    """
+    from urllib.parse import urlencode
+
+    _SNOMED_BASE = "http://snomed.info/sct"
+
+    async def _expand_ecl(system_base: str, ecl_expr: str, limit: int = 200) -> Optional[list]:
+        """Expand an ECL expression and return the contains list, or None on error."""
+        vs_url = f"{system_base}?fhir_vs=ecl/{ecl_expr}"
+        qs = urlencode([("url", vs_url), ("count", limit), ("_format", "json")])
+        request_url = f"{_TX_FHIR}/ValueSet/$expand?{qs}"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(yarl.URL(request_url, encoded=True), timeout=_TIMEOUT) as resp:
+                    if resp.status in (400, 404, 422):
+                        return None
+                    resp.raise_for_status()
+                    data = await resp.json(content_type=None)
+                    return data.get("expansion", {}).get("contains", [])
+        except Exception as exc:
+            logger.warning("SNOMED ECL expand [%s / %s]: %s", ecl_expr, concept_id, exc)
+            return None
+
+    async def _get_display(system: str) -> str:
+        """Resolve display name via CodeSystem/$lookup (no property requests)."""
+        qs = urlencode([("system", system), ("code", concept_id), ("_format", "json")])
+        request_url = f"{_TX_FHIR}/CodeSystem/$lookup?{qs}"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(yarl.URL(request_url, encoded=True), timeout=_TIMEOUT) as resp:
+                    if resp.status >= 400:
+                        return ""
+                    resp.raise_for_status()
+                    data = await resp.json(content_type=None)
+                    for p in data.get("parameter", []):
+                        if p.get("name") == "display":
+                            return p.get("valueString", "")
+        except Exception:
+            pass
+        return ""
+
+    system = f"{_SNOMED_BASE}/{_SNOMED_US_MODULE}" if edition == "us" else _SNOMED_BASE
+    actual_edition = edition
+
+    # Fetch children, parents, and display concurrently
+    children_raw, parents_raw, display = await asyncio.gather(
+        _expand_ecl(system, f"<!{concept_id}"),
+        _expand_ecl(system, f">!{concept_id}", limit=10),
+        _get_display(system),
+    )
+
+    # Fall back to International if US Edition not available
+    if children_raw is None and edition == "us":
+        logger.info(
+            "SNOMED US module not available on tx.fhir.org; falling back to International for children of %s",
+            concept_id,
+        )
+        actual_edition = "international"
+        children_raw, parents_raw, display = await asyncio.gather(
+            _expand_ecl(_SNOMED_BASE, f"<!{concept_id}"),
+            _expand_ecl(_SNOMED_BASE, f">!{concept_id}", limit=10),
+            _get_display(_SNOMED_BASE),
+        )
+
+    if children_raw is None:
+        raise ValueError(f"SNOMED concept '{concept_id}' not found or hierarchy not available on tx.fhir.org")
+
+    children = [{"code": c["code"], "display": c.get("display", "")} for c in children_raw]
+    parent: Optional[dict] = None
+    if parents_raw:
+        p = parents_raw[0]
+        parent = {"code": p["code"], "display": p.get("display", "")}
+
+    return {
+        "conceptId": concept_id,
+        "display": display,
+        "system": _SNOMED_BASE,
+        "children": children,
+        "childCount": len(children),
+        "parent": parent,
+        "edition": actual_edition,
+    }
+
+
 async def lookup_loinc_with_properties(code: str, properties: list) -> Optional[dict]:
     """
     Lookup a LOINC code and return requested properties (e.g. parent, child, COMPONENT).

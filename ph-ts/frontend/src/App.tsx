@@ -26,6 +26,8 @@ interface FhirResource {
   concept?: Array<{ code: string; display?: string }>;
   identifier?: Array<{ system?: string; value?: string }>;
   extension?: Array<{ url: string; valueCode?: string; [key: string]: unknown }>;
+  useContext?: Array<{ code: { system?: string; code: string }; valueCodeableConcept?: { coding?: Array<{ system?: string; code?: string; display?: string }> }; valueCoding?: { system?: string; code?: string; display?: string } }>;
+  _conceptCount?: number;
 }
 
 interface ApiStats {
@@ -110,6 +112,7 @@ function stripHtml(html: string): string {
 }
 
 function countConcepts(resource: FhirResource): number {
+  if (resource._conceptCount !== undefined) return resource._conceptCount;
   if (resource.resourceType === 'ValueSet') {
     return (resource.compose?.include ?? []).reduce(
       (sum, inc) => sum + (inc.concept?.length ?? 0), 0
@@ -152,12 +155,14 @@ async function fetchResources(
   resourceType: 'ValueSet' | 'CodeSystem',
   search: string,
   status?: string,
-  content?: string
+  content?: string,
+  contextValueCode?: string,
 ): Promise<UiResource[]> {
   const params = new URLSearchParams();
   if (search.trim()) params.set('name', search.trim());
   if (status) params.set('status', status);
   if (content) params.set('content', content);
+  if (contextValueCode) params.set('context-value-code', contextValueCode);
   params.set('_summary', 'true');  // metadata only — no concept/compose arrays
   const bundle = await apiFetch<{ entry?: Array<{ resource: FhirResource }> }>(
     `/${resourceType}?${params}`
@@ -166,6 +171,20 @@ async function fetchResources(
     .map(e => e.resource)
     .filter(Boolean)
     .map(toUiResource);
+}
+
+interface DiseaseView {
+  id: string;
+  display: string;
+  system: string;
+  code: string;
+  description: string;
+  count: number;
+}
+
+async function fetchDiseaseViews(): Promise<DiseaseView[]> {
+  const res = await apiFetch<{ views: DiseaseView[] }>('/ValueSet/$views');
+  return res.views ?? [];
 }
 
 async function fetchFullResource(resourceType: 'ValueSet' | 'CodeSystem', id: string): Promise<FhirResource> {
@@ -586,8 +605,12 @@ const ModernPHINVADS = () => {
 
   // ValueSet table filters and pagination
   const [vsStatusFilter, setVsStatusFilter] = useState('');
+  const [vsViewFilter, setVsViewFilter] = useState('');  // condition code
   const [vsPage, setVsPage] = useState(0);
   const VS_PAGE_SIZE = 25;
+
+  // Disease/condition views catalogue
+  const [diseaseViews, setDiseaseViews] = useState<DiseaseView[]>([]);
 
   const debouncedSearch = useDebounce(searchTerm, 350);
 
@@ -606,6 +629,11 @@ const ModernPHINVADS = () => {
 
   useEffect(() => { loadStats(); }, [loadStats]);
 
+  // Load disease/condition views catalogue once on mount
+  useEffect(() => {
+    fetchDiseaseViews().then(setDiseaseViews).catch(() => {});
+  }, []);
+
   // Load resources when tab, debounced search, or active filters change
   const loadResources = useCallback(async () => {
     setLoadingResources(true);
@@ -614,13 +642,14 @@ const ModernPHINVADS = () => {
     try {
       const status = activeTab === 'CodeSystem' ? csStatusFilter : vsStatusFilter;
       const content = activeTab === 'CodeSystem' ? csContentFilter : undefined;
-      setResources(await fetchResources(activeTab, debouncedSearch, status, content));
+      const contextCode = activeTab === 'ValueSet' ? vsViewFilter : undefined;
+      setResources(await fetchResources(activeTab, debouncedSearch, status, content, contextCode));
     } catch (e) {
       setErrorResources((e as Error).message);
     } finally {
       setLoadingResources(false);
     }
-  }, [activeTab, debouncedSearch, csStatusFilter, csContentFilter, vsStatusFilter]);
+  }, [activeTab, debouncedSearch, csStatusFilter, csContentFilter, vsStatusFilter, vsViewFilter]);
 
   useEffect(() => { loadResources(); }, [loadResources]);
 
@@ -1551,9 +1580,26 @@ const ModernPHINVADS = () => {
                           <option value="unknown">Unknown</option>
                         </select>
                       </div>
-                      {vsStatusFilter && (
+                      {diseaseViews.length > 0 && (
+                        <div className="flex items-center gap-1.5">
+                          <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Condition / View</label>
+                          <select
+                            value={vsViewFilter}
+                            onChange={e => { setVsViewFilter(e.target.value); setVsPage(0); }}
+                            className="text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                          >
+                            <option value="">All conditions</option>
+                            {diseaseViews.map(v => (
+                              <option key={v.id} value={v.code}>
+                                {v.display}{v.count > 0 ? ` (${v.count})` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      {(vsStatusFilter || vsViewFilter) && (
                         <button
-                          onClick={() => { setVsStatusFilter(''); setVsPage(0); }}
+                          onClick={() => { setVsStatusFilter(''); setVsViewFilter(''); setVsPage(0); }}
                           className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md px-2 py-1.5 hover:bg-gray-50 transition-colors"
                         >
                           <X className="w-3 h-3" /> Clear filters
@@ -1563,6 +1609,7 @@ const ModernPHINVADS = () => {
                         Showing <span className="font-semibold">{resources.length}</span>
                         <span className="text-gray-400"> value sets</span>
                         {debouncedSearch && <span className="text-gray-400"> matching "{debouncedSearch}"</span>}
+                        {vsViewFilter && (() => { const v = diseaseViews.find(dv => dv.code === vsViewFilter); return v ? <span className="text-blue-500"> · {v.display}</span> : null; })()}
                       </p>
                     </div>
 
@@ -1570,7 +1617,7 @@ const ModernPHINVADS = () => {
                       <div className="text-center py-20 text-gray-400">
                         <Layers className="w-12 h-12 mx-auto mb-3 opacity-30" />
                         <p className="text-sm">
-                          {debouncedSearch || vsStatusFilter
+                          {debouncedSearch || vsStatusFilter || vsViewFilter
                             ? 'No value sets match the current filters.'
                             : 'No value sets found. Import data using the migration tool.'}
                         </p>
