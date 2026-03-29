@@ -158,6 +158,7 @@ async function fetchResources(
   if (search.trim()) params.set('name', search.trim());
   if (status) params.set('status', status);
   if (content) params.set('content', content);
+  params.set('_summary', 'true');  // metadata only — no concept/compose arrays
   const bundle = await apiFetch<{ entry?: Array<{ resource: FhirResource }> }>(
     `/${resourceType}?${params}`
   );

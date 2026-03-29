@@ -32,17 +32,40 @@ router = APIRouter(tags=["FHIR Operations"])
 # Human-readable display names for well-known code systems.
 # Used to enrich expansion.contains with a systemName field.
 _SYSTEM_DISPLAY_NAMES: Dict[str, str] = {
-    "http://snomed.info/sct":                      "SNOMED CT",
-    "http://loinc.org":                            "LOINC",
-    "http://hl7.org/fhir/sid/icd-10-cm":           "ICD-10-CM",
-    "http://hl7.org/fhir/sid/icd-9-cm":            "ICD-9-CM",
-    "http://www.nlm.nih.gov/research/umls/rxnorm": "RxNorm",
-    "https://cts.nlm.nih.gov/fhir":                "VSAC",
+    # Canonical FHIR URLs
+    "http://snomed.info/sct":                                          "SNOMED CT",
+    "http://loinc.org":                                                "LOINC",
+    "http://hl7.org/fhir/sid/icd-10-cm":                              "ICD-10-CM",
+    "http://hl7.org/fhir/sid/icd-9-cm":                               "ICD-9-CM",
+    "http://www.nlm.nih.gov/research/umls/rxnorm":                    "RxNorm",
+    "https://cts.nlm.nih.gov/fhir":                                   "VSAC",
+    "http://hl7.org/fhir/sid/cvx":                                    "CVX (Vaccines Administered)",
+    "http://hl7.org/fhir/sid/mvx":                                    "MVX (Vaccine Manufacturer)",
+    "http://hl7.org/fhir/sid/ndc":                                    "NDC (National Drug Code)",
+    "http://www.ama-assn.org/go/cpt":                                 "CPT",
+    "http://www.cms.gov/Medicare/Coding/ICD10":                       "ICD-10-PCS",
+    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl":             "NCI Thesaurus",
+    "http://hl7.org/fhir/v3/NullFlavor":                              "HL7 v3 NullFlavor",
+    "http://terminology.hl7.org/CodeSystem/v3-NullFlavor":            "HL7 v3 NullFlavor",
+    "http://terminology.hl7.org/CodeSystem/v3-AdministrativeGender":  "HL7 Administrative Gender",
+    "http://terminology.hl7.org/CodeSystem/v3-Race":                  "HL7 v3 Race",
+    "http://terminology.hl7.org/CodeSystem/v3-Ethnicity":             "HL7 v3 Ethnicity",
+    # CDC / PHIN VADS code systems (well-known OIDs)
+    "https://www.cdc.gov/vaccines/programs/iis/code-sets/vis-barcode-look": "CDC VIS Barcode",
+    "https://phinvads.cdc.gov/vads/ViewCodeSystem.action?id=2.16.840.1.114222.4.5.274": "PHC (PHIN Concepts)",
+    # OID aliases — produced by PHIN VADS imports
     "urn:oid:2.16.840.1.113883.6.1":               "LOINC",
     "urn:oid:2.16.840.1.113883.6.96":              "SNOMED CT",
     "urn:oid:2.16.840.1.113883.6.90":              "ICD-10-CM",
     "urn:oid:2.16.840.1.113883.6.103":             "ICD-9-CM",
     "urn:oid:2.16.840.1.113883.6.88":              "RxNorm",
+    "urn:oid:2.16.840.1.113883.12.292":            "CVX (Vaccines Administered)",
+    "urn:oid:2.16.840.1.113883.12.227":            "MVX (Vaccine Manufacturer)",
+    "urn:oid:2.16.840.1.113883.5.1":               "HL7 Administrative Gender",
+    "urn:oid:2.16.840.1.113883.5.1008":            "HL7 v3 NullFlavor",
+    "urn:oid:2.16.840.1.114222.4.5.274":           "PHC (PHIN Concepts)",
+    "urn:oid:2.16.840.1.114222.4.5.232":           "PHIN Questions",
+    "urn:oid:2.16.840.1.114222.4.5.236":           "PHIN Vaccine Admin Route",
 }
 
 _SYSTEM_URL_TO_SDO: Dict[str, str] = {
@@ -156,9 +179,11 @@ async def _get_system_name(
     Resolution order:
       1. Per-request cache (avoid duplicate DB hits)
       2. Static well-known map (_SYSTEM_DISPLAY_NAMES)
-      3. title / name from a CodeSystem record already fetched by the caller
-      4. DB lookup as a last resort
-    Falls back to the raw URI if nothing is found.
+      3. HL7 terminology URL pattern (v2/v3 table names)
+      4. title / name from a CodeSystem record already fetched by the caller
+      5. DB lookup by URL
+      6. Pattern-based fallback for PHIN VADS, CDC, and other known URL shapes
+      7. Domain extraction as last resort
     """
     if not system:
         return None
@@ -172,16 +197,68 @@ async def _get_system_name(
         cache[system] = name
         return name
     if cs:
-        name = cs.get('title') or cs.get('name') or system
+        name = cs.get('title') or cs.get('name') or _url_to_display_name(system)
         cache[system] = name
         return name
     cs_results = await state.db.search_resources('CodeSystem', {'url': system})
     if cs_results:
-        name = cs_results[0].get('title') or cs_results[0].get('name') or system
+        name = cs_results[0].get('title') or cs_results[0].get('name') or _url_to_display_name(system)
     else:
-        name = system
+        name = _url_to_display_name(system)
     cache[system] = name
     return name
+
+
+def _url_to_display_name(system: str) -> str:
+    """Derive a human-readable name from an unrecognised system URL.
+
+    Handles common patterns found in PHIN VADS–imported ValueSets:
+      - https://phinvads.cdc.gov/baseStu3/CodeSystem/{oid}  →  "PHIN CS ({oid})"
+      - https://www.cdc.gov/vaccines/...                    →  "CDC Vaccines (IIS)"
+      - hl7projects.hl7.nscee.edu download URLs            →  "HL7 (legacy)"
+      - urn:oid:{oid}                                       →  "CS (OID: {oid})"
+      - Generic https?:// URLs                              →  last meaningful path segment
+    """
+    if not system:
+        return system
+
+    # PHIN VADS CodeSystem API URL: extract OID from path
+    if system.startswith("https://phinvads.cdc.gov/baseStu3/CodeSystem/"):
+        oid = system.rsplit("/", 1)[-1]
+        return f"PHIN CS ({oid})"
+
+    # CDC vaccines/IIS URL
+    if system.startswith("https://www.cdc.gov/vaccines/"):
+        return "CDC Vaccines (IIS)"
+
+    # HL7 project download / legacy RIM URLs (not a real code system identifier)
+    if "hl7projects" in system or "hl7nscee" in system or (
+        "hl7.org" in system and (".zip" in system or ".tar" in system)
+    ):
+        return "HL7 (legacy ref)"
+
+    # OID URN: urn:oid:2.16.840.1.xxx
+    if system.startswith("urn:oid:"):
+        oid = system[len("urn:oid:"):]
+        return f"CS (OID: {oid})"
+
+    # Generic URL: try to extract a meaningful name from the path
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(system)
+        path_parts = [p for p in parsed.path.strip("/").split("/") if p]
+        # Skip OID-like segments (all digits and dots)
+        meaningful = [p for p in path_parts if not p.replace(".", "").replace("-", "").isdigit()]
+        if meaningful:
+            candidate = meaningful[-1].replace("-", " ").replace("_", " ").title()
+            if len(candidate) < 60:
+                return candidate
+        if parsed.netloc:
+            return parsed.netloc
+    except Exception:
+        pass
+
+    return system
 
 
 def _wrap_ecl_expansion(url: str, concepts: list, offset: int, count: int) -> Dict[str, Any]:
@@ -221,7 +298,7 @@ async def _perform_expansion(
         # Extract everything after fhir_vs=ecl/ or fhir_vs=isa/ etc.
         fhir_vs_part = url.split("fhir_vs=", 1)[1]          # e.g. "ecl/<<73211009"
         ecl_expr = fhir_vs_part.split("/", 1)[-1] if "/" in fhir_vs_part else fhir_vs_part
-        # Route to US Edition (VSAC) if the URL contains the US module identifier
+        # Route to US Edition (tx.fhir.org with module-qualified URL) if the URL contains the US module identifier
         use_us_edition = external_cs._SNOMED_US_MODULE in url
         try:
             if use_us_edition:

@@ -564,7 +564,7 @@ class DatabaseManager:
 
             return json.loads(row['data']) if row else None
 
-    async def search_resources(self, resource_type: str, params: Dict[str, Any]) -> List[Dict]:
+    async def search_resources(self, resource_type: str, params: Dict[str, Any], summary: bool = False) -> List[Dict]:
         conditions = ["resource_type = $1", "archived = FALSE"]
         values = [resource_type]
         param_idx = 2
@@ -589,7 +589,27 @@ class DatabaseManager:
             values.append(params['content'])
             param_idx += 1
 
-        query = f"SELECT data FROM fhir_resources WHERE {' AND '.join(conditions)} ORDER BY updated_at DESC LIMIT 5000"
+        if summary:
+            # Return metadata only — strips concept/compose arrays for fast list queries.
+            # ~10-50x less data transferred for CodeSystems/ValueSets with large concept lists.
+            select_expr = """jsonb_build_object(
+                'id', id,
+                'resourceType', resource_type,
+                'url', url,
+                'name', name,
+                'status', status,
+                'title', data->>'title',
+                'version', data->>'version',
+                'description', data->>'description',
+                'content', data->>'content',
+                'publisher', data->>'publisher',
+                'date', data->>'date',
+                'identifier', data->'identifier'
+            )"""
+        else:
+            select_expr = "data"
+
+        query = f"SELECT {select_expr} AS data FROM fhir_resources WHERE {' AND '.join(conditions)} ORDER BY updated_at DESC LIMIT 5000"
 
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(query, *values)
@@ -1005,7 +1025,8 @@ async def search_value_sets(
     name: Optional[str] = Query(None),
     url: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
-    q: Optional[str] = Query(None)
+    q: Optional[str] = Query(None),
+    _summary: bool = Query(False, alias="_summary"),
 ):
     if q:
         results = await state.search_engine.search(q, "ValueSet")
@@ -1019,8 +1040,17 @@ async def search_value_sets(
     if status:
         params['status'] = status
 
-    results = await state.db.search_resources("ValueSet", params)
-    return {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}
+    # Cache list results — key includes all filter params so different searches cache independently.
+    # Invalidated automatically by invalidate_pattern("ValueSet:*") on create/update/delete/archive.
+    cache_key = f"ValueSet:list:{name or ''}:{url or ''}:{status or ''}:{_summary}"
+    cached = await state.cache.get(cache_key)
+    if cached:
+        return cached
+
+    results = await state.db.search_resources("ValueSet", params, summary=_summary)
+    bundle = {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}
+    await state.cache.set(cache_key, bundle, ttl=120)
+    return bundle
 
 
 @app.get("/ValueSet/{resource_id}/_history")
@@ -1105,7 +1135,8 @@ async def search_code_systems(
     url: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     content: Optional[str] = Query(None),
-    q: Optional[str] = Query(None)
+    q: Optional[str] = Query(None),
+    _summary: bool = Query(False, alias="_summary"),
 ):
     if q:
         results = await state.search_engine.search(q, "CodeSystem")
@@ -1121,8 +1152,15 @@ async def search_code_systems(
     if content:
         params['content'] = content
 
-    results = await state.db.search_resources("CodeSystem", params)
-    return {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}
+    cache_key = f"CodeSystem:list:{name or ''}:{url or ''}:{status or ''}:{content or ''}:{_summary}"
+    cached = await state.cache.get(cache_key)
+    if cached:
+        return cached
+
+    results = await state.db.search_resources("CodeSystem", params, summary=_summary)
+    bundle = {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}
+    await state.cache.set(cache_key, bundle, ttl=120)
+    return bundle
 
 
 @app.get("/CodeSystem/{resource_id}/_history")

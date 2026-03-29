@@ -529,70 +529,78 @@ _SNOMED_US_MODULE = "731000124108"
 
 async def expand_snomed_ecl_us(ecl: str, filter_text: str, count: int) -> list:
     """
-    Expand a SNOMED CT ECL expression via NLM VSAC FHIR (US Edition).
+    Expand a SNOMED CT ECL expression, preferring the US Edition.
 
-    Uses the SNOMED CT US module (731000124108) which includes the full
-    International Edition plus ~30 000 US-specific extension concepts.
-    Requires UMLS_API_KEY in the environment.
+    Attempts the US Edition first using the module-qualified URL on tx.fhir.org
+    (http://snomed.info/sct/731000124108?fhir_vs=...). If tx.fhir.org does not
+    have that module loaded (404/422), falls back transparently to the
+    International Edition. Concepts are labelled with the edition that was
+    actually served so the caller can tell which path was taken.
+
+    VSAC is intentionally not used here — it does not support arbitrary implicit
+    SNOMED ValueSet expansion (only its own curated ValueSets by OID).
     """
     import re
     from urllib.parse import urlencode
 
-    api_key = os.getenv("UMLS_API_KEY", "")
-    if not api_key:
-        raise ValueError(
-            "UMLS_API_KEY is required for SNOMED CT US Edition expansion. "
-            "Set it in .env and restart the backend."
-        )
-
     ecl = ecl.strip()
     m = re.match(r'^<{1,2}(\d+)\s*$', ecl)
     if m:
-        vs_url = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=isa/{m.group(1)}"
+        vs_url_us = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=isa/{m.group(1)}"
     elif re.match(r'^\^(\d+)\s*$', ecl):
         refset_id = re.match(r'^\^(\d+)\s*$', ecl).group(1)
-        vs_url = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=refset/{refset_id}"
+        vs_url_us = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=refset/{refset_id}"
     elif re.match(r'^\d+\s*$', ecl):
-        vs_url = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=isa/{ecl}"
+        vs_url_us = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=isa/{ecl}"
     else:
         raise ValueError(
             f"Complex ECL expressions are not supported: {ecl!r}. "
             "Use simple is-a filters (<<conceptId) or reference set filters (^refsetId)."
         )
 
-    qs_params: list = [("url", vs_url), ("count", count), ("_format", "json")]
-    if filter_text:
-        qs_params.append(("filter", filter_text))
-    request_url = f"{_VSAC_FHIR}/ValueSet/$expand?{urlencode(qs_params)}"
-    headers = {
-        "Authorization": "Basic " + __import__("base64").b64encode(f"apikey:{api_key}".encode()).decode(),
-        "Accept": "application/fhir+json",
-    }
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            yarl.URL(request_url, encoded=True), headers=headers, timeout=_TIMEOUT
-        ) as resp:
-            if not resp.ok:
-                body = await resp.text()
-                try:
-                    import json as _json
-                    oo = _json.loads(body)
-                    diag = oo.get("issue", [{}])[0].get("diagnostics", body[:300])
-                except Exception:
-                    diag = body[:300]
-                raise aiohttp.ClientResponseError(
-                    resp.request_info, resp.history,
-                    status=resp.status, message=diag,
-                )
-            data = await resp.json(content_type=None)
+    async def _try_expand(vs_url: str) -> tuple[list, bool]:
+        """Returns (contains_list, ok). ok=False means server returned 404/422."""
+        qs_params: list = [("url", vs_url), ("count", count), ("_format", "json")]
+        if filter_text:
+            qs_params.append(("filter", filter_text))
+        request_url = f"{_TX_FHIR}/ValueSet/$expand?{urlencode(qs_params)}"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                yarl.URL(request_url, encoded=True), timeout=_TIMEOUT
+            ) as resp:
+                if resp.status in (404, 422):
+                    return [], False
+                if not resp.ok:
+                    body = await resp.text()
+                    try:
+                        import json as _json
+                        oo = _json.loads(body)
+                        diag = oo.get("issue", [{}])[0].get("diagnostics", body[:300])
+                    except Exception:
+                        diag = body[:300]
+                    raise aiohttp.ClientResponseError(
+                        resp.request_info, resp.history,
+                        status=resp.status, message=diag,
+                    )
+                data = await resp.json(content_type=None)
+                return data.get("expansion", {}).get("contains", []), True
+
+    # Try US Edition first; fall back to International if module not available.
+    contains, us_available = await _try_expand(vs_url_us)
+    if not us_available:
+        logger.info("SNOMED US Edition not available on tx.fhir.org; falling back to International Edition")
+        intl_url = vs_url_us.replace(f"/sct/{_SNOMED_US_MODULE}?", "/sct?")
+        contains, _ = await _try_expand(intl_url)
+
+    system_name = "SNOMED CT US Edition" if us_available else "SNOMED CT"
     results = []
-    for item in data.get("expansion", {}).get("contains", []):
+    for item in contains:
         code = item.get("code", "")
         results.append({
             "code": code,
             "display": item.get("display", ""),
             "system": "http://snomed.info/sct",
-            "systemName": "SNOMED CT US Edition",
+            "systemName": system_name,
             "sourceUrl": f"https://browser.ihtsdotools.org/?perspective=full&conceptId1={code}",
         })
     return results

@@ -247,7 +247,7 @@ export default function ValueSetBuilder({ onBack }: Props) {
     Promise.all([
       apiFetch<{ systems: SdoSystem[] }>('/sdo/systems').catch(() => ({ systems: [] as SdoSystem[] })),
       apiFetch<{ entry?: Array<{ resource: { id: string; url?: string; name?: string; title?: string; content?: string; concept?: unknown[] } }> }>(
-        '/CodeSystem?_count=500'
+        '/CodeSystem?_count=500&_summary=true'
       ).catch(() => ({ entry: [] })),
     ]).then(([sdoData, csBundle]) => {
       const sdoSystems: UnifiedSystem[] = (sdoData.systems ?? []).map(s => ({
@@ -717,7 +717,7 @@ export default function ValueSetBuilder({ onBack }: Props) {
                     </button>
                   </div>
                   {snomedEdition === 'us' && (
-                    <p className="text-xs text-amber-600 mt-1">Requires <span className="font-mono">UMLS_API_KEY</span> in .env</p>
+                    <p className="text-xs text-gray-400 mt-1">US Extension preferred; falls back to International Edition if unavailable on tx.fhir.org</p>
                   )}
                 </div>
                 <label className="text-xs font-medium text-gray-500 uppercase block">Parent Concept ID</label>
