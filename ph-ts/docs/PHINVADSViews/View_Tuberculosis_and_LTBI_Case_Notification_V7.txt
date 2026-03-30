@@ -1,0 +1,56 @@
+View Name	View Description	View Version	Status Date
+Tuberculosis and LTBI Case Notification	List of value sets for the set of data elements used to communicate information to meet the requirements for Tuberculosis and LTBI Case Notifications to CDC.	7	06/14/2022 00:00:00
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Additional Site of Disease (TB)	PHVS_AdditionalDiseaseSite_TB	2.16.840.1.114222.4.11.959	1	Other body sites where Tuberculosis found	Published	10/22/2008	Initial Load VADS 3.0
+Adverse Event Severity (TB)	PHVS_AdverseEventSeverity_TB	2.16.840.1.114222.4.11.7758	1	Adverse Event Severity	Published	03/01/2018	Adverse Event Severity
+Birth Country	PHVS_BirthCountry_CDC	2.16.840.1.114222.4.11.3200	7	Country of Birth value set includes current countries as well as historical countries (eg. USSR). This value set is based upon ISO 3166-1, Alpha-3 codes (current countries), ISO 3166-3 (retired countries) and FIPS 10-4 (US Territories, Countries that are not found in ISO 3166)	Published	12/10/2019	v7: Updated Retired Countries to reflect latest version of ISO 3166-3
+Case Count Status (TB)	PHVS_CaseCountStatus_TB	2.16.840.1.114222.4.11.3158	2	Case count status for Tuberculosis	Published	03/14/2018	Removed PHC657 and PHC661 and added "NO"
+Case Verification (TB)	PHVS_CaseVerification_TB	2.16.840.1.114222.4.11.972	2	Current status of the RVCT.	Published	03/14/2018	Updated the preferred concept name to 5 – Suspected. 
+Country	PHVS_Country_ISO_3166-1	2.16.840.1.114222.4.11.828	6	Codes representing country of origin, nationality, citizenship, address country	Published	12/31/2018	v6: Based on ISO 3166-1 standard as of 12/01/2019
+Detailed Race	PHVS_Race_CDC	2.16.840.1.114222.4.11.876	2	Specific race codes reported on a limited basis	Published	10/22/2008	updated Israeli
+Diagnosis Type (TB)	PHVS_DiagnosisType_TB	2.16.840.1.114222.4.11.7750	1	Previous TB or LTBI Diagnosis	Published	11/26/2019	Previous TB or LTBI Diagnosis
+Epidemiological Risk Factors (TB)	PHVS_EpidemiologicalRiskFactors_TB	2.16.840.1.114222.4.11.7748	6	Type of risk factor patient was exposed to	Published	09/16/2019	Replaced code 3738000 with code PHC2236
+Gene Name (TB)	PHVS_GeneName_TB	2.16.840.1.114222.4.11.7763	2	Gene Name	Published	05/13/2021	Added 5 new genes
+General Condition Status (TB)	PHVS_GeneralConditionStatus_TB	2.16.840.1.114222.4.11.7818	1	Was the patient alive or dead at the time of diagnostic evaluation?	Published	05/08/2018	Was the patient alive or dead at the time of diagnostic evaluation?
+Industry CDC Census 2010	PHVS_Industry_CDC_Census2010	2.16.840.1.114222.4.11.7187	1	2010 Industry coding system used by CDC (NIOSH & NCHS) for coding industry text.  Industry describes an economic/business sector comprised of businesses/ enterprises concerned with the output of a specified category of products or services (e.g., the construction industry or the agriculture industry).  This industry code system includes  2007 U.S. Census Bureau industry codes  and  three additional codes developed by CDC for unpaid workers.  The 2010 Census industry categories  are based on the 2007 North American Industry Classification System (NAICS).  The PH_Occupation_CDC_Census2010  code system should be used in conjunction with this industry code system when coding both industry and occupation.  For more information and instructions on using this coding system, see the instruction manual for CDC-Census I&O coding at:  http://www.cdc.gov/niosh/topics/coding/	Published	08/23/2013	Initial Import for : 981F6E94-1A0C-E311-81F2-0017A477041A
+Lab Test Interpretation (TB)	PHVS_LabTestInterpretation_TB	2.16.840.1.114222.4.11.7744	3	Epidemiologic interpretation of the results of the test(s) performed for this case. This is a qualitative test result.  (e.g, positive, detected, negative)	Published	09/16/2019	added 410530007 
+Lab Test Type (TB)	PHVS_LabTestType_TB	2.16.840.1.114222.4.11.7743	3	Epidemiologic interpretation of the type of test(s) performed for this case. Please provide a response for each of the main test types (culture, smear, pathology/cytology, NAA, TST, IGRA, HIV, diabetes) If test was not done please indicate so.	Published	11/23/2018	Added Pathology/Cytology and IGRA-Other
+Length of Time Drug Taken (TB)	PHVS_LengthofTimeDrugTaken_TB	2.16.840.1.114222.4.11.7770	2	Length of Time Drug Taken	Published	05/08/2018	Replaced >1 month with >= 1 month
+LTBI Drug Regimen (TB)	PHVS_LTBIDrugRegimen_TB	2.16.840.1.114222.4.11.7755	2	LTBI Drug Regimen	Published	05/08/2018	Added "Isoniazid/Rifampin/Pyrazinamide/Ethambutol (2 months; 2HRZE)" to the value set.
+Medication (TB)	PHVS_Medications_TB	2.16.840.1.114222.4.11.7759	3	List of medications	Published	06/13/2022	Updated to correct Preferred Name for Para-aminosalicylic acid
+Microscopic Exam Culture Site (TB)	PHVS_MicroscopicExamCultureSite_TB	2.16.840.1.114222.4.11.1010	3	Culture sites for TB	Published	10/22/2008	Added Sputum to the value set
+Molecular Indel (TB)	PHVS_MolecularIndel_TB	2.16.840.1.114222.4.11.7765	1	Molecular Indel	Published	03/01/2018	v1
+Molecular Test Methods (TB)	PHVS_MolecularTestMethods_TB	2.16.840.1.114222.4.11.7766	1	Molecular Test Methods	Published	03/01/2018	v1
+Molecular Test Results (TB)	PHVS_MolecularTestResults_TB	2.16.840.1.114222.4.11.7764	1	Molecular Test Results	Published	03/01/2018	v1
+Moved Where During Therapy (TB)	PHVS_MovedWhereDuringTherapy_TB	2.16.840.1.114222.4.11.7768	1	Moved Where During Therapy	Published	03/01/2018	v1
+Occupation CDC Census 2010	PHVS_Occupation_CDC_Census2010	2.16.840.1.114222.4.11.7186	1	2010 Occupation coding system used by CDC (NIOSH & NCHS) for coding occupation text.  Occupation describes a set of activities or tasks that individuals are paid to perform or, if unpaid, define a person’s contribution to a household/family business/community.  This code system includes  2010 U.S. Census Bureau occupation codes with modifications made by CDC for unpaid workers and military occupations.  The 2010 Census occupation categories  are based on the 2010 BLS Standard Occupational Classification (SOC) system.  The PH_Industry_CDC_Census2010  code system should be used in conjunction with this occupation code system when coding both industry and occupation.  For more information and instructions on using this coding system, see the instruction manual for CDC-Census I&O coding at:  http://www.cdc.gov/niosh/topics/coding/	Published	08/23/2013	v1
+Primary Reason For Evaluation (TB)	PHVS_PrimaryReasonForEvaluation_TB	2.16.840.1.114222.4.11.3161	3	Primary or initial reason the patient was evaluated for TB disease	Published	10/22/2008	v3
+Reason LTBI Not Started (TB)	PHVS_ReasonLTBINotStarted_TB	2.16.840.1.114222.4.11.7756	2	Reason LTBI Not Started	Published	05/08/2018	Added "Provider Decision" and "Drug Shortage"
+Reason LTBI Treatment Stopped (TB)	PHVS_ReasonLTBITreatmentStopped_TB	2.16.840.1.114222.4.11.7757	1	Reason LTBI Treatment Stopped	Published	03/01/2018	v1
+Reason Not Treated with RIPE (TB)	PHVS_ReasonNotTreatedwithRIPE_TB	2.16.840.1.114222.4.11.7767	3	Reason Not Treated with RIPE	Published	09/11/2018	 Removed "Provider Decision" value and added "Unknown" as a valid value  
+Reason Therapy Stopped (TB)	PHVS_ReasonTherapyStopped_TB	2.16.840.1.114222.4.11.1035	3	Primary reason that Tuberculosis therapy was ended	Published	03/14/2018	Added "Adverse Treatment Event" to the value set
+Result of Radiology Study (TB)	PHVS_ResultofRadiologyStudy_TB	2.16.840.1.114222.4.11.7746	1	Result of chest diagnostic testing	Published	03/01/2018	v1
+Sex (MFU)	PHVS_Sex_MFU	2.16.840.1.114222.4.11.1038	1	Constrained list of sex codes in use by public health. Keyword: Administrative Sex.	Published	12/27/2017	Initial Load VADS 3.0
+Side Effect of Treatment (TB)	PHVS_SideEffectofTreatment_TB	2.16.840.1.114222.4.11.7772	1	Side Effect of Treatment.	Published	05/14/2018	v1
+Side Effect Time to Onset (TB)	PHVS_SideEffectTimetoOnset_TB	2.16.840.1.114222.4.11.7771	1	Side Effect Time to Onset	Published	03/01/2018	v1
+Smoking Status	PHVS_SmokingStatus_CDC	2.16.840.1.114222.4.11.7749	1	What is the patient's current smoking status?	Published	03/01/2018	v1
+Sputum Culture Conversion Not Documented Reason	PHVS_SputumCultureConversionNotDocumentedReason_TB	2.16.840.1.114222.4.11.3164	2	The list of reasons for not documenting the sputum culture conversion	Published	10/22/2008	
+State	PHVS_State_FIPS_5-2	2.16.840.1.114222.4.11.830	1	State codes for U.S. based on FIPS 5-2	Published	10/22/2008	Initial Load VADS 3.0
+Susceptibility Test Interpretation (TB)	PHVS_SusceptibilityTestResultQuantitative_TB	2.16.840.1.114222.4.11.7761	2	Susceptibility Test Interpretation	Published	05/08/2018	Remove "Decreased susceptible" and "Intermediately susceptible"  and add "Not Done" to the value set.
+Susceptibility Test Method (TB)	PHVS_SusceptibilityTestMethod_TB	2.16.840.1.114222.4.11.7762	1	Susceptibility Test Method	Published	03/01/2018	v1
+Susceptibility Test Type (TB)	PHVS_SusceptibilityTestType_TB	2.16.840.1.114222.4.11.7760	3	Susceptibility Test Type	Published	06/13/2022	v3: Updated to correct Preferred Name for Para-aminosalicylic acid
+Therapy Extended Reason (TB)	PHVS_TherapyExtendedReason_TB	2.16.840.1.114222.4.11.3167	3	Answer list for the reason the therapy extended beyond 12 months	Published	10/22/2008	Added Unknown
+Treatment Administration Type (TB)	PHVS_TreatmentAdministrationType_TB	2.16.840.1.114222.4.11.7754	1	Treatment Administration Type	Published	03/01/2018	v1
+Type of Correctional Facility	PHVS_CorrectionalFacilityType_NND	2.16.840.1.114222.4.11.979	3	Type of correctional facility	Published	09/16/2019	removed duplicate other concept, PHC63
+Type of Long Term Care Facility	PHVS_LongTermCareFacilityType_NND	2.16.840.1.114222.4.11.1006	3	Types of long term care facilities	Published	09/16/2019	Removed duplicate other concept, 282E00000X
+Type of Radiology Study	PHVS_TypeofRadiologyStudy_CDC	2.16.840.1.114222.4.11.7745	1	Type of chest radiology test completed.	Published	03/01/2018	v1
+Unit of Measure (TB)	PHVS_UnitofMeasure_TB	2.16.840.1.114222.4.11.7819	1	Units of measure for the Quantitative Test Result Value	Published	05/09/2018	Units of measure for the Quantitative Test Result Value
+Usual Occupation and Industry (TB)	PHVS_UsualOccupationIndustry_TB	2.16.840.1.114222.4.11.7849	2	Patient's usual occupation and industry	Published	06/14/2019	v2  - Value set updated to only include the following values: 
+Correctional facility employee
+Healthcare worker
+Migrant/seasonal worker
+Unknown
+None
+
+Yes No Unknown (YNU)	PHVS_YesNoUnknown_CDC	2.16.840.1.114222.4.11.888	1	Value set used to respond to any question that can be answered Yes, No, or Unknown.	Published	10/22/2008	Initial Load VADS 3.0

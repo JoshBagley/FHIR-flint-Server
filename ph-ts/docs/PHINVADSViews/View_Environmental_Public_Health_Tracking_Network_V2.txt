@@ -1,0 +1,11 @@
+View Name	View Description	View Version	Status Date
+Environmental Public Health Tracking Network	Environmental Vocabulary that would be used by EPHTN Metadata Creation Tool	2	03/03/2011 00:00:00
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Country	PHVS_Country_ISO_3166-1	2.16.840.1.114222.4.11.828	1	Codes representing country of origin, nationality, citizenship, address country	Published	12/31/2018	Initial Load VADS 3.0
+County	PHVS_County_FIPS_6-4	2.16.840.1.114222.4.11.829	1	Codes representing county of origin, address county, reporting county. 	Published	01/17/2024	Initial Load VADS 3.0
+Diagnosis (ICD-9 CM)	PHVS_AdministrativeDiagnosis_CDC_ICD-9CM	2.16.840.1.114222.4.11.856	3	ICD-9 CM Administrative Diagnosis Codes used for billing purposes, Reason for Study, DG1 Diagnosis segments Keyword: ICD-9 Vol 1 & 2.	Published	08/16/2010	Update based upon ICD-9 CM FY 2011 (Effective Oct 1st 2010)
+ECOTOX Chemicals (EPA)	PHVS_ECOTOX_EPA	2.16.840.1.114222.4.11.3055	1	Chemicals present in ECOTOX database. The ECOTOX (ECOTOXicology) database provides single chemical toxicity information for aquatic and terrestrial life.	Published	10/22/2008	Initial Load VADS 3.0
+State	PHVS_State_FIPS_5-2	2.16.840.1.114222.4.11.830	1	State codes for U.S. based on FIPS 5-2	Published	10/22/2008	Initial Load VADS 3.0
+STORET Chemicals (EPA)	PHVS_STORET_EPA	2.16.840.1.114222.4.11.3056	1	STORET (short for STOrage and RETrieval) is a repository for water quality, biological, and physical data and is used by state environmental agencies, EPA and other federal agencies, universities, private citizens, and many others	Published	10/22/2008	Initial Load VADS 3.0
+TRI Chemicals (EPA)	PHVS_TRI_EPA	2.16.840.1.114222.4.11.3057	1	Toxics Release Inventory (TRI) data help communities identify facilities and chemical disposal or other release patterns that warrant further study and analysis.	Published	10/22/2008	Initial Load VADS 3.0

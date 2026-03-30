@@ -1,0 +1,25 @@
+View Name	View Description	View Version	Status Date
+Babesiosis Case Notification	List of value sets for the set of data elements used to communicate information to meet the requirements for Babesiosis Case Notifications to CDC.	5	09/24/2021 00:00:00
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Blood Product	PHVS_BloodProduct_CDC	2.16.840.1.114222.4.11.7540	1	If a transfused blood product was implicated in an investigation, specify which type(s) of product.	Published	08/31/2016	If a transfused blood product was implicated in an investigation, specify which type(s) of product.
+Clinical Manifestations (Babesiosis)	PHVS_ClinicalManifestations_Babesiosis	2.16.840.1.114222.4.11.7541	2	Clinical manifestation of babesiosis	Published	08/31/2016	updated with OTHER code
+
+Country	PHVS_Country_ISO_3166-1	2.16.840.1.114222.4.11.828	6	Codes representing country of origin, nationality, citizenship, address country	Published	12/31/2018	v6: Based on ISO 3166-1 standard as of 12/01/2019
+County	PHVS_County_FIPS_6-4	2.16.840.1.114222.4.11.829	6	Codes representing county of origin, address county, reporting county. 	Published	01/17/2024	v6: Added new codes 02158 and 46102 based on the March 2018 release and included OTH code for cases when county needed is not listed in this value set. [Up to date as of 09/01/20]
+Industry CDC Census 2010	PHVS_Industry_CDC_Census2010	2.16.840.1.114222.4.11.7187	1	2010 Industry coding system used by CDC (NIOSH & NCHS) for coding industry text.  Industry describes an economic/business sector comprised of businesses/ enterprises concerned with the output of a specified category of products or services (e.g., the construction industry or the agriculture industry).  This industry code system includes  2007 U.S. Census Bureau industry codes  and  three additional codes developed by CDC for unpaid workers.  The 2010 Census industry categories  are based on the 2007 North American Industry Classification System (NAICS).  The PH_Occupation_CDC_Census2010  code system should be used in conjunction with this industry code system when coding both industry and occupation.  For more information and instructions on using this coding system, see the instruction manual for CDC-Census I&O coding at:  http://www.cdc.gov/niosh/topics/coding/	Published	08/23/2013	Initial Import for : 981F6E94-1A0C-E311-81F2-0017A477041A
+Lab Result (Babesiosis)	PHVS_LabResult_Babesiosis	2.16.840.1.114222.4.11.4005	5	lab results associated with Babesiosis
+	Published	06/29/2015	added OTHER to the value set
+
+Lab Test Interpretation	PHVS_LabTestInterpretation_CDC	2.16.840.1.114222.4.11.3048	2	Codes specifying qualitative lab test interpretation.	Published	10/22/2008	v2 Added: 720735008	Presumptive positive (qualifier value)
+Lab Test Type (Babesiosis)	PHVS_LabTestType_Babesiosis	2.16.840.1.114222.4.11.7545	3	Epidemiologic interpretation of the type of test(s) performed for this case
+	Published	07/07/2017	Updated other test type and unknown test type
+Medication Treatment (Babesiosis)	PHVS_MedicationTreatment_Babesiosis	2.16.840.1.114222.4.11.7539	1	Treatment drug(s) used for babesiosis	Published	08/31/2016	Treatment drug(s) used for babesiosis
+Occupation CDC Census 2010	PHVS_Occupation_CDC_Census2010	2.16.840.1.114222.4.11.7186	1	2010 Occupation coding system used by CDC (NIOSH & NCHS) for coding occupation text.  Occupation describes a set of activities or tasks that individuals are paid to perform or, if unpaid, define a person’s contribution to a household/family business/community.  This code system includes  2010 U.S. Census Bureau occupation codes with modifications made by CDC for unpaid workers and military occupations.  The 2010 Census occupation categories  are based on the 2010 BLS Standard Occupational Classification (SOC) system.  The PH_Industry_CDC_Census2010  code system should be used in conjunction with this occupation code system when coding both industry and occupation.  For more information and instructions on using this coding system, see the instruction manual for CDC-Census I&O coding at:  http://www.cdc.gov/niosh/topics/coding/	Published	08/23/2013	v1
+Outdoor Activities	PHVS_OutdoorActivities_CDC	2.16.840.1.114222.4.11.7544	1	Which outdoor activities did the subject engage in?
+	Published	11/23/2016	1
+State	PHVS_State_FIPS_5-2	2.16.840.1.114222.4.11.830	1	State codes for U.S. based on FIPS 5-2	Published	10/22/2008	Initial Load VADS 3.0
+Temperature Unit	PHVS_TemperatureUnit_UCUM	2.16.840.1.114222.4.11.919	1	Units of measure for temperature	Published	10/22/2008	Initial Load VADS 3.0
+Type of Complication (Babesiosis)	PHVS_Complications_Babesiosis	2.16.840.1.114222.4.11.7538	1	Complications of babesiosis	Published	08/31/2016	Complications of babesiosis
+
+Yes No Unknown (YNU)	PHVS_YesNoUnknown_CDC	2.16.840.1.114222.4.11.888	1	Value set used to respond to any question that can be answered Yes, No, or Unknown.	Published	10/22/2008	Initial Load VADS 3.0

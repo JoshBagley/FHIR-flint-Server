@@ -1,0 +1,33 @@
+View Name	View Description	View Version	Status Date
+STD Case Notification	Value Sets associated with STD Case Notification Message Mapping Guide.	15	03/28/2024 00:00:00
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Clinical Manifestations (STD)	PHVS_ClinicalManifestations_STD	2.16.840.1.114222.4.11.7611	1	Presence of CNS, Eye Structure, and cochleovestibular infections with T. pallidum resulting in symptoms including but not limited to meningitis, optic neuropathy, or tinnitus
+	Published	04/01/2020	V1
+Clinician Observed Lesions (STD)	PHVS_ClinicianObservedLesions_STD	2.16.840.1.114222.4.11.7195	1	Clinician-Observed Lesion(s) indicative of Syphilis.	Published	07/08/2020	Initial version
+Detection Method (STD)	PHVS_DetectionMethod_STD	2.16.840.1.114222.4.11.7199	2	Method of case detection.	Published	07/07/2020	v2
+Drugs Used (STD)	PHVS_DrugsUsed_STD	2.16.840.1.114222.4.11.7194	5	Recreational Drug Use
+	Published	04/01/2020	Updated the value set to include Sedative/Tranquilizer.
+HIV Status (STD)	PHVS_HIVStatus_STD	2.16.840.1.114222.4.11.7192	4	HIV status at the  time of event
+	Published	04/01/2020	simplified valid values to pos, neg and unknown
+Lab Test Result Qualitative (NND)	PHVS_LabTestResultQualitative_NND	2.16.840.1.114222.4.11.7206	3	Qualitative epidemiologic interpretation of lab test(s) results.	Published	04/20/2020	Added new concepts; "Detected", "Not detected", "Test Not Done", "High", "Not Elevated"
+
+Lab Test Type (STD)	PHVS_LabTestType_STD	2.16.840.1.114222.4.11.7550	9	Type of STD test performed on specimen collected to support case patient's diagnosis
+	Published	12/14/2023	V9: Added content from LOINC 2.76
+Late Clinical Manifestation (STD)	PHVS_LateClincicalManifestation_STD	2.16.840.1.114222.4.11.7612	1	Late clinical manifestations and/or complications associated with the illness being reported.	Published	11/10/2021	Updated Value Set Definition: Late clinical manifestations and/or complications associated with the illness being reported.
+Non-Treponemal Test Result (STD)	PHVS_NonTreponemalTestResult_STD	2.16.840.1.114222.4.11.7279	2	Non-Treponemal Test Result that includes coded quantitative titer concepts. Same value set would be used for STD and Congenital Syphilis case notification Non-Treponemal Test Results.	Published	01/10/2017	v2 removed "reactive" and "non-reactive" from the value set
+Organism Identified AST (STD)	PHVS_OrganismIdentifiedAST_STD	2.16.840.1.114222.4.11.7552	2	Pathogen /Organism Identified in Isolate.	Published	06/04/2020	Addition of SNOMED concepts: Cephalosporin-resistant Neisseria gonorrhoeae (277503000), Fluoroquinolone-resistant Neisseria gonorrhoeae (409805000), Spectinomycin-resistant Neisseria gonorrhoeae (277504006), and Tetracycline-resistant Neisseria gonorrhoeae (277502005).
+
+Sexual Orientation (STD)	PHVS_SexualOrientation_STD	2.16.840.1.114222.4.11.7609	1	A person's identification of their emotional, romantic, sexual, or affectional attraction to another person.	Published	03/21/2025	Updated value set description as per EO 14168.
+Specimen Collection Site AST (STD)	PHVS_SpecimenCollectionSiteAST_STD	2.16.840.1.114222.4.11.7554	1	Anatomic site where the specimen was collected (e.g. Urethra, Throat, Nasopharynx)	Published	01/23/2017	Initial Import for : 8FA90FC0-70E1-E611-A856-0017A477041A
+Specimen Source (STD)	PHVS_SpecimenSource_STD	2.16.840.1.114222.4.11.7189	2	Anatomic site or specimen type from which lab specimen was collected. 	Published	05/07/2020	Added otic and ocular specimens
+Specimen Type AST (STD)	PHVS_SpecimenTypeAST_STD	2.16.840.1.114222.4.11.7553	1	Antimicrobial Susceptibility Specimen Type (e.g. Exudate, Blood, Serum, Urine)	Published	01/23/2017	Initial Import for : E8DBE99E-70E1-E611-A856-0017A477041A
+Susceptibility Test Interpretation (STD)	PHVS_SusceptibilityTestInterpretation_STD	2.16.840.1.114222.4.11.7557	1	Antimicrobial Susceptibility Test Interpretation (e.g. Susceptible, Resistant, Intermediate, Not tested)	Published	01/23/2017	Initial Import for : 1502592D-71E1-E611-A856-0017A477041A
+Susceptibility Test Method (STD)	PHVS_SusceptibilityTestMethod_STD	2.16.840.1.114222.4.11.7556	1	Antimicrobial Susceptibility Test Method (e.g. E-Test, MIC, Disk Diffusion)	Published	01/23/2017	Initial Import for : A6AB1714-71E1-E611-A856-0017A477041A
+Susceptibility Test Result Quantitative (STD)	PHVS_SusceptibilityTestResultQuantitative_STD	2.16.840.1.114222.4.11.7559	1	Antimicrobial Susceptibility Test Result - Coded Quantitative. List of coded values (i.e. valid dilutions) to represent the antimicrobial susceptibility test result.	Published	01/23/2017	Initial Import for : F3E09A62-71E1-E611-A856-0017A477041A
+Susceptibility Test Result Units (STD)	PHVS_SusceptibilityTestResultUnits_STD	2.16.840.1.114222.4.11.7558	1	Antimicrobial Susceptibility Test Result Numerical Value Units (e.g. microgram/ml, mm)	Published	01/23/2017	Initial Import for : 7B589947-71E1-E611-A856-0017A477041A
+Susceptibility Test Type (STD)	PHVS_SusceptibilityTestType_STD	2.16.840.1.114222.4.11.7555	1	Antimicrobial Susceptibility Test Type would includes drugs, enzymes, PCR and other genetic tests to detect the resistance against specific drugs.	Published	01/23/2017	Initial Import for : 324B31DE-70E1-E611-A856-0017A477041A
+Transmission Category (STD)	PHVS_TransmissionCategory_STD	2.16.840.1.114222.4.11.7198	2	Exposure method by which disease was acquired by the subject of the investigation.	Published	07/08/2020	added Adult MSM
+Units of Measure	PHVS_UnitsOfMeasure_CDC	2.16.840.1.114222.4.11.838	5	Units of Measure based on UCUM std which also includes dimension	Published	04/17/2025	V5: Added Cycle threshold value
+Yes No Unknown (YNU)	PHVS_YesNoUnknown_CDC	2.16.840.1.114222.4.11.888	1	Value set used to respond to any question that can be answered Yes, No, or Unknown.	Published	10/22/2008	Initial Load VADS 3.0
+YNRD (CDC)	PHVS_YNRD_CDC	2.16.840.1.114222.4.11.7193	4	Value set used to respond to any question that can be answered by Yes, No, Refused to Answer, Not Asked, or Unknown.	Published	07/08/2020	removed asked but unknown

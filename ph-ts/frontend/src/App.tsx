@@ -157,13 +157,17 @@ async function fetchResources(
   status?: string,
   content?: string,
   contextValueCode?: string,
+  source?: string,
+  archivedOnly = false,
 ): Promise<UiResource[]> {
   const params = new URLSearchParams();
   if (search.trim()) params.set('name', search.trim());
   if (status) params.set('status', status);
   if (content) params.set('content', content);
   if (contextValueCode) params.set('context-value-code', contextValueCode);
-  params.set('_summary', 'true');  // metadata only — no concept/compose arrays
+  if (source) params.set('source', source);
+  if (archivedOnly) params.set('_archived', 'true');
+  params.set('_summary', 'true');
   const bundle = await apiFetch<{ entry?: Array<{ resource: FhirResource }> }>(
     `/${resourceType}?${params}`
   );
@@ -185,6 +189,13 @@ interface DiseaseView {
 async function fetchDiseaseViews(): Promise<DiseaseView[]> {
   const res = await apiFetch<{ views: DiseaseView[] }>('/ValueSet/$views');
   return res.views ?? [];
+}
+
+async function tagValueSetView(resourceId: string, viewId: string, remove = false): Promise<void> {
+  const resp = await fetch(`/ValueSet/$tag-view?resource_id=${encodeURIComponent(resourceId)}&view_id=${encodeURIComponent(viewId)}`, {
+    method: remove ? 'DELETE' : 'POST',
+  });
+  if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
 }
 
 async function fetchFullResource(resourceType: 'ValueSet' | 'CodeSystem', id: string): Promise<FhirResource> {
@@ -324,18 +335,33 @@ const ContentBadge = ({ content }: { content?: string }) => {
   );
 };
 
+const SOURCE_LABELS: Record<string, string> = {
+  phinvads: 'PHIN VADS',
+  vsac:     'VSAC',
+  hl7:      'HL7',
+  hl7v2:    'HL7 v2',
+  icd9cm:   'ICD-9-CM',
+  icd10cm:  'ICD-10-CM',
+  internal: 'PHTS',
+};
+
+const SOURCE_COLOURS: Record<string, string> = {
+  phinvads: 'bg-orange-100 text-orange-700',
+  vsac:     'bg-teal-100 text-teal-700',
+  hl7:      'bg-indigo-100 text-indigo-700',
+  hl7v2:    'bg-violet-100 text-violet-700',
+  icd9cm:   'bg-gray-100 text-gray-600',
+  icd10cm:  'bg-gray-100 text-gray-600',
+  internal: 'bg-blue-50 text-blue-600',
+};
+
 const SourceBadge = ({ source }: { source?: string }) => {
-  if (!source || source === 'internal') return null;
-  const colours: Record<string, string> = {
-    phinvads: 'bg-orange-100 text-orange-700',
-    vsac:     'bg-teal-100 text-teal-700',
-    hl7:      'bg-indigo-100 text-indigo-700',
-    icd9cm:   'bg-gray-100 text-gray-600',
-    icd10cm:  'bg-gray-100 text-gray-600',
-  };
+  const key = source ?? 'internal';
+  const label = SOURCE_LABELS[key] ?? key;
+  const colour = SOURCE_COLOURS[key] ?? 'bg-gray-100 text-gray-500';
   return (
-    <span className={`px-2 py-0.5 rounded text-xs font-medium ${colours[source] ?? 'bg-gray-100 text-gray-500'}`}>
-      {source}
+    <span className={`px-2 py-0.5 rounded text-xs font-medium ${colour}`}>
+      {label}
     </span>
   );
 };
@@ -605,7 +631,9 @@ const ModernPHINVADS = () => {
 
   // ValueSet table filters and pagination
   const [vsStatusFilter, setVsStatusFilter] = useState('');
-  const [vsViewFilter, setVsViewFilter] = useState('');  // condition code
+  const [vsViewFilter, setVsViewFilter] = useState('');     // condition code
+  const [vsSourceFilter, setVsSourceFilter] = useState(''); // import source
+  const [vsArchivedView, setVsArchivedView] = useState(false); // show archived instead of active
   const [vsPage, setVsPage] = useState(0);
   const VS_PAGE_SIZE = 25;
 
@@ -640,16 +668,18 @@ const ModernPHINVADS = () => {
     setErrorResources(null);
     setSelectedResource(null);
     try {
-      const status = activeTab === 'CodeSystem' ? csStatusFilter : vsStatusFilter;
+      const status = activeTab === 'CodeSystem' ? csStatusFilter : (vsArchivedView ? '' : vsStatusFilter);
       const content = activeTab === 'CodeSystem' ? csContentFilter : undefined;
-      const contextCode = activeTab === 'ValueSet' ? vsViewFilter : undefined;
-      setResources(await fetchResources(activeTab, debouncedSearch, status, content, contextCode));
+      const contextCode = activeTab === 'ValueSet' && !vsArchivedView ? vsViewFilter : undefined;
+      const source = activeTab === 'ValueSet' ? vsSourceFilter : undefined;
+      const archived = activeTab === 'ValueSet' ? vsArchivedView : false;
+      setResources(await fetchResources(activeTab, debouncedSearch, status, content, contextCode, source, archived));
     } catch (e) {
       setErrorResources((e as Error).message);
     } finally {
       setLoadingResources(false);
     }
-  }, [activeTab, debouncedSearch, csStatusFilter, csContentFilter, vsStatusFilter, vsViewFilter]);
+  }, [activeTab, debouncedSearch, csStatusFilter, csContentFilter, vsStatusFilter, vsViewFilter, vsSourceFilter, vsArchivedView]);
 
   useEffect(() => { loadResources(); }, [loadResources]);
 
@@ -698,6 +728,31 @@ const ModernPHINVADS = () => {
       })
       .finally(() => setLoadingHistory(false));
   }, [selectedResource?.id, selectedResource?.resourceType]);
+
+  // View tags for the selected ValueSet
+  const [resourceViewTags, setResourceViewTags] = useState<Set<string>>(new Set());
+  const [viewTagsLoading, setViewTagsLoading] = useState(false);
+  const [viewTagsOpen, setViewTagsOpen] = useState(false);
+
+  useEffect(() => {
+    setViewTagsOpen(false);
+    if (!selectedResource || selectedResource.resourceType !== 'ValueSet') {
+      setResourceViewTags(new Set());
+      return;
+    }
+    setViewTagsLoading(true);
+    fetchFullResource('ValueSet', selectedResource.id)
+      .then(full => {
+        const taggedCodes = new Set<string>(
+          (full.useContext ?? []).flatMap(uc =>
+            (uc.valueCodeableConcept?.coding ?? []).map((c: { code?: string }) => c.code ?? '')
+          ).filter(Boolean)
+        );
+        setResourceViewTags(taggedCodes);
+      })
+      .catch(() => setResourceViewTags(new Set()))
+      .finally(() => setViewTagsLoading(false));
+  }, [selectedResource?.id]);
 
   // Download a resource as JSON
   const handleDownloadJson = useCallback((resource: UiResource) => {
@@ -796,6 +851,75 @@ const ModernPHINVADS = () => {
               <label className="text-xs font-medium text-gray-500 uppercase">ID</label>
               <p className="text-sm font-mono bg-gray-50 p-2 rounded mt-1 break-all">{resource.id}</p>
             </div>
+
+            {/* Condition / Disease Views — ValueSet only */}
+            {resource.resourceType === 'ValueSet' && diseaseViews.length > 0 && (() => {
+              const taggedCount = diseaseViews.filter(v => resourceViewTags.has(v.code)).length;
+              return (
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  {/* Collapsible header */}
+                  <button
+                    onClick={() => setViewTagsOpen(o => !o)}
+                    className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <span className="text-xs font-medium text-gray-600 uppercase flex items-center gap-1.5">
+                      Condition Views
+                      {viewTagsLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {taggedCount > 0 && (
+                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                          {taggedCount}
+                        </span>
+                      )}
+                      <ChevronRight className={`w-3.5 h-3.5 text-gray-400 transition-transform ${viewTagsOpen ? 'rotate-90' : ''}`} />
+                    </div>
+                  </button>
+
+                  {/* Expandable list */}
+                  {viewTagsOpen && (
+                    <div className="divide-y divide-gray-100">
+                      {diseaseViews.map(v => {
+                        const tagged = resourceViewTags.has(v.code);
+                        return (
+                          <button
+                            key={v.id}
+                            title={v.description}
+                            onClick={() => {
+                              tagValueSetView(resource.id, v.id, tagged)
+                                .then(() => {
+                                  setResourceViewTags(prev => {
+                                    const next = new Set(prev);
+                                    tagged ? next.delete(v.code) : next.add(v.code);
+                                    return next;
+                                  });
+                                  fetchDiseaseViews().then(setDiseaseViews).catch(() => {});
+                                })
+                                .catch(() => {});
+                            }}
+                            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${
+                              tagged ? 'bg-blue-50 text-blue-800' : 'bg-white text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            <span className={`w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center transition-colors ${
+                              tagged ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'
+                            }`}>
+                              {tagged && (
+                                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 10 8">
+                                  <path d="M1 4l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              )}
+                            </span>
+                            <span className="flex-1">{v.display}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             <div>
               <label className="text-xs font-medium text-gray-500 uppercase mb-2 block">
                 Version History
@@ -1566,50 +1690,93 @@ const ModernPHINVADS = () => {
                     {/* Filter bar */}
                     <div className="mb-4 flex flex-wrap items-center gap-3">
                       <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+
+                      {/* Archived toggle */}
+                      <button
+                        onClick={() => { setVsArchivedView(!vsArchivedView); setVsPage(0); setSelectedResource(null); }}
+                        className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border transition-colors ${
+                          vsArchivedView
+                            ? 'bg-amber-100 text-amber-700 border-amber-300'
+                            : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        <Archive className="w-3.5 h-3.5" />
+                        {vsArchivedView ? 'Archived' : 'Active'}
+                      </button>
+
+                      {/* Filters — hidden when viewing archived (archived items have no useful status/view) */}
+                      {!vsArchivedView && (
+                        <>
+                          <div className="flex items-center gap-1.5">
+                            <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Status</label>
+                            <select
+                              value={vsStatusFilter}
+                              onChange={e => { setVsStatusFilter(e.target.value); setVsPage(0); }}
+                              className="text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            >
+                              <option value="">All statuses</option>
+                              <option value="active">Active</option>
+                              <option value="draft">Draft</option>
+                              <option value="retired">Retired</option>
+                              <option value="unknown">Unknown</option>
+                            </select>
+                          </div>
+
+                          {diseaseViews.length > 0 && (
+                            <div className="flex items-center gap-1.5">
+                              <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Condition</label>
+                              <select
+                                value={vsViewFilter}
+                                onChange={e => { setVsViewFilter(e.target.value); setVsPage(0); }}
+                                className="text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                              >
+                                <option value="">All conditions</option>
+                                {diseaseViews.map(v => (
+                                  <option key={v.id} value={v.code}>
+                                    {v.display}{v.count > 0 ? ` (${v.count})` : ''}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* Source filter — always visible */}
                       <div className="flex items-center gap-1.5">
-                        <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Status</label>
+                        <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Source</label>
                         <select
-                          value={vsStatusFilter}
-                          onChange={e => { setVsStatusFilter(e.target.value); setVsPage(0); }}
+                          value={vsSourceFilter}
+                          onChange={e => { setVsSourceFilter(e.target.value); setVsPage(0); }}
                           className="text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
                         >
-                          <option value="">All statuses</option>
-                          <option value="active">Active</option>
-                          <option value="draft">Draft</option>
-                          <option value="retired">Retired</option>
-                          <option value="unknown">Unknown</option>
+                          <option value="">All sources</option>
+                          <option value="phinvads">PHIN VADS</option>
+                          <option value="vsac">VSAC</option>
+                          <option value="hl7">HL7</option>
+                          <option value="hl7v2">HL7 v2</option>
+                          <option value="icd9cm">ICD-9-CM</option>
+                          <option value="phts">PHTS (internal)</option>
                         </select>
                       </div>
-                      {diseaseViews.length > 0 && (
-                        <div className="flex items-center gap-1.5">
-                          <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Condition / View</label>
-                          <select
-                            value={vsViewFilter}
-                            onChange={e => { setVsViewFilter(e.target.value); setVsPage(0); }}
-                            className="text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                          >
-                            <option value="">All conditions</option>
-                            {diseaseViews.map(v => (
-                              <option key={v.id} value={v.code}>
-                                {v.display}{v.count > 0 ? ` (${v.count})` : ''}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                      {(vsStatusFilter || vsViewFilter) && (
+
+                      {(vsStatusFilter || vsViewFilter || vsSourceFilter) && !vsArchivedView && (
                         <button
-                          onClick={() => { setVsStatusFilter(''); setVsViewFilter(''); setVsPage(0); }}
+                          onClick={() => { setVsStatusFilter(''); setVsViewFilter(''); setVsSourceFilter(''); setVsPage(0); }}
                           className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md px-2 py-1.5 hover:bg-gray-50 transition-colors"
                         >
                           <X className="w-3 h-3" /> Clear filters
                         </button>
                       )}
+
                       <p className="ml-auto text-sm text-gray-600">
-                        Showing <span className="font-semibold">{resources.length}</span>
-                        <span className="text-gray-400"> value sets</span>
+                        {vsArchivedView
+                          ? <><span className="font-semibold text-amber-700">{resources.length}</span><span className="text-gray-400"> archived value sets</span></>
+                          : <><span className="font-semibold">{resources.length}</span><span className="text-gray-400"> value sets</span></>
+                        }
                         {debouncedSearch && <span className="text-gray-400"> matching "{debouncedSearch}"</span>}
                         {vsViewFilter && (() => { const v = diseaseViews.find(dv => dv.code === vsViewFilter); return v ? <span className="text-blue-500"> · {v.display}</span> : null; })()}
+                        {vsSourceFilter && <span className="text-gray-400"> · {SOURCE_LABELS[vsSourceFilter] ?? vsSourceFilter}</span>}
                       </p>
                     </div>
 
@@ -1617,9 +1784,11 @@ const ModernPHINVADS = () => {
                       <div className="text-center py-20 text-gray-400">
                         <Layers className="w-12 h-12 mx-auto mb-3 opacity-30" />
                         <p className="text-sm">
-                          {debouncedSearch || vsStatusFilter || vsViewFilter
-                            ? 'No value sets match the current filters.'
-                            : 'No value sets found. Import data using the migration tool.'}
+                          {vsArchivedView
+                            ? 'No archived value sets found.'
+                            : (debouncedSearch || vsStatusFilter || vsViewFilter || vsSourceFilter)
+                              ? 'No value sets match the current filters.'
+                              : 'No value sets found. Import data using the migration tool.'}
                         </p>
                       </div>
                     ) : (
@@ -1668,13 +1837,26 @@ const ModernPHINVADS = () => {
                                     {vs.version && <span className="text-xs text-blue-600 font-medium">v{vs.version}</span>}
                                   </td>
                                   <td className="px-4 py-3">
-                                    <button
-                                      className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-600"
-                                      onClick={e => { e.stopPropagation(); handleDownloadJson(vs); }}
-                                      title="Download JSON"
-                                    >
-                                      <Download className="w-4 h-4" />
-                                    </button>
+                                    {vsArchivedView ? (
+                                      <button
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity text-amber-500 hover:text-amber-700 text-xs font-medium flex items-center gap-1 whitespace-nowrap"
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          archiveResource(vs.id, true).then(() => loadResources()).catch(() => {});
+                                        }}
+                                        title="Restore"
+                                      >
+                                        <RefreshCw className="w-3.5 h-3.5" /> Restore
+                                      </button>
+                                    ) : (
+                                      <button
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-600"
+                                        onClick={e => { e.stopPropagation(); handleDownloadJson(vs); }}
+                                        title="Download JSON"
+                                      >
+                                        <Download className="w-4 h-4" />
+                                      </button>
+                                    )}
                                   </td>
                                 </tr>
                               ))}

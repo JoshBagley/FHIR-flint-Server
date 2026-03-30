@@ -564,8 +564,9 @@ class DatabaseManager:
 
             return json.loads(row['data']) if row else None
 
-    async def search_resources(self, resource_type: str, params: Dict[str, Any], summary: bool = False) -> List[Dict]:
-        conditions = ["resource_type = $1", "archived = FALSE"]
+    async def search_resources(self, resource_type: str, params: Dict[str, Any], summary: bool = False, archived_only: bool = False) -> List[Dict]:
+        archived_condition = "archived = TRUE" if archived_only else "archived = FALSE"
+        conditions = ["resource_type = $1", archived_condition]
         values = [resource_type]
         param_idx = 2
 
@@ -582,6 +583,21 @@ class DatabaseManager:
         if 'url' in params:
             conditions.append(f"url = ${param_idx}")
             values.append(params['url'])
+            param_idx += 1
+
+        if 'identifier' in params:
+            # Strip urn:oid: prefix if present — identifiers are stored as bare OIDs
+            ident_val = params['identifier']
+            if ident_val.startswith('urn:oid:'):
+                ident_val = ident_val[len('urn:oid:'):]
+            conditions.append(f"""
+                EXISTS (
+                    SELECT 1
+                    FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) AS ident
+                    WHERE ident->>'value' = ${param_idx}
+                )
+            """)
+            values.append(ident_val)
             param_idx += 1
 
         if 'content' in params:
@@ -613,6 +629,38 @@ class DatabaseManager:
             """)
             values.append(params['context-type'])
             param_idx += 1
+
+        if 'source' in params:
+            # Filter by the phts.local/source extension (phinvads | hl7 | hl7v2 | vsac | icd9cm | phts)
+            source_val = params['source']
+            if source_val == 'phts':
+                # 'phts' means internally created — no source extension, or extension value is 'internal'
+                conditions.append(f"""
+                    (
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM jsonb_array_elements(COALESCE(data->'extension', '[]'::jsonb)) AS ext
+                            WHERE ext->>'url' = 'http://phts.local/StructureDefinition/source'
+                        )
+                        OR EXISTS (
+                            SELECT 1
+                            FROM jsonb_array_elements(COALESCE(data->'extension', '[]'::jsonb)) AS ext
+                            WHERE ext->>'url' = 'http://phts.local/StructureDefinition/source'
+                              AND ext->>'valueCode' = 'internal'
+                        )
+                    )
+                """)
+            else:
+                conditions.append(f"""
+                    EXISTS (
+                        SELECT 1
+                        FROM jsonb_array_elements(COALESCE(data->'extension', '[]'::jsonb)) AS ext
+                        WHERE ext->>'url' = 'http://phts.local/StructureDefinition/source'
+                          AND ext->>'valueCode' = ${param_idx}
+                    )
+                """)
+                values.append(source_val)
+                param_idx += 1
 
         if summary:
             # Return metadata only — strips concept/compose arrays for fast list queries.
@@ -1062,10 +1110,13 @@ async def delete_value_set(resource_id: str):
 async def search_value_sets(
     name: Optional[str] = Query(None),
     url: Optional[str] = Query(None),
+    identifier: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     q: Optional[str] = Query(None),
     context_value_code: Optional[str] = Query(None, alias="context-value-code"),
     context_type: Optional[str] = Query(None, alias="context-type"),
+    source: Optional[str] = Query(None, description="Filter by import source: phinvads | hl7 | hl7v2 | vsac | icd9cm | phts"),
+    _archived: bool = Query(False, alias="_archived", description="Return archived resources instead of active ones"),
     _summary: bool = Query(False, alias="_summary"),
 ):
     if q:
@@ -1077,16 +1128,25 @@ async def search_value_sets(
         params['name'] = name
     if url:
         params['url'] = url
+    if identifier:
+        params['identifier'] = identifier
     if status:
         params['status'] = status
     if context_value_code:
         params['context-value-code'] = context_value_code
     if context_type:
         params['context-type'] = context_type
+    if source:
+        params['source'] = source
+
+    # Archived queries are not cached (small volume, infrequent access)
+    if _archived:
+        results = await state.db.search_resources("ValueSet", params, summary=_summary, archived_only=True)
+        return {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}
 
     # Cache list results — key includes all filter params so different searches cache independently.
     # Invalidated automatically by invalidate_pattern("ValueSet:*") on create/update/delete/archive.
-    cache_key = f"ValueSet:list:{name or ''}:{url or ''}:{status or ''}:{context_value_code or ''}:{_summary}"
+    cache_key = f"ValueSet:list:{name or ''}:{url or ''}:{identifier or ''}:{status or ''}:{context_value_code or ''}:{source or ''}:{_summary}"
     cached = await state.cache.get(cache_key)
     if cached:
         return cached

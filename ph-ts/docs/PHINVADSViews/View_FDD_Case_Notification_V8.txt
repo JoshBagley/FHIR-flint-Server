@@ -1,0 +1,66 @@
+View Name	View Description	View Version	Status Date
+FDD Case Notification	The vocabulary used for FDD Case Notification messages to CDC.	8	03/28/2024 00:00:00
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Animal Type (FDD)	PHVS_AnimalType_FDD	2.16.840.1.114222.4.11.3072	3	Animal contact answer list for Foodborne and Diarrheal Diseases	Published	10/22/2008	v3
+Antacids (FDD)	PHVS_Antacids_FDD	2.16.840.1.114222.4.11.7620	1	Antacids answer list for FDD MMG	Published	11/16/2017	Antacids answer list for FDD MMG
+Antibiotics (FDD)	PHVS_Antibiotics_FDD	2.16.840.1.114222.4.11.7619	5	Antibiotics answer list	Published	08/05/2018	Updated to include Cefepime, Ciprodex, Clindamycin, Rocephin, Sulfamethoxazole, Vancomycin, and Zosyn. 
+Condition Status (FDD)	PHVS_ConditionStatus_FDD	2.16.840.1.114222.4.11.7779	2	Patient's outcome following illness	Published	01/27/2020	Removed "patient recovered" and added "patient alive".
+Contact Type (FDD)	PHVS_ContactType_FDD	2.16.840.1.114222.4.11.7851	1	Contact type answer list	Published	10/19/2018	v1
+Country	PHVS_Country_ISO_3166-1	2.16.840.1.114222.4.11.828	6	Codes representing country of origin, nationality, citizenship, address country	Published	12/31/2018	v6: Based on ISO 3166-1 standard as of 12/01/2019
+Day Care Setting (FDD)	PHVS_DayCareSetting_FDD	2.16.840.1.114222.4.11.7633	1	Day care setting for FDD MMG	Published	11/16/2017	Day care setting for FDD MMG
+Drinking Water (FDD)	PHVS_DrinkingWater_FDD	2.16.840.1.114222.4.11.7630	1	Drinking water answer list	Published	11/16/2017	Drinking water answer list
+Fresh Berries (FDD)	PHVS_FreshBerries_FDD	2.16.840.1.114222.4.11.3085	2	Fresh berries consumed answer list	Published	10/19/2018	v2-- Added additional values to the value set
+Fresh Herbs (FDD)	PHVS_FreshHerbs_FDD	2.16.840.1.114222.4.11.3086	2	Fresh herbs consumed answer list	Published	10/19/2018	v2-- Added additional values to the value set
+Fresh Produce (FDD)	PHVS_FreshProduce_FDD	2.16.840.1.114222.4.11.3087	2	Fresh produce consumed answer list	Published	10/19/2018	v2-- Added additional values to the value set
+H Antigens (FDD)	PHVS_HAntigen_FDD	2.16.840.1.114222.4.11.7741	1	H antigens for E. coli serotyping.	Published	02/23/2018	v1
+Harvest Classification (FDD)	PHVS_HarvestClassification_FDD	2.16.840.1.114222.4.11.7642	1	Harvest classification answer list for FDD MMG	Published	11/16/2017	Harvest classification answer list for FDD MMG
+Improper Handling Storage (FDD)	PHVS_ImproperHandlingStorage_FDD	2.16.840.1.114222.4.11.7640	1	Improper handling storage answer list for FDD MMG	Published	11/16/2017	Improper handling storage answer list for FDD MMG
+Industry CDC Census 2010	PHVS_Industry_CDC_Census2010	2.16.840.1.114222.4.11.7187	1	2010 Industry coding system used by CDC (NIOSH & NCHS) for coding industry text.  Industry describes an economic/business sector comprised of businesses/ enterprises concerned with the output of a specified category of products or services (e.g., the construction industry or the agriculture industry).  This industry code system includes  2007 U.S. Census Bureau industry codes  and  three additional codes developed by CDC for unpaid workers.  The 2010 Census industry categories  are based on the 2007 North American Industry Classification System (NAICS).  The PH_Occupation_CDC_Census2010  code system should be used in conjunction with this industry code system when coding both industry and occupation.  For more information and instructions on using this coding system, see the instruction manual for CDC-Census I&O coding at:  http://www.cdc.gov/niosh/topics/coding/	Published	08/23/2013	Initial Import for : 981F6E94-1A0C-E311-81F2-0017A477041A
+Interview Status	PHVS_InterviewStatus_CDC	2.16.840.1.114222.4.11.3089	1	Answer list for status of patient interview for international travel history	Published	10/22/2008	Initial Load VADS 3.0
+Lettuce Type (FDD)	PHVS_LettuceType_FDD	2.16.840.1.114222.4.11.3090	2	Type of lettuce consumed answer list	Published	10/19/2018	v2-- Added Additional values to the value set
+Medical History (FDD)	PHVS_MedicalHistory_FDD	2.16.840.1.114222.4.11.7636	1	Medical history answer list for FDD MMG	Published	11/16/2017	Medical history answer list for FDD MMG
+O Antigen (FDD)		PHVS_OAntigen_FDD	2.16.840.1.114222.4.11.7742	3	O antigens for E. coli serotyping	Published	03/06/2020	Removed PHC1738, PHC1658, PHC1647, PHC1646, PHC1750, PHC1753, PHC1766, PHC1657. Added O17/O77, O28/O42, O50/O2, O118/O151, O153/O178, O13/O135, O17/O44, O123/O186, O169/O183, 458110000, 407226001, 407230003, 407210002, 407181000, 457991003
+Occupation CDC Census 2010	PHVS_Occupation_CDC_Census2010	2.16.840.1.114222.4.11.7186	1	2010 Occupation coding system used by CDC (NIOSH & NCHS) for coding occupation text.  Occupation describes a set of activities or tasks that individuals are paid to perform or, if unpaid, define a person’s contribution to a household/family business/community.  This code system includes  2010 U.S. Census Bureau occupation codes with modifications made by CDC for unpaid workers and military occupations.  The 2010 Census occupation categories  are based on the 2010 BLS Standard Occupational Classification (SOC) system.  The PH_Industry_CDC_Census2010  code system should be used in conjunction with this occupation code system when coding both industry and occupation.  For more information and instructions on using this coding system, see the instruction manual for CDC-Census I&O coding at:  http://www.cdc.gov/niosh/topics/coding/	Published	08/23/2013	v1
+Organism (FDD)	PHVS_Organism_FDD	2.16.840.1.114222.4.11.7617	6	Organism answer list for FDD	Published	03/12/2020	Added, deleted and updated new codes in value set.  
+Outbreak Type (FDD)	PHVS_OutbreakType_FDD	2.16.840.1.114222.4.11.3095	2	Type of outbreak answer list	Published	10/22/2008	Updated for 2017-2018 version of the FDD MMG
+Performing Lab Type (FDD)	PHVS_PerformingLabType_FDD	2.16.840.1.114222.4.11.7624	2	Performing lab type answer list for FDD MMG	Published	01/31/2018	v2 Added PHC1508	Local Public Health Laboratory
+PHC1509	Clinical Laboratory
+
+Positive Negative Not Done	PHVS_PosNegNotDone_NND	2.16.840.1.114222.4.11.7622	1		Published	11/16/2017	
+Positive Negative Unknown	PHVS_PosNegUnk_CDC	2.16.840.1.114222.4.11.3265	1	Qualitative interpretation of  testing performed on the specimen identified by Specimen Type (LAB203)	Published	10/29/2009	Positive Negative Unknown
+Positive Negative Unknown Not Done	PHVS_PosNegUnkNotDone_CDC	2.16.840.1.114222.4.11.929	1	Values used for limited qualitative result reporting	Published	10/22/2008	Initial Load VADS 3.0
+Pregnancy Outcome (Listeria)	PHVS_PregnancyOutcome_Listeria	2.16.840.1.114222.4.11.7798	2	Outcome of pregnancy answer list	Published	05/08/2018	v1
+Raw Unpasteurized Products (FDD)	PHVS_RawUnpasteurizedProducts_FDD	2.16.840.1.114222.4.11.7632	1	Raw unpasteurized products for FDD MMG	Published	11/16/2017	Raw unpasteurized products for FDD MMG
+Recreational Water (FDD)	PHVS_RecreationalWater_FDD	2.16.840.1.114222.4.11.3098	1	Recreational water exposure type answer list	Published	10/22/2008	Initial Load VADS 3.0
+Seafood Preparation (FDD)	PHVS_SeafoodPreparation_FDD	2.16.840.1.114222.4.11.7637	2	Seafood preparation answer list for FDD MMG	Published	01/31/2018	v2 added PHC1510	undercooked
+PHC1511	fully cooked
+
+Seafood Source (FDD)	PHVS_SeafoodSource_FDD	2.16.840.1.114222.4.11.7638	1	Seafood source answer list for FDD MMG	Published	11/16/2017	Seafood source answer list for FDD MMG
+Seafood Type (FDD)	PHVS_SeafoodType_FDD	2.16.840.1.114222.4.11.3100	4	Type of raw seafood answer list	Published	11/08/2018	Removed other from the value set
+Sexual Contact (FDD)	PHVS_SexualContact_FDD	2.16.840.1.114222.4.11.7634	1	Sexual contact answer list for FDD MMG	Published	11/16/2017	Sexual contact answer list for FDD MMG
+Shellfish Distributed (FDD)	PHVS_ShellfishDistributed_FDD	2.16.840.1.114222.4.11.7639	1	Shellfish distributed answer list for FDD MMG	Published	11/16/2017	Shellfish distributed answer list for FDD MMG
+Signs and Symptoms (FDD)	PHVS_SignsSymptoms_FDD	2.16.840.1.114222.4.11.7621	2	FDD MMG Signs and Symptoms	Published	11/16/2017	Initial Import for : E22E8D93-ECCA-E711-ACE2-0017A477041A
+Specimen Collection Source (FDD)	PHVS_SpecimenCollectionSource_FDD	2.16.840.1.114222.4.11.7627	3	Specimen collection source answer list for FDD MMG.	Published	03/14/2018	v3
+Specimen Site (FDD) 	PHVS_Specimen Site_FDD	2.16.840.1.114222.4.11.7778	1	Site of specimen collection answer list for FDD MMG.	Published	03/09/2018	v1
+State	PHVS_State_FIPS_5-2	2.16.840.1.114222.4.11.830	1	State codes for U.S. based on FIPS 5-2	Published	10/22/2008	Initial Load VADS 3.0
+Swimming Pool Type (FDD)	PHVS_SwimmingPoolType_FDD	2.16.840.1.114222.4.11.3104	1	Swimming pool types answer list	Published	10/22/2008	Initial Load VADS 3.0
+Test Method (FDD)	PHVS_TestMethod_FDD	2.16.840.1.114222.4.11.7623	4	Test method answer list.	Published	10/15/2020	Added Abbott Campylobacter Quik Chek
+Test Result (FDD)	PHVS_TestResult_FDD	2.16.840.1.114222.4.11.7626	3	Test result answer list for FDD MMG	Published	11/08/2018	Added Indeterminate (qualifier value) and No growth (qualifier value) to the value set
+Test Type (FDD)	PHVS_TestType_FDD	2.16.840.1.114222.4.11.7625	2	Test type answer list for FDD MMG	Published	01/27/2020	Added new test type, "Identification".
+Travel Purpose	PHVS_TravelPurpose_FDD	2.16.840.1.114222.4.11.3108	2	Purpose of travel answer list	Published	10/22/2008	Updated for 2017-2018 version of the FDD MMG
+Typhoid Paratyphoid Serotype (FDD)	PHVS_TyphoidParatyphoidSerotype_FDD	2.16.840.1.114222.4.11.7647	1	Typhoid paratyphoid serotype answer list for FDD MMG	Published	11/16/2017	Typhoid paratyphoid serotype answer list for FDD MMG
+Units of Measure	PHVS_UnitsOfMeasure_CDC	2.16.840.1.114222.4.11.838	5	Units of Measure based on UCUM std which also includes dimension	Published	04/17/2025	V5: Added Cycle threshold value
+Vaccine Received (FDD)	PHVS_VaccineReceived_FDD	2.16.840.1.114222.4.11.7646	1	Vaccine received answer list for FDD MMG	Published	11/16/2017	Vaccine received answer list for FDD MMG
+Vibrio Cholera Biotype (FDD)	PHVS_VibrioCholeraBiotype_FDD	2.16.840.1.114222.4.11.7645	1	Vibrio cholera biotype answer list for FDD MMG	Published	11/16/2017	Vibrio cholera biotype answer list for FDD MMG
+Vibrio Cholera Serotype (FDD)	PHVS_VibrioCholeraSerotype_FDD	2.16.840.1.114222.4.11.7644	1	Vibrio cholera serotype answer list for FDD MMG	Published	11/16/2017	Vibrio cholera serotype answer list for FDD MMG
+Vibrio Species (FDD)	PHVS_VibrioSpecies_FDD	2.16.840.1.114222.4.11.7643	5	Vibrio species answer list for FDD MMG	Published	11/08/2018	Added and removed values from the value set
+Water Salinity (FDD)	PHVS_WaterSalinity_FDD	2.16.840.1.114222.4.11.3113	1	Water type based on saline content or salt (e.g.  Fresh water, sea water)	Published	10/22/2008	Initial Load VADS 3.0
+Wound History	PHVS_WoundHistory_CDC	2.16.840.1.114222.4.11.3115	1	Wound History during exposure answer list	Published	10/22/2008	Initial Load VADS 3.0
+Yes No Don't Know Maybe (FDD)	PHVS_YesNoDon'tKnowMaybe_FDD	2.16.840.1.114222.4.11.7629	1		Published	11/16/2017	
+Yes No Indicator (HL7)	PHVS_YesNo_HL7_2x	2.16.840.1.114222.4.11.819	1	Value set used to respond to any question that can be answered only Yes or No. This value set is also HL7 table 0136 Yes/No Indicator.	Published	10/01/2019	Initial Load VADS 3.0
+Yes No Not Tested (NND)	PHVS_YesNoNotTested_NND	2.16.840.1.114222.4.11.7648	1		Published	11/16/2017	
+Yes No Unknown (YNU)	PHVS_YesNoUnknown_CDC	2.16.840.1.114222.4.11.888	1	Value set used to respond to any question that can be answered Yes, No, or Unknown.	Published	10/22/2008	Initial Load VADS 3.0
+Yes No Unknown Maybe (FDD)	PHVS_YesNoUnkMaybe_FDD	2.16.840.1.114222.4.11.7628	1		Published	11/16/2017	
+Yes No Unknown Not Done	PHVS_YesNoUnkNotDone_CDC	2.16.840.1.114222.4.11.3069	1	Yes No Unknown Not done	Published	10/22/2008	Initial Load VADS 3.0
+Yes No Unknown Refused (NND)	PHVS_YesNoUnkRefused_NND	2.16.840.1.114222.4.11.7618	1		Published	11/16/2017	

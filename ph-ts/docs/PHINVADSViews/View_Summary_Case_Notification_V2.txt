@@ -1,0 +1,11 @@
+View Name	View Description	View Version	Status Date
+Summary Case Notification	The vocabulary used for Summary Case Notification messages to CDC.	2	02/22/2010 14:04:49
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Case Classification Status	PHVS_CaseClassStatus_NND	2.16.840.1.114222.4.11.968	1	Indicates how the Nationally Notifiable Disease case was classified at its close	Published	10/22/2008	Initial Load VADS 3.0
+County	PHVS_County_FIPS_6-4	2.16.840.1.114222.4.11.829	1	Codes representing county of origin, address county, reporting county. 	Published	12/10/2019	Initial Load VADS 3.0
+Name Type (HL7)	PHVS_NameType_HL7_2x	2.16.840.1.114222.4.11.810	1	HL7 table 0200 contains types of person names, including Maiden and Alias.	Published	08/31/2011	Initial Load VADS 3.0
+National Reporting Jurisdiction	PHVS_NationalReportingJurisdiction_NND	2.16.840.1.114222.4.11.3236	1	National jurisdiction reporting the notification to CDC	Published	06/29/2009	Initial Load of Value Set
+Nationally Notifiable Disease Surveillance System (NNDSS) & Other Conditions of Public Health Importance	PHVS_NotifiableEvent_Disease_Condition_CDC_NNDSS	2.16.840.1.114222.4.11.1015	3	List of notifiable events, which includes infectious and non-infectious diseases or conditions. This list includes events that are notifiable at the state and national level.	Published	11/23/2022	New Version based on NND Code System Release January 2010
+Notification Section Header	PHVS_NotificationSectionHeader_CDC	2.16.840.1.114222.4.11.1107	1	List of Notification Section Headers. Type of notification event (Case, Environmental, Lab Report turn-around to CDC)	Published	05/28/2015	Initial Load VADS 3.0
+State	PHVS_State_FIPS_5-2	2.16.840.1.114222.4.11.830	1	State codes for U.S. based on FIPS 5-2	Published	10/22/2008	Initial Load VADS 3.0

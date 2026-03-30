@@ -495,51 +495,76 @@ Each "view" is a named grouping of ValueSets associated with a public health dis
 
 ### View Definitions
 
-Defined in `backend/app/disease_views.json` — 13 public health views with SNOMED CT codes:
+Defined in `backend/app/disease_views.json` — **107 views** aligned 1:1 with the PHIN VADS exported view files in `docs/PHINVADSViews/`. Each view ID is a URL slug derived from the filename.
 
-| View ID | Display | SNOMED Code |
-|---|---|---|
-| `covid-19` | COVID-19 | 840539006 |
-| `influenza` | Influenza | 6142004 |
-| `tuberculosis` | Tuberculosis (TB) | 56717001 |
-| `hiv` | HIV | 86406008 |
-| `hepatitis` | Viral Hepatitis | 3738000 |
-| `std` | Sexually Transmitted Diseases | 8098009 |
-| `foodborne` | Foodborne Illness | 75570004 |
-| `cancer` | Cancer / Neoplasm | 363346000 |
-| `lead` | Lead Exposure | 88519001 |
-| `newborn-screening` | Newborn Screening | 428447004 |
-| `immunization` | Immunization | 127785005 |
-| `lab-reporting` | Laboratory Reporting | 108252007 |
-| `emergency-response` | Emergency Response / Biosurveillance | 409137002 |
+Examples:
 
-To add new views: edit `backend/app/disease_views.json` and restart the backend.
+| View ID | Display |
+|---|---|
+| `covid-19-case-notification` | COVID-19 Case Notification |
+| `tuberculosis-case-notification` | Tuberculosis Case Notification |
+| `hiv` | (none — mapped from old hand-crafted set, now replaced) |
+| `immunization-messaging-hl7-version-2-5-1` | Immunization Messaging - HL7 Version 2.5.1 |
+| `syndromic-surveillance` | Syndromic Surveillance |
+| `generic-case-notification-mmg-version-2` | Generic Case Notification MMG - Version 2 |
+
+`system` = `https://phinvads.cdc.gov/vads/view`, `code` = the slug (not SNOMED codes).
+
+To regenerate views from the file listing (e.g. after adding new view files):
+```bash
+python migration/tag_disease_views.py --generate-views
+```
+
+To add new views: re-export from PHIN VADS into `docs/PHINVADSViews/` and run `--generate-views`.
 
 ### Tagging ValueSets
 
 ```bash
-# Tag a ValueSet with the COVID-19 view
-curl -X POST "http://localhost/ValueSet/\$tag-view?resource_id=YOUR_ID&view_id=covid-19"
+# Tag a ValueSet with a view
+curl -X POST "http://localhost/ValueSet/\$tag-view?resource_id=YOUR_ID&view_id=covid-19-case-notification"
 
 # Remove a tag
-curl -X DELETE "http://localhost/ValueSet/\$tag-view?resource_id=YOUR_ID&view_id=covid-19"
+curl -X DELETE "http://localhost/ValueSet/\$tag-view?resource_id=YOUR_ID&view_id=covid-19-case-notification"
 
 # Browse the view catalogue (with live counts)
 curl "http://localhost/ValueSet/\$views"
 
-# Filter ValueSets by condition code
-curl "http://localhost/ValueSet?context-value-code=840539006&_summary=true"
+# Filter ValueSets by view slug
+curl "http://localhost/ValueSet?context-value-code=covid-19-case-notification&_summary=true"
 ```
 
 The `$tag-view` POST is idempotent — calling it twice does not create duplicate `useContext` entries.
 
+### Auto-Tagging Script
+
+`migration/tag_disease_views.py` reads all 107 `View_*.txt` files from `docs/PHINVADSViews/`, resolves OIDs to PH-TS resource IDs, and calls `$tag-view` for each match.
+
+```bash
+# Preview (dry-run, default)
+python migration/tag_disease_views.py --target-url http://localhost
+
+# Apply all tags
+python migration/tag_disease_views.py --apply --target-url http://localhost
+
+# Filter to specific views
+python migration/tag_disease_views.py --filter covid influenza --target-url http://localhost
+
+# Show OIDs not found in PH-TS
+python migration/tag_disease_views.py --show-unmatched --target-url http://localhost
+
+# Regenerate disease_views.json from view files
+python migration/tag_disease_views.py --generate-views
+```
+
+OID resolution order: `url=https://phinvads.cdc.gov/baseStu3/ValueSet/{oid}` first (matches how both importers store the `url` field), then `identifier={oid}` (bare OID, fallback).
+
+### Curation Status (as of 2026-03-30)
+
+2,750 tags applied across 988 ValueSets / 107 views. 323 OIDs in view files were not found in PH-TS (those ValueSets were not imported). Re-run `--apply` after importing additional ValueSets to pick up new matches.
+
 ### UI
 
-The ValueSet browser in `App.tsx` shows a **"Condition / View"** dropdown filter when `GET /ValueSet/$views` returns results. The dropdown lists all views with their current counts; selecting one issues a `?context-value-code=` query to the backend. Only views with no tags return count=0 — they still appear in the dropdown to support bootstrapping.
-
-### Curation Status
-
-As of 2026-03-29, no ValueSets have been tagged yet. Use the `$tag-view` API or (future) bulk-tagging UI to populate the views. See the backlog for an AI-assisted auto-tagging proposal.
+The ValueSet browser in `App.tsx` shows a **"Condition / View"** dropdown filter when `GET /ValueSet/$views` returns results. The dropdown lists all views with their current counts; selecting one issues a `?context-value-code=` query to the backend. The ValueSet detail drawer has a collapsible checkbox panel for adding/removing view tags on individual resources.
 
 ---
 
@@ -566,6 +591,9 @@ The ValueSet Builder includes a lazy-loaded hierarchy tree for SNOMED CT concept
 - **ValueSet list concept count showed 0 (fixed 2026-03-29)** — `_summary=true` stripped `compose`/`concept` arrays so `countConcepts()` returned 0 for all resources. Fixed by adding `_conceptCount` to the `jsonb_build_object()` summary query (computed inline via `jsonb_array_length` for CodeSystems and a correlated subquery for ValueSets).
 - **SNOMED CT US Edition 404/422 on `$expand`** — tx.fhir.org does not have the US Edition module (`731000124108`) loaded. `expand_snomed_ecl_us()` now tries the US module URL first, then silently falls back to International Edition, labelling results with the actual edition used.
 - **SNOMED hierarchy tree showed 0 children (fixed 2026-03-29)** — `get_snomed_children()` was using `CodeSystem/$lookup?property=child` which tx.fhir.org does not reliably return for SNOMED CT. Fixed to use `ValueSet/$expand` with ECL operators: `<!{id}` for direct children and `>!{id}` for direct parents. These are fetched concurrently alongside the display name lookup, with the same US→International fallback pattern.
+- **`GET /ValueSet?identifier=` silently ignored (fixed 2026-03-30)** — `identifier` was not wired up in `search_value_sets` or `search_resources`. The parameter was ignored and all 1,998 ValueSets were returned, causing the auto-tagging script to map every OID to `entries[0]` (same 1-2 resources for every view). Fixed: `identifier` param added to endpoint; `search_resources` now queries `identifier[].value` JSONB array and strips `urn:oid:` prefix automatically. Identifiers are stored as bare OIDs by both importers.
+- **Auto-tag script used wrong OID lookup form (fixed 2026-03-30)** — `tag_disease_views.py` was trying `identifier=urn:oid:{oid}` first, which both matched nothing (before the fix above) and was the wrong format. Changed primary lookup to `url=https://phinvads.cdc.gov/baseStu3/ValueSet/{oid}` which matches the `url` column directly. Bare OID `identifier=` is now the fallback.
+- **Auto-tag script crashed on Windows terminal (fixed 2026-03-30)** — Unicode box-drawing characters (`──`, `→`, `…`) in `print()` calls caused `UnicodeEncodeError` on Windows cp1252 terminal. Replaced with ASCII equivalents (`--`, `->`, `...`).
 - **HL7 v2 search returned "Unknown system"** — `hl7v2` was in the `SYSTEMS` dict but not in `_SEARCH_FNS`. Fixed by adding `_search_hl7v2_local()` which queries locally-imported HL7 v2 table CodeSystems in PostgreSQL directly.
 - **LOINC fhir.loinc.org returns 401** — switched to NLM ClinicalTables as the LOINC source. `LOINC_USERNAME`/`LOINC_PASSWORD` are no longer used.
 - **Gemini free tier quota** — `gemini-2.0-flash` requires billing enabled on the Google Cloud project. The free tier limit is 0 RPM for this model.

@@ -1341,11 +1341,11 @@ async def list_disease_views():
     Return the catalogue of disease/condition views available in this server.
 
     Each entry contains:
-    - id          — slug used in /ValueSet?context-value-code=
-    - display     — human-readable name
-    - system      — code system of the condition code (SNOMED CT)
-    - code        — condition code
-    - description — plain-text description of the view
+    - id          — slug (same as code); use in /ValueSet?context-value-code=
+    - display     — human-readable PHIN VADS view name
+    - system      — https://phinvads.cdc.gov/vads/view
+    - code        — view slug (same as id)
+    - description — plain-text description
     - count       — number of ValueSets currently tagged with this view
 
     To browse ValueSets for a view, call:
@@ -1420,8 +1420,8 @@ async def tag_value_set_with_view(
     new_context_entry = {
         "code": {
             "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
-            "code": "focus",
-            "display": "Clinical Focus",
+            "code": "program",
+            "display": "Program",
         },
         "valueCodeableConcept": {
             "coding": [

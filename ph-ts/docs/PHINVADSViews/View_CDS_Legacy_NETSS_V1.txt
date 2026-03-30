@@ -1,0 +1,5 @@
+View Name	View Description	View Version	Status Date
+CDS Legacy NETSS	CDS Legacy NETSS - supporting the CDS release 3.02	1	10/24/2011 00:00:00
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Legacy Reporting Jurisdiction (CDS)	PHVS_LegacyReportingJurisdiction_NND_CDS	2.16.840.1.114222.4.11.6006	1	NETSS - Legacy Reporting Jurisdiction value set for CDS internal use. Not to be used in HL7 messaging. this value set has same concepts as National Reporting Jurisdiction except for the New York City and Palau codes.	Published	10/24/2011	First version to support CDS release 3.02

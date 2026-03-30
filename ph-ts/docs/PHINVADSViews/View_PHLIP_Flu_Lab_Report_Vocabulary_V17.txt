@@ -1,0 +1,37 @@
+View Name	View Description	View Version	Status Date
+PHLIP Flu Lab Report Vocabulary	The PHLIP (Public Health Laboratory Interoperability Project) Flu Lab Report vocabulary contains the data elements of interest specific to influenza used for the messaging of laboratory tests and their results from state public health partners to the CDC.	17	09/24/2014 00:00:00
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Abnormal Flag (HL7)	PHVS_AbnormalFlag_HL7_2x	2.16.840.1.114222.4.11.800	1	HL7 version 2.5 User-Defined Table 0078 Abnormal Flags used for laboratory result interpretation	Published	10/22/2008	Initial Load VADS 3.0
+Address Type (HL7)	PHVS_AddressType_HL7_2x	2.16.840.1.114222.4.11.801	1	Address Type	Published	06/04/2018	Initial Load VADS 3.0
+Administrative Sex (HL7)	PHVS_AdministrativeSex_HL7_2x	2.16.840.1.114222.4.11.927	1	HL7 version 2.5 User-Defined Table 0001 Administrative sex code	Published	10/22/2008	Initial Load VADS 3.0
+Age unit	PHVS_AgeUnit_UCUM	2.16.840.1.114222.4.11.878	1	Units of measure for age	Published	08/20/2015	Initial Load VADS 3.0
+Country	PHVS_Country_ISO_3166-1	2.16.840.1.114222.4.11.828	1	Codes representing country of origin, nationality, citizenship, address country	Published	12/31/2018	Initial Load VADS 3.0
+County	PHVS_County_FIPS_6-4	2.16.840.1.114222.4.11.829	1	Codes representing county of origin, address county, reporting county. 	Published	01/17/2024	Initial Load VADS 3.0
+Degree License Certification (HL7)	PHVS_DegreeLicenseCertificate_HL7_2x	2.16.840.1.114222.4.11.808	1	The standard classification awarded upon completion of a unified program of study.  HL7 2.5 User-defined Table 0360 - Degree.	Published	10/22/2008	Initial Load VADS 3.0
+Ethnicity Group including Unknown	PHVS_EthnicityGroup_CDC_Unk	2.16.840.1.114222.4.11.3015	1	Ethnicity Group including Unknown	Published	10/22/2008	Initial Load VADS 3.0
+Identifier Type	PHVS_IdentifierType_CDC	2.16.840.1.114222.4.11.999	1	Identifier type codes.  Builds on HL7 Table 0203 Identifier Type	Published	10/22/2008	Initial Load VADS 3.0
+Lab Test Order (PHLIP Flu)	PHVS_LabTestOrder_PHLIP_Flu	2.16.840.1.114222.4.11.3016	11	Lab Test orderables that could be used in OBRsegment (PHLIP Flu)	Published	12/18/2019	v11
+Lab Test Result (PHLIP Flu)	PHVS_LabTestResult_PHLIP_Flu	2.16.840.1.114222.4.11.3017	13	Lab Test Result that could be used in OBX-5  (PHLIP Flu)	Published	12/18/2019	v13
+Name Type (HL7)	PHVS_NameType_HL7_2x	2.16.840.1.114222.4.11.810	1	HL7 table 0200 contains types of person names, including Maiden and Alias.	Published	08/31/2011	Initial Load VADS 3.0
+Observation Result Status (HL7)	PHVS_ObservationResultStatus_HL7_2x	2.16.840.1.114222.4.11.811	1	The status of the observation. This field is required when the OBX segment is contained in a message.  Uses HL7 2.5 Table 0085-Observation Result Status.	Published	10/22/2008	Initial Load VADS 3.0
+Order Control Code (HL7)	PHVS_OrderControlCodes_HL7_2x	2.16.840.1.114222.4.11.923	1	Order Control Codes that determine the function of the order segment.  Uses HL7 Table 0119-Order Control Codes.	Published	10/22/2008	Initial Load VADS 3.0
+Order Status (HL7)	PHVS_OrderStatus_HL7_2x	2.16.840.1.114222.4.11.1025	1	Reports the status of an order upon request or when the status changes.  It may be used in a message with Order Control value of SR or SC.	Published	10/22/2008	Initial Load VADS 3.0
+Patient Location Status at Specimen Collection	PHVS_PatientLocationStatusAtSpecimenCollection	2.16.840.1.114222.4.11.3018	1	Patient's location status at the time of specimen collection	Published	10/22/2008	Initial Load VADS 3.0
+PHLIP Questions (Flu)	PHVS_PHLIP_Questions_Flu	2.16.840.1.114222.4.11.3000	4	List of questions used in the PHLIP Flu Message Specification Guide	Published	09/24/2014	v4
+Processing ID (HL7)	PHVS_ProcessingID_HL7_2x	2.16.840.1.114222.4.11.1028	1	HL7 table 0103 contains values that define whether the message is part of a production, training or debugging system.	Published	10/22/2008	Initial Load VADS 3.0
+Race Category	PHVS_RaceCategory_CDC	2.16.840.1.114222.4.11.836	1	General race category reported by the patient - subject may have more than one	Published	10/22/2008	Initial Load VADS 3.0
+Relationship (HL7)	PHVS_Relationship_HL7_2x	2.16.840.1.114222.4.11.813	1	Relationship codes as specified by HL7.
+v2: Added 'Household' concept	Published	08/12/2015	Initial Load VADS 3.0
+Result status (HL7)	PHVS_ResultStatus_HL7_2x	2.16.840.1.114222.4.11.815	1	The status of the results. This field is required when the OBR segment is contained in a message.  Uses HL7 2.5 Table 0123-Result Status.	Published	10/22/2008	Initial Load VADS 3.0
+Resulted Lab Test Name (PHLIP Flu)	PHVS_ResultedLabTestName_PHLIP_Flu	2.16.840.1.114222.4.11.3019	14	Resulted lab test name that could be used in OBX-3 (PHLIP Flu)	Published	12/18/2019	v14
+Source of Comment (HL7)	PHVS_SourceOfComment_HL7_2x	2.16.840.1.114222.4.11.3014	1	HL7 version 2.5 Table 0105 - Source of Comment.	Published	10/22/2008	Initial Load VADS 3.0
+Specimen Source (PHLIP)	PHVS_SpecimenSource_PHLIP	2.16.840.1.114222.4.11.3020	2	Specimen Source from HL7 Table 0070. PHLIP is migrating to use of SNOMED as specimen source - need to review if doable with next release or the release after that	Published	10/22/2008	Updates necessary for H1N1 Flu
+State	PHVS_State_FIPS_5-2	2.16.840.1.114222.4.11.830	1	State codes for U.S. based on FIPS 5-2	Published	10/22/2008	Initial Load VADS 3.0
+Telecommunication Equipment Type (HL7)	PHVS_TelecommunicationEquipmentType_HL7_2x	2.16.840.1.114222.4.11.817	1	HL7 table 0202 contains a list of types of telecommunication equipment	Published	06/14/2018	Initial Load VADS 3.0
+Telecommunication Use Code (HL7)	PHVS_TelecommunicationUseCode_HL7_2x	2.16.840.1.114222.4.11.818	1	HL7 table 0201 contains a list that represents a specific use of a telecommunication number	Published	06/14/2018	Initial Load VADS 3.0
+Units of Measure	PHVS_UnitsOfMeasure_CDC	2.16.840.1.114222.4.11.838	1	Units of Measure based on UCUM std which also includes dimension	Published	03/20/2024	Initial Load VADS 3.0
+Universal ID Type (HL7)	PHVS_UniversalIdType_HL7_2x	2.16.840.1.114222.4.11.1055	1	HL7 table 0301 contains the universal identifier type	Published	10/22/2008	Initial Load VADS 3.0
+Value Type (HL7)	PHVS_ValueType_HL7_2x	2.16.840.1.114222.4.11.1059	1	HL7 table 0125 contains the list of formats of the observation value in OBX-3.	Published	12/16/2015	Initial Load VADS 3.0
+Yes No Indicator (HL7)	PHVS_YesNo_HL7_2x	2.16.840.1.114222.4.11.819	1	Value set used to respond to any question that can be answered only Yes or No. This value set is also HL7 table 0136 Yes/No Indicator.	Published	10/01/2019	Initial Load VADS 3.0
+Yes No Unknown (YNU)	PHVS_YesNoUnknown_CDC	2.16.840.1.114222.4.11.888	1	Value set used to respond to any question that can be answered Yes, No, or Unknown.	Published	10/22/2008	Initial Load VADS 3.0

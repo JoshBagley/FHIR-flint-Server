@@ -1,0 +1,19 @@
+View Name	View Description	View Version	Status Date
+HL7 Implementation Guide for CDA Release 2: National Health Care Surveys DSTU R1	The data is collected through the National Ambulatory Medical Care Survey (NAMCS) with information from physicians and to National Hospital Ambulatory Medical Care Surveys (NHAMCS) with data from hospital emergency (ED) and outpatient departments (OPD).	8	05/17/2017 00:00:00
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Act Status	PHVS_ActStatus	2.16.840.1.113883.1.11.159331	1	Contains the names (codes) for each of the states in the state-machine of the RIM Act class.	Published	04/26/2016	v1
+Asthma (NCHS)	PHVS_Asthma_NCHS	2.16.840.1.114222.4.11.7432	2	The set of Asthma Diagnoses.  All SNOMED CT concepts that are children of the SNOMED CT concept 'Asthma', including the SNOMED CT concept 'Asthma'.	Published	05/16/2016	v2
+Condition Control (NCHS)	PHVS_ConditionControl_NCHS	2.16.840.1.114222.4.11.7433	2		Published	02/06/2014	Initial Import for : F8321B00-4C8F-E311-AE2A-0017A477041A
+Disposition (NCHS)	PHVS_Disposition_NCHS	2.16.840.1.114222.4.11.7436	1		Published	02/06/2014	Initial Import for : 745D7C21-4C8F-E311-AE2A-0017A477041A
+Disposition ED (NCHS)	PHVS_DispositionED_NCHS	2.16.840.1.114222.4.11.7437	2	The final arrangement or transfer of care made when a patient completes and emergency department encounter	Published	09/15/2015	Initial Import for : 15A84DD8-A7D8-E411-8970-0017A477041A
+Episode of Care (NCHS) 	PHVS_EpisodeofCare_NCHS	2.16.840.1.114222.4.11.7439	1		Published	04/01/2015	Initial version. Additional content to be added later, if needed.
+Hospital Discharge Status (NCHS)	PHVS_HospitalDischargeStatus_NCHS	2.16.840.1.114222.4.11.7440	1		Published	04/01/2015	Initial version. Additional content to be added later, if needed.
+Injury or Poisoning (NCHS)	PHVS_InjuryOrPoisoning_NCHS	2.16.840.1.114222.4.11.7403	1		Published	02/06/2014	Initial Import for : E3130F86-4B8F-E311-AE2A-0017A477041A
+Major reason for visit (NCHS)	PHVS_MajorReasonForVisit_NCHS	2.16.840.1.114222.4.11.7404	1		Published	02/06/2014	Initial Import for : 150054BB-4B8F-E311-AE2A-0017A477041A
+Medication Route FDA Value Set	PHVS_MedicationRoute_FDA	2.16.840.1.113883.3.88.12.3221.8.7	2	Route of Administration value set is based upon FDA Drug Registration and Listing Database (FDA Orange Book) which are used in FDA structured product and labelling (SPL).	Published	09/15/2014	Initial Import for : 1E5E48CA-166B-DE11-9B52-0015173D1785
+Patient Residence (NCHS)	PHVS_PatientResidence_NCHS	2.16.840.1.114222.4.11.7402	1		Published	04/01/2015	Initial version. Additional content can be added later, if needed.
+Priority Level (NCHS)	PHVS_PriorityLevel_NCHS	2.16.840.1.113883.11.20.9.60	1		Published	03/25/2015	v1
+Provider ED (NCHS)	PHVS_ProviderED_NCHS	2.16.840.1.114222.4.11.7419	1		Published	03/25/2015	Initial Import for : D1922039-2DD3-E411-8970-0017A477041A
+Transport Mode to Hospital (NCHS)	PHVS_TransportModeToHospital_NCHS	2.16.840.1.114222.4.11.7277	1	The mode of transport (e.g., ground ambulance, walk-in, police) delivering the patient to a hospital.	Published	03/27/2015	v1
+Triage System (NCHS)	PHVS_TriageSystem_NCHS	2.16.840.1.114222.4.11.7401	1	These values describe different types of triage systems.	Published	04/01/2015	v1

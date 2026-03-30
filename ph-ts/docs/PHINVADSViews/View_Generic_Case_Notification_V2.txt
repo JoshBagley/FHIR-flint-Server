@@ -1,0 +1,23 @@
+View Name	View Description	View Version	Status Date
+Generic Case Notification	The vocabulary used for Generic Case Notification messages to CDC.	2	06/10/2009 09:43:59
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Age unit	PHVS_AgeUnit_UCUM	2.16.840.1.114222.4.11.878	1	Units of measure for age	Published	08/20/2015	Initial Load VADS 3.0
+Case Classification Status	PHVS_CaseClassStatus_NND	2.16.840.1.114222.4.11.968	1	Indicates how the Nationally Notifiable Disease case was classified at its close	Published	10/22/2008	Initial Load VADS 3.0
+Case Confirmation Method	PHVS_CaseConfirmationMethod_NND	2.16.840.1.114222.4.11.3025	1	Codes specifying  the mechanism by which a case was classified, providing information about how the case classification status was derived.	Published	10/22/2008	Initial Load VADS 3.0
+Case Investigation Status	PHVS_CaseInvestigationStatus_NND	2.16.840.1.114222.4.11.970	1	The current status of the investigation (open or closed)	Published	10/22/2008	Initial Load VADS 3.0
+Case Transmission Mode	PHVS_CaseTransmissionMode_NND	2.16.840.1.114222.4.11.3027	1	Codes specifying the mechanism by which disease or condition was acquired.	Published	01/14/2019	Initial Load VADS 3.0
+City	PHVS_City_USGS_GNIS	2.16.840.1.114222.4.11.973	1	US Geological Survey Geographic Names Information System - location codes	Published	09/15/2020	Initial Load VADS 3.0
+Country	PHVS_Country_ISO_3166-1	2.16.840.1.114222.4.11.828	1	Codes representing country of origin, nationality, citizenship, address country	Published	12/31/2018	Initial Load VADS 3.0
+County	PHVS_County_FIPS_6-4	2.16.840.1.114222.4.11.829	1	Codes representing county of origin, address county, reporting county. 	Published	01/17/2024	Initial Load VADS 3.0
+Disease Acquired Jurisdiction	PHVS_DiseaseAcquiredJurisdiction_NND	2.16.840.1.114222.4.11.3030	1	Codes specifying where the disease/condition was likely acquired.	Published	09/15/2014	Initial Load VADS 3.0
+Ethnicity group	PHVS_EthnicityGroup_CDC	2.16.840.1.114222.4.11.837	1	Whether the patient is hispanic or not	Published	10/22/2008	Initial Load VADS 3.0
+Name Type (HL7)	PHVS_NameType_HL7_2x	2.16.840.1.114222.4.11.810	1	HL7 table 0200 contains types of person names, including Maiden and Alias.	Published	08/31/2011	Initial Load VADS 3.0
+National Reporting Jurisdiction	PHVS_NationalReportingJurisdiction_NND	2.16.840.1.114222.4.11.3236	1	National jurisdiction reporting the notification to CDC	Published	06/29/2009	Initial Load of Value Set
+Nationally Notifiable Disease Surveillance System (NNDSS) & Other Conditions of Public Health Importance	PHVS_NotifiableEvent_Disease_Condition_CDC_NNDSS	2.16.840.1.114222.4.11.1015	1	List of notifiable events, which includes infectious and non-infectious diseases or conditions. This list includes events that are notifiable at the state and national level.	Published	03/10/2025	Initial Load VADS 3.0
+Notification Section Header	PHVS_NotificationSectionHeader_CDC	2.16.840.1.114222.4.11.1107	1	List of Notification Section Headers. Type of notification event (Case, Environmental, Lab Report turn-around to CDC)	Published	05/28/2015	Initial Load VADS 3.0
+Race Category	PHVS_RaceCategory_CDC	2.16.840.1.114222.4.11.836	1	General race category reported by the patient - subject may have more than one	Published	10/22/2008	Initial Load VADS 3.0
+Reporting Source Type	PHVS_ReportingSourceType_NND	2.16.840.1.114222.4.11.3036	1	Codes specifying the type of facility or provider associated with the source of information sent to Public Health.	Published	10/22/2008	Initial Load VADS 3.0
+Sex (MFU)	PHVS_Sex_MFU	2.16.840.1.114222.4.11.1038	1	Constrained list of sex codes in use by public health. Keyword: Administrative Sex.	Published	12/27/2017	Initial Load VADS 3.0
+State	PHVS_State_FIPS_5-2	2.16.840.1.114222.4.11.830	1	State codes for U.S. based on FIPS 5-2	Published	10/22/2008	Initial Load VADS 3.0
+Yes No Unknown (YNU)	PHVS_YesNoUnknown_CDC	2.16.840.1.114222.4.11.888	1	Value set used to respond to any question that can be answered Yes, No, or Unknown.	Published	10/22/2008	Initial Load VADS 3.0

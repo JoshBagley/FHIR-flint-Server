@@ -1,0 +1,19 @@
+View Name	View Description	View Version	Status Date
+IHE Vital Records Death Reporting (VRDR)	IHE VRDR is a content profile that defines the content of vital records death reporting information that is transmitted by clinical systems to public health systems for vital registration purposes.	3	11/06/2018 00:00:00
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Autopsy Not Performed (NCHS)	PHVS_AutopsyNotPerformed_NCHS	1.3.6.1.4.1.19376.1.7.3.1.1.23.8.2	3	To reflect information on whether an autopsy was not performed
+	Published	11/06/2018	Replacing SCT code 44551000009109 with 719828003
+Autopsy Performed (NCHS)	PHVS_AutopsyPerformed_NCHS	1.3.6.1.4.1.19376.1.7.3.1.1.23.8.1	2	To reflect information on whether an autopsy was performed
+	Published	09/17/2015	v2
+Death Pronouncement Finding (NCHS)	PHVS_DeathPronouncementFinding_NCHS	2.16.840.1.114222.4.11.7273	2	To reflect whether the pronouncer reports the pronounced date and time in the problem list 
+	Published	09/17/2015	v2
+Death Pronouncement Procedure (NCHS)	PHVS_DeathPronouncementProcedure_NCHS 	2.16.840.1.114222.4.11.7274	1	When an authorized person views the body and declares that death has occurred
+	Published	09/17/2015	v1
+Discharge Death (NCHS)	PHVS_DischargeDeath_NCHS	1.3.6.1.4.1.19376.1.7.3.1.1.23.8.4	2	To reflect information on the discharge disposition for the decedent
+	Published	09/17/2015	v2
+Female Gender (NCHS)	PHVS_FemaleGender_NCHS	1.3.6.1.4.1.19376.1.7.3.1.1.13.8.43	2	To reflect the sex of the deceased as female
+	Published	09/17/2015	v2
+Male Gender (NCHS)	PHVS_MaleGender_NCHS	1.3.6.1.4.1.19376.1.7.3.1.1.13.8.42	2	To reflect the sex of the deceased as male
+	Published	09/17/2015	v2
+Place of Death (NCHS)	PHVS_PlaceOfDeath_NCHS	2.16.840.1.114222.4.11.7216	4	To reflect the death location of the decedent	Published	03/22/2014	v4 - Removed 440041000124106, 440031000124101 , 440061000124105 ,440021000124104

@@ -1,0 +1,30 @@
+View Name	View Description	View Version	Status Date
+CRA Referral Request	Vocabulary for the PHIN Countermeasure Administration Referral Message that is available in the PHIN Historical Archives.	4	03/16/2010 00:00:00
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Address Type	PHVS_AddressType_CDC	2.16.840.1.114222.4.11.961	1	HL7 version 2.5 Table 0190 Address Type codes.  Information regarding the type of address being passed in the message (e.g., Mailing, Home, Business).	Published	10/22/2008	Initial Load VADS 3.0
+Administrative Sex (HL7)	PHVS_AdministrativeSex_HL7_2x	2.16.840.1.114222.4.11.927	1	HL7 version 2.5 User-Defined Table 0001 Administrative sex code	Published	10/22/2008	Initial Load VADS 3.0
+Allergen	PHVS_Allergen_CDC	2.16.840.1.114222.4.11.834	4	List of specific drug, food and environmental allergens (e.g. Peanut, Penicillin, Pollen)	Published	10/22/2008	SNOMED Update 01/31/2010
+Allergen Type (HL7)	PHVS_AllergenType_HL7_2x	2.16.840.1.114222.4.11.806	1	HL7 version 2.5 User-Defined Table 0127 Allergen Type codes	Published	10/22/2008	Initial Load VADS 3.0
+Allergy Severity (HL7)	PHVS_AllergySeverity_HL7_2x	2.16.840.1.114222.4.11.807	1	HL7 version 2.5 User-Defined Table 0128 Allergy Severity codes	Published	10/22/2008	Initial Load VADS 3.0
+Countermeasure Encounter Purpose	PHVS_EncounterPurpose_CRA	2.16.840.1.114222.4.11.988	1	List of Countermeasure Response Administration encounter reasons	Published	10/22/2008	Initial Load VADS 3.0
+Country	PHVS_Country_ISO_3166-1	2.16.840.1.114222.4.11.828	1	Codes representing country of origin, nationality, citizenship, address country	Published	12/31/2018	Initial Load VADS 3.0
+County	PHVS_County_FIPS_6-4	2.16.840.1.114222.4.11.829	1	Codes representing county of origin, address county, reporting county. 	Published	01/17/2024	Initial Load VADS 3.0
+Degree License Certification (HL7)	PHVS_DegreeLicenseCertificate_HL7_2x	2.16.840.1.114222.4.11.808	1	The standard classification awarded upon completion of a unified program of study.  HL7 2.5 User-defined Table 0360 - Degree.	Published	10/22/2008	Initial Load VADS 3.0
+Diagnosis (ICD-9 CM)	PHVS_AdministrativeDiagnosis_CDC_ICD-9CM	2.16.840.1.114222.4.11.856	2	ICD-9 CM Administrative Diagnosis Codes used for billing purposes, Reason for Study, DG1 Diagnosis segments Keyword: ICD-9 Vol 1 & 2.	Published	08/16/2010	Based on ICD9 updates 10/01/2009
+Diagnosis Type (HL7)	PHVS_DiagnosisType_HL7_2x	2.16.840.1.114222.4.11.827	1	A code from HL7 2.5 User-defined Table 0052 - Diagnosis Type that identifies the type of diagnosis being sent (Admitting, Working, Final).	Published	10/22/2008	Initial Load VADS 3.0
+Ethnicity group	PHVS_EthnicityGroup_CDC	2.16.840.1.114222.4.11.837	1	Whether the patient is hispanic or not	Published	10/22/2008	Initial Load VADS 3.0
+Identifier Type	PHVS_IdentifierType_CDC	2.16.840.1.114222.4.11.999	1	Identifier type codes.  Builds on HL7 Table 0203 Identifier Type	Published	10/22/2008	Initial Load VADS 3.0
+Language	PHVS_Language_ISO_639-2_Alpha3	2.16.840.1.114222.4.11.831	1	Primary spoken language	Published	06/21/2020	Initial Load VADS 3.0
+Marital Status (HL7)	PHVS_MaritalStatus_HL7_2x	2.16.840.1.114222.4.11.809	1	HL7 Table 0002 Marital Status codes	Published	10/22/2008	Initial Load VADS 3.0
+Name Type (HL7)	PHVS_NameType_HL7_2x	2.16.840.1.114222.4.11.810	1	HL7 table 0200 contains types of person names, including Maiden and Alias.	Published	08/31/2011	Initial Load VADS 3.0
+Production Class (HL7)	PHVS_ProductionClass_HL7_2x	2.16.840.1.114222.4.11.812	1	User-defined table 0429 contains the code and description that indicates the primary use for which the living subject was bred or grown.	Published	10/22/2008	Initial Load VADS 3.0
+Race Category	PHVS_RaceCategory_CDC	2.16.840.1.114222.4.11.836	1	General race category reported by the patient - subject may have more than one	Published	10/22/2008	Initial Load VADS 3.0
+Referral Disposition (HL7)	PHVS_ReferralDisposition_HL7_2x	2.16.840.1.114222.4.11.825	1	Type of response or action requested by the referring provider from the referred-to provider.	Published	10/22/2008	Initial Load VADS 3.0
+Referral Priority (HL7)	PHVS_ReferralPriority_HL7_2x	2.16.840.1.114222.4.11.822	1	Urgency of the referral.	Published	10/22/2008	Initial Load VADS 3.0
+Referral Status (CRA)	PHVS_ReferralStatus_CRA	2.16.840.1.114222.4.11.1036	1	Status of the referral as defined by the referring provider.	Published	10/22/2008	Initial Load VADS 3.0
+Religion (HL7)	PHVS_Religion_HL7_2x	2.16.840.1.114222.4.11.814	1	User-defined table 0006 contains a list of religions.	Published	10/22/2008	Initial Load VADS 3.0
+State	PHVS_State_FIPS_5-2	2.16.840.1.114222.4.11.830	1	State codes for U.S. based on FIPS 5-2	Published	10/22/2008	Initial Load VADS 3.0
+Telecommunication Equipment Type (HL7)	PHVS_TelecommunicationEquipmentType_HL7_2x	2.16.840.1.114222.4.11.817	1	HL7 table 0202 contains a list of types of telecommunication equipment	Published	06/14/2018	Initial Load VADS 3.0
+Telecommunication Use Code (HL7)	PHVS_TelecommunicationUseCode_HL7_2x	2.16.840.1.114222.4.11.818	1	HL7 table 0201 contains a list that represents a specific use of a telecommunication number	Published	06/14/2018	Initial Load VADS 3.0
+Yes No Indicator (HL7)	PHVS_YesNo_HL7_2x	2.16.840.1.114222.4.11.819	1	Value set used to respond to any question that can be answered only Yes or No. This value set is also HL7 table 0136 Yes/No Indicator.	Published	10/01/2019	Initial Load VADS 3.0

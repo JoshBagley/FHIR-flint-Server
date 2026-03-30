@@ -1,0 +1,45 @@
+View Name	View Description	View Version	Status Date
+Arboviral Case Notification	The vocabulary used for Arboviral Case Notification messages to CDC.	25	05/19/2020 00:00:00
+
+Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
+Age unit	PHVS_AgeUnit_UCUM	2.16.840.1.114222.4.11.878	2	Units of measure for age	Published	08/20/2015	v2
+Binational Reporting Criteria	PHVS_BinationalReportingCriteria_CDC	2.16.840.1.114222.4.11.7157	2	For cases meeting the binational criteria, select all the criteria which are met.	Published	05/07/2013	changes based on CSTE Position Statement 13-SI-02
+Birth Country	PHVS_BirthCountry_CDC	2.16.840.1.114222.4.11.3200	7	Country of Birth value set includes current countries as well as historical countries (eg. USSR). This value set is based upon ISO 3166-1, Alpha-3 codes (current countries), ISO 3166-3 (retired countries) and FIPS 10-4 (US Territories, Countries that are not found in ISO 3166)	Published	12/10/2019	v7: Updated Retired Countries to reflect latest version of ISO 3166-3
+Case Classification Status	PHVS_CaseClassStatus_NND	2.16.840.1.114222.4.11.968	1	Indicates how the Nationally Notifiable Disease case was classified at its close	Published	10/22/2008	Initial Load VADS 3.0
+Clinical Syndrome (Arbovirus)	PHVS_ClinicalSyndrome_Arbovirus	2.16.840.1.114222.4.11.3059	7	Clinical syndrome associated with Arboviral diseases  	Published	04/12/2016	Updated with concept sequence. Added Congenital infectious disease. Update the preferred concept names for Dengue, Guilain-Barre Syndrome and Febrile illness.
+Clinical Syndrome - Secondary (Arbovirus)	PHVS_ClinicalSyndromeSecondary_Arbovirus	2.16.840.1.114222.4.11.7490	2	Secondary clinical syndrome is the type of clinical presentation the case had. 	Published	04/07/2016	Updated with concept sequence. 
+Country	PHVS_Country_ISO_3166-1	2.16.840.1.114222.4.11.828	6	Codes representing country of origin, nationality, citizenship, address country	Published	12/31/2018	v6: Based on ISO 3166-1 standard as of 12/01/2019
+County	PHVS_County_FIPS_6-4	2.16.840.1.114222.4.11.829	6	Codes representing county of origin, address county, reporting county. 	Published	12/10/2019	v6: Added new codes 02158 and 46102 based on the March 2018 release and included OTH code for cases when county needed is not listed in this value set. [Up to date as of 09/01/20]
+Disease Acquired Jurisdiction	PHVS_DiseaseAcquiredJurisdiction_NND	2.16.840.1.114222.4.11.3030	3	Codes specifying where the disease/condition was likely acquired.	Published	09/15/2014	v3 - No changes from v2
+
+Ethnicity Group including Unknown	PHVS_EthnicityGroup_CDC_Unk	2.16.840.1.114222.4.11.3015	2	Ethnicity Group including Unknown	Published	10/22/2008	Added "Other" value set concept so that it will trigger adding the free text entry "Other Ethnicity" in surveillance system
+Lab Test Type (Arbovirus)	PHVS_LabTestType_Arbovirus	2.16.840.1.114222.4.11.7472	6	Lab test type associated with Arboviral disease. This value set is used for Arboviral Case Notification MMG v2.0. This would be used by public health epidemiologist to interpret the lab tests.
+	Published	12/14/2018	v6--updated to add Arboviral antigen
+Name Type (HL7)	PHVS_NameType_HL7_2x	2.16.840.1.114222.4.11.810	2	HL7 table 0200 contains types of person names, including Maiden and Alias.	Published	08/31/2011	updated artist name
+National Reporting Jurisdiction	PHVS_NationalReportingJurisdiction_NND	2.16.840.1.114222.4.11.3236	1	National jurisdiction reporting the notification to CDC	Published	06/29/2009	Initial Load of Value Set
+Nationally Notifiable Disease Surveillance System (NNDSS) & Other Conditions of Public Health Importance	PHVS_NotifiableEvent_Disease_Condition_CDC_NNDSS	2.16.840.1.114222.4.11.1015	32	List of notifiable events, which includes infectious and non-infectious diseases or conditions. This list includes events that are notifiable at the state and national level.	Published	11/23/2022	v32: Updated to reflect additional codes to the 2020 Event Code List. Add 11065 COVID 2019 (11065) and Blastomycosis (11910)
+Newborn Complications (Arbovirus)	PHVS_NewbornComplications_Arbovirus	2.16.840.1.114222.4.11.7492	2	This data element would be used only for "Congenital / Neonatal cases"	Published	04/07/2016	Added: Ocular defects, Limb defects, intrauterine growth retardation and None to the value set.
+
+Notification Section Header	PHVS_NotificationSectionHeader_CDC	2.16.840.1.114222.4.11.1107	3	List of Notification Section Headers. Type of notification event (Case, Environmental, Lab Report turn-around to CDC)	Published	05/28/2015	v3 Removed: Associated Laboratory Report (LABRPT) . Associated Vaccine Report (VACRPT)
+
+Performing Lab Type (Arbovirus)	PHVS_PerformingLabType_Arbovirus	2.16.840.1.114222.4.11.7493	1	Type of labs that were used to test for Arboviral lab tests - CDC Lab, State Public Health Lab, Commercial Lab.	Published	04/07/2016	Initial Load
+Positive Negative 4 Fold Rise Not Done	PHVS_PosNeg4FoldRiseNotDone_CDC	2.16.840.1.114222.4.11.7477	1	"Serum paired antibody result. 
+This is an interpretation based upon the lab values paired sera testing of specimen 1 (Acute) and Specimen 2 (Convalescent). For Arboviral lab tests, these tests are usually PRNT."	Published	04/07/2016	Initial Load
+Positive Negative Equivocal Not Done	PHVS_PosNegEquivNotDone_CDC	2.16.840.1.114222.4.11.7476	1	Interpretation of test results associated with the lab tests such as positive, negative, equivocal, test not done.
+	Published	04/07/2016	Initial Load
+
+Pregnancy Complications (Arbovirus)	PHVS_PregnancyComplications_Arbovirus	2.16.840.1.114222.4.11.7491	1	"This data element won't be used for ""congenital infection newborn cases"".
+Complications of pregnancy such as Microcephaly, Intracranial Calcification, Fetal growth abnormality and Fetus with Central Nervous System (CNS) abnormalities."
+	Published	04/07/2016	Initial Load
+Pregnancy Outcome	PHVS_PregnancyOutcome_CDC	2.16.840.1.114222.4.11.7494	2	This maternal data element captures the pregnancy outcomes such as livebirth, , premature birth, still birth, fetal loss, perinatal death and therapeutic abortion.
+	Published	04/07/2016	Added new concept "still pregnant". Removed "miscarriage" and "term birth of newborn".
+Race Category including Unknown	PHVS_RaceCategory_CDC_Unk	2.16.840.1.114222.4.11.3405	1	Based on CDC Race Category Value Set but included Unknown from the Null Flavor value set.	Published	01/19/2011	Initial Version
+Serotype (Arbovirus)	PHVS_Serotype_Arbovirus	2.16.840.1.114222.4.11.7495	1	If there are serotypes for any of the Arbovirus, use the "Serotype" to specify the sub-type.	Published	04/07/2016	v1
+Sex (MFU)	PHVS_Sex_MFU	2.16.840.1.114222.4.11.1038	1	Constrained list of sex codes in use by public health. Keyword: Administrative Sex.	Published	12/27/2017	Initial Load VADS 3.0
+Specimen Type (Arbovirus)	PHVS_SpecimenType_Arbovirus	2.16.840.1.114222.4.11.7488	1	List of specimens associated with Arbovirus laboratory tests
+	Published	03/17/2016	v1
+State	PHVS_State_FIPS_5-2	2.16.840.1.114222.4.11.830	1	State codes for U.S. based on FIPS 5-2	Published	10/22/2008	Initial Load VADS 3.0
+Transmission Mode (Arbovirus)	PHVS_TransmissionMode_Arbovirus	2.16.840.1.114222.4.11.7489	1	"Other Arboviral unusual and rare disease transmission modes. This variable is used to differentiate the ""In Utero (Transplacental)"" vs ""Perinatal"". This variable also can be used to capture more than one transmission mode. Other valid values such as blood donation, blood transfusion, lab acquired, organ transplant are not included in this value set as they exists as variables in the current guide as risk factors."	Published	04/07/2016	Initial Load
+Virus Type (Arboviral Disease)	PHVS_VirusType_ArboviralDisease	2.16.840.1.114222.4.11.3063	8	Virus types answer list specific to Arbovirus/ArboNet reporting. Used with ARB001 data element in Arboviral MMG v1 guide.	Published	01/21/2016	Updated to add additional Virus types: Bourbon virus, Alkhurma virus, and Heartland virus 
+Yes No Indicator (HL7)	PHVS_YesNo_HL7_2x	2.16.840.1.114222.4.11.819	1	Value set used to respond to any question that can be answered only Yes or No. This value set is also HL7 table 0136 Yes/No Indicator.	Published	10/01/2019	Initial Load VADS 3.0
+Yes No Unknown (YNU)	PHVS_YesNoUnknown_CDC	2.16.840.1.114222.4.11.888	1	Value set used to respond to any question that can be answered Yes, No, or Unknown.	Published	10/22/2008	Initial Load VADS 3.0
