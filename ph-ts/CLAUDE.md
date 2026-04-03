@@ -12,6 +12,70 @@ This file provides context and working conventions for Claude Code when operatin
 
 ---
 
+## FHIR Server Architecture
+
+**PH-TS is a fully custom-built FHIR R4 server — not HAPI FHIR, not Ontoserver, not any Java-based framework.** It is modeled conceptually after Ontoserver but implemented from scratch in Python.
+
+### What it is NOT
+- Not HAPI FHIR (Java)
+- Not Ontoserver (commercial)
+- Does not use any FHIR library (e.g. `fhir.resources`) — all FHIR models are hand-rolled Pydantic classes
+
+### Layers
+
+**Framework:** FastAPI (uvicorn ASGI). GZip + CORS middleware. Prometheus metrics middleware on every request. All error responses return `OperationOutcome` JSON (never raw HTTP errors).
+
+**FHIR models** — hand-rolled Pydantic, defined in `main.py`:
+- `ValueSet`, `CodeSystem`, `ConceptMap` — full R4 shapes
+- `Coding`, `CodeableConcept`, `Identifier`, `Meta`, `Narrative`, `ContactDetail`
+- `Literal[]` types enforce enums (`content`, `equivalence`, `status`, etc.)
+
+**Storage — three tiers:**
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Primary store | PostgreSQL (asyncpg) | FHIR resources as JSONB; version snapshots; audit log; concept mappings; usage analytics |
+| Search index | Elasticsearch | Fast full-text + concept search (1.6M docs; nested object limit raised to 50k) |
+| Cache | Redis | 120s TTL on list results; LRU eviction; AOF persistence |
+
+**Database Manager** (`main.py:DatabaseManager`):
+- `asyncpg` pool (min 10 / max 50 connections)
+- Schema self-initializes on startup (`_initialize_schema()`) — idempotent DDL
+- Every write atomically goes to `fhir_resources` + `resource_versions` (snapshot) + `audit_log`
+- `_extract_source()` reads `http://phts.local/StructureDefinition/source` extension for provenance
+
+**Route modules — three routers:**
+
+| Module | Handles |
+|---|---|
+| `main.py` (inline) | CRUD + search + history + archive + audit for ValueSet / CodeSystem / ConceptMap |
+| `routes/fhir_operations.py` | All FHIR operations: `$expand`, `$validate-code`, `$lookup`, `$translate`, `$subsumes`, `$validate-batch`, `$diff`, `$views`, `$tag-view`, `$stats` |
+| `routes/sdo_search.py` | Live SDO connector search (`/sdo/*`), SNOMED hierarchy tree |
+| `routes/ai_assist.py` | AI endpoints (`/ai/*`): suggest, describe, map, map-save, provider |
+
+**FHIR Operations implemented:**
+
+| Operation | Endpoint |
+|---|---|
+| Expand | `GET/POST /ValueSet/$expand` |
+| Validate code | `GET/POST /ValueSet/$validate-code` |
+| Batch validate | `POST /ValueSet/$validate-batch` (up to 200 codes, concurrent) |
+| Lookup | `GET/POST /CodeSystem/$lookup` |
+| Translate | `GET/POST /ConceptMap/$translate` |
+| Subsumes | `GET /CodeSystem/$subsumes` |
+| Version diff | `GET /ValueSet/{id}/$diff` |
+| Capability statement | `GET /metadata` |
+
+**Storage tier decision logic** (in `fhir_operations.py`):
+`$expand` and `$lookup` check `CodeSystem.content` before sourcing concepts:
+1. `content = "complete"` + local concepts exist → serve from Postgres (fast, offline)
+2. `content = "not-present"` or `"fragment"` with sparse local data → delegate to SDO connector
+3. No local CodeSystem record at all → also delegate externally
+
+`_SYSTEM_URL_TO_SDO` maps canonical FHIR URLs **and** OID aliases to connector IDs so PHIN VADS resources using `urn:oid:` notation route correctly.
+
+---
+
 ## Running Services & Ports
 
 | Service | URL | Notes |
