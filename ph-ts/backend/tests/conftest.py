@@ -67,7 +67,7 @@ class FakeDB:
             "timestamp": "2024-01-01T00:00:00", "author": "test", "summary": "Updated"
         })
 
-    async def search_resources(self, resource_type: str, params: Dict) -> List[Dict]:
+    async def search_resources(self, resource_type: str, params: Dict, summary: bool = False) -> List[Dict]:
         results = []
         for item in self._store.values():
             if item.get("resourceType") != resource_type:
@@ -187,10 +187,6 @@ async def _inject_fakes():
     state.db = FakeDB()
     state.search_engine = FakeSearchEngine()
     state.cache = FakeCache()
-
-    # Stub out the pool.acquire used by /$stats and /analytics/summary
-    state.db.pool = MagicMock()
-    state.db.pool.acquire = _fake_pool_acquire(state.db._store)
 
     yield
 

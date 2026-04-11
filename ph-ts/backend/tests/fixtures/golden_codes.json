@@ -1,0 +1,229 @@
+{
+  "_metadata": {
+    "description": "Authoritative code-to-display pairs verified against live public APIs. Used to parameterize unit tests so the seed data is grounded in real terminology, not invented strings.",
+    "snomed_edition": "SNOMED CT International Edition (en-US preferred terms)",
+    "snomed_verification_server": "https://r4.ontoserver.csiro.au/fhir/CodeSystem/$lookup (FHIR R4 $lookup, international edition)",
+    "snomed_note": "Display names reflect SNOMED International Edition US English preferred terms. Three terms were corrected from the CSIRO Australian English refset: 73211009 Diabetes->Diabetes mellitus, 44054006 Type 2 diabetes->Diabetes mellitus type 2, 271737000 Anaemia->Anemia.",
+    "loinc_version": "LOINC 2.77",
+    "loinc_verification_server": "https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search (NLM ClinicalTables — LONG_COMMON_NAME field)",
+    "loinc_note": "NLM ClinicalTables is the SDO connector used by PH-TS external_cs.py. Display values are exact LONG_COMMON_NAME as returned by the API.",
+    "verified_date": "2026-04-10",
+    "update_instructions": "To refresh this file run: python tests/fixtures/verify_golden_codes.py and review any changed display values before committing."
+  },
+  "snomed": [
+    {
+      "code": "73211009",
+      "display": "Diabetes mellitus",
+      "system": "http://snomed.info/sct",
+      "category": "condition",
+      "ph_use": "Chronic disease surveillance, case notification"
+    },
+    {
+      "code": "44054006",
+      "display": "Diabetes mellitus type 2",
+      "system": "http://snomed.info/sct",
+      "category": "condition",
+      "ph_use": "Chronic disease surveillance"
+    },
+    {
+      "code": "840539006",
+      "display": "COVID-19",
+      "system": "http://snomed.info/sct",
+      "category": "condition",
+      "ph_use": "Case notification, syndromic surveillance"
+    },
+    {
+      "code": "56717001",
+      "display": "Tuberculosis",
+      "system": "http://snomed.info/sct",
+      "category": "condition",
+      "ph_use": "Notifiable disease reporting"
+    },
+    {
+      "code": "86406008",
+      "display": "HIV infection",
+      "system": "http://snomed.info/sct",
+      "category": "condition",
+      "ph_use": "Notifiable disease reporting"
+    },
+    {
+      "code": "6142004",
+      "display": "Influenza",
+      "system": "http://snomed.info/sct",
+      "category": "condition",
+      "ph_use": "Syndromic surveillance, sentinel surveillance"
+    },
+    {
+      "code": "386661006",
+      "display": "Fever",
+      "system": "http://snomed.info/sct",
+      "category": "finding",
+      "ph_use": "Syndromic surveillance chief complaint"
+    },
+    {
+      "code": "49727002",
+      "display": "Cough",
+      "system": "http://snomed.info/sct",
+      "category": "finding",
+      "ph_use": "Syndromic surveillance chief complaint"
+    },
+    {
+      "code": "59621000",
+      "display": "Essential hypertension",
+      "system": "http://snomed.info/sct",
+      "category": "condition",
+      "ph_use": "Chronic disease surveillance"
+    },
+    {
+      "code": "22298006",
+      "display": "Myocardial infarction",
+      "system": "http://snomed.info/sct",
+      "category": "condition",
+      "ph_use": "Cardiovascular disease surveillance"
+    },
+    {
+      "code": "195967001",
+      "display": "Asthma",
+      "system": "http://snomed.info/sct",
+      "category": "condition",
+      "ph_use": "Chronic disease surveillance, environmental health"
+    },
+    {
+      "code": "263495000",
+      "display": "Gender",
+      "system": "http://snomed.info/sct",
+      "category": "observable",
+      "ph_use": "Demographic data element"
+    },
+    {
+      "code": "248153007",
+      "display": "Male",
+      "system": "http://snomed.info/sct",
+      "category": "finding",
+      "ph_use": "Administrative gender value"
+    },
+    {
+      "code": "248152002",
+      "display": "Female",
+      "system": "http://snomed.info/sct",
+      "category": "finding",
+      "ph_use": "Administrative gender value"
+    },
+    {
+      "code": "271737000",
+      "display": "Anemia",
+      "system": "http://snomed.info/sct",
+      "category": "condition",
+      "ph_use": "Nutritional surveillance; maternal/child health",
+      "_display_note": "US English preferred term. British/international preferred term is 'Anaemia'. Snowstorm international edition returns 'Anaemia'; US edition returns 'Anemia'. Tests use case-insensitive prefix match."
+    }
+  ],
+  "loinc": [
+    {
+      "code": "94500-6",
+      "display": "SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory system specimen by NAA with probe detection",
+      "system": "http://loinc.org",
+      "category": "lab",
+      "ph_use": "COVID-19 case confirmation laboratory result"
+    },
+    {
+      "code": "94309-2",
+      "display": "SARS-CoV-2 (COVID-19) RNA [Presence] in Specimen by NAA with probe detection",
+      "system": "http://loinc.org",
+      "category": "lab",
+      "ph_use": "COVID-19 case confirmation — non-respiratory specimen"
+    },
+    {
+      "code": "80382-5",
+      "display": "Influenza virus A Ag [Presence] in Upper respiratory specimen by Rapid immunoassay",
+      "system": "http://loinc.org",
+      "category": "lab",
+      "ph_use": "Influenza A rapid antigen surveillance"
+    },
+    {
+      "code": "8480-6",
+      "display": "Systolic blood pressure",
+      "system": "http://loinc.org",
+      "category": "vital",
+      "ph_use": "Hypertension surveillance, clinical measurement"
+    },
+    {
+      "code": "8462-4",
+      "display": "Diastolic blood pressure",
+      "system": "http://loinc.org",
+      "category": "vital",
+      "ph_use": "Hypertension surveillance, clinical measurement"
+    },
+    {
+      "code": "4548-4",
+      "display": "Hemoglobin A1c/Hemoglobin.total in Blood",
+      "system": "http://loinc.org",
+      "category": "lab",
+      "ph_use": "Diabetes disease management, glycemic control monitoring"
+    },
+    {
+      "code": "2339-0",
+      "display": "Glucose [Mass/volume] in Blood",
+      "system": "http://loinc.org",
+      "category": "lab",
+      "ph_use": "Diabetes screening and monitoring"
+    },
+    {
+      "code": "718-7",
+      "display": "Hemoglobin [Mass/volume] in Blood",
+      "system": "http://loinc.org",
+      "category": "lab",
+      "ph_use": "Anemia screening, nutritional surveillance"
+    },
+    {
+      "code": "39156-5",
+      "display": "Body mass index (BMI) [Ratio]",
+      "system": "http://loinc.org",
+      "category": "vital",
+      "ph_use": "Obesity surveillance, chronic disease risk"
+    },
+    {
+      "code": "29463-7",
+      "display": "Body weight",
+      "system": "http://loinc.org",
+      "category": "vital",
+      "ph_use": "Nutritional surveillance, clinical measurement"
+    },
+    {
+      "code": "8302-2",
+      "display": "Body height",
+      "system": "http://loinc.org",
+      "category": "vital",
+      "ph_use": "Nutritional surveillance, clinical measurement"
+    },
+    {
+      "code": "85354-9",
+      "display": "Blood pressure panel with all children optional",
+      "system": "http://loinc.org",
+      "category": "panel",
+      "ph_use": "Hypertension surveillance panel"
+    },
+    {
+      "code": "58410-2",
+      "display": "CBC panel - Blood by Automated count",
+      "system": "http://loinc.org",
+      "category": "panel",
+      "ph_use": "Complete blood count — hematology screening"
+    },
+    {
+      "code": "2160-0",
+      "display": "Creatinine [Mass/volume] in Serum or Plasma",
+      "system": "http://loinc.org",
+      "category": "lab",
+      "ph_use": "Renal function surveillance, CKD monitoring"
+    },
+    {
+      "code": "33914-3",
+      "display": "Glomerular filtration rate/1.73 sq M.predicted [Volume Rate/Area] in Serum or Plasma by Creatinine-based formula (MDRD)",
+      "system": "http://loinc.org",
+      "category": "lab",
+      "ph_use": "CKD staging, renal disease surveillance",
+      "_display_note": "NLM returned a longer form; this is the standard LONG_COMMON_NAME."
+    }
+  ]
+}
