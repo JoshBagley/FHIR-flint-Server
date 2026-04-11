@@ -657,9 +657,15 @@ async def migrate_resource_type(
     output_dir: Optional[Path],
     checkpoint_path: Optional[str],
     checkpoint: Dict,
+    preview: bool = False,
 ) -> Dict:
     """
     Fetch, convert, and import all resources of the given type.
+
+    preview=True  → check existence against target but do not POST; reports what
+                    *would* be imported so the user can confirm before committing.
+    dry_run=True  → skip existence check and POST entirely (fast offline test).
+
     Returns updated stats dict.
     """
     converter = (
@@ -717,6 +723,15 @@ async def migrate_resource_type(
                     )
                     continue
 
+            # Preview mode: existence check already ran above; just count + log, no POST
+            if preview:
+                stats["imported"] += 1
+                logger.info(
+                    "  PREVIEW: would import %s  %s  (v%s)",
+                    resource_type, pv_url or pv_id, r4.get("version", ""),
+                )
+                continue
+
             # POST to target
             success, detail = await _post_resource(
                 target_client, target_base, resource_type, r4, dry_run
@@ -770,7 +785,7 @@ async def run(args: argparse.Namespace):
                           follow_redirects=True) as phinvads_client,
         httpx.AsyncClient(headers=target_headers, follow_redirects=True) as target_client,
     ):
-        # Quick connectivity check on target (skip for dry-run)
+        # Quick connectivity check on target (skip for pure dry-run; preview still needs target)
         if not args.dry_run:
             try:
                 health = await target_client.get(
@@ -812,6 +827,7 @@ async def run(args: argparse.Namespace):
                     output_dir=output_dir,
                     checkpoint_path=args.resume,
                     checkpoint=checkpoint,
+                    preview=args.preview,
                 )
                 all_stats["ValueSet"] = vs_stats
             elif do_vs:
@@ -829,6 +845,7 @@ async def run(args: argparse.Namespace):
                     output_dir=output_dir,
                     checkpoint_path=args.resume,
                     checkpoint=checkpoint,
+                    preview=args.preview,
                 )
                 all_stats["CodeSystem"] = cs_stats
             elif do_cs:
@@ -839,7 +856,8 @@ async def run(args: argparse.Namespace):
     print("\n" + "=" * 60)
     print("MIGRATION SUMMARY")
     print("=" * 60)
-    print(f"Completed in {elapsed:.1f}s  |  dry-run={args.dry_run}")
+    mode = "preview" if args.preview else ("dry-run" if args.dry_run else "live")
+    print(f"Completed in {elapsed:.1f}s  |  mode={mode}")
     for rtype, s in all_stats.items():
         print(f"\n  {rtype}")
         print(f"    Fetched   : {s['fetched']}")
@@ -869,6 +887,10 @@ def main():
                         help="Path to checkpoint JSON file for resuming")
     parser.add_argument("--dry-run", action="store_true",
                         help="Fetch and convert but do not POST to the target server")
+    parser.add_argument("--preview", action="store_true",
+                        help="Check existence against target and report what WOULD be imported, "
+                             "without actually posting anything. More accurate than --dry-run: "
+                             "Imported count = genuinely new resources; Skipped = already present.")
     parser.add_argument("--output-dir", metavar="DIR",
                         help="Save converted R4 JSON files to this directory")
     parser.add_argument("--log-level", default="INFO",

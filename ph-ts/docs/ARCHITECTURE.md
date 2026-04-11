@@ -34,10 +34,13 @@ Backend :8000     Frontend :5173
 
 - Listens on port **80**
 - Routes FHIR API paths (`/ValueSet`, `/CodeSystem`, `/metadata`, etc.) to the backend
+- Routes `/admin/` to the backend (sync management endpoints)
 - Routes `/$expand` with a tighter rate limit (expensive operation)
 - Proxies everything else to the Vite frontend dev server
 - Passes WebSocket `Upgrade` headers for Vite HMR
 - Adds security headers (`X-Frame-Options`, `X-Content-Type-Options`, etc.)
+
+> **Important:** Any new backend route prefix must be added to **both** `nginx.conf` (location block) **and** `frontend/vite.config.ts` (proxy entry). The Vite dev server handles all browser requests; without a proxy rule in `vite.config.ts`, requests for that prefix return 404 before reaching nginx. `vite.config.ts` is baked into the Docker image — changes require `docker compose up -d --build frontend`.
 
 Config: `infrastructure/docker/nginx/nginx.conf`
 
@@ -95,9 +98,12 @@ Source: `backend/app/`
   - Search by name (debounced)
   - Resource detail slide-out panel with version history
   - Full-page `$expand` viewer with filter, pagination, and CSV export
-  - Analytics dashboard (resource counts, server status)
+  - Analytics dashboard (resource counts, server status, PHIN VADS sync card)
+  - PHIN VADS Sync card: Preview (checks for new resources without importing) → Confirm import workflow
 - Vite configured with `usePolling: true` for Windows Docker HMR compatibility
 - `frontend/src/` is bind-mounted so edits hot-reload without container rebuild
+- `vite.config.ts` is **baked into the image** — changes require `docker compose up -d --build frontend`
+- Vite proxy rules in `vite.config.ts` must mirror all backend route prefixes routed via nginx
 
 ### Adminer (Database UI)
 
@@ -206,3 +212,118 @@ To reset all data:
 ```bash
 docker compose down -v
 ```
+
+---
+
+## Admin Sync (PHIN VADS)
+
+The admin sync feature allows vocabulary managers to update PH-TS with new content from PHIN VADS on demand — either from the UI or the terminal.
+
+### Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/admin/sync/phinvads?resource=all&preview=false` | Trigger sync in background |
+| `GET` | `/admin/sync/status` | List recent sync runs (last 10) |
+| `GET` | `/admin/sync/status/{run_id}` | Details for a specific run |
+
+**`resource`** — `all` (default) \| `valueset` \| `codesystem`
+**`preview`** — `true` checks what would be imported without making changes; `false` performs the actual import
+
+### How it works
+
+1. `POST /admin/sync/phinvads` inserts a row in `sync_log` (status `running`) and fires `_run_sync()` as a FastAPI `BackgroundTask`
+2. `_run_sync()` launches `migration/phinvads_migrate.py` as an asyncio subprocess
+3. On completion, the `sync_log` row is updated with `status`, `new_count`, `skipped_count`, `error_count`, and the last ~4 KB of script output (`output_tail`)
+4. The frontend polls `GET /admin/sync/status` every 5 s while a run is `running`
+
+### Preview vs Live
+
+| Mode | CLI flag | Existence check | POST to PH-TS | `Imported` count means |
+|---|---|---|---|---|
+| Preview | `--preview` | Yes | No | Genuinely new (not yet in PH-TS) |
+| Live | *(none)* | Yes | Yes | Actually imported |
+| Dry-run | `--dry-run` | No | No | All converted (ignores existing) |
+
+**Prefer Preview over Dry-run** for the UI workflow — it gives accurate new/skipped counts.
+
+### sync_log table
+
+```sql
+CREATE TABLE IF NOT EXISTS sync_log (
+    id             SERIAL PRIMARY KEY,
+    source         TEXT NOT NULL DEFAULT 'phinvads',
+    resource_type  TEXT NOT NULL DEFAULT 'all',
+    started_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    completed_at   TIMESTAMPTZ,
+    status         TEXT NOT NULL DEFAULT 'running',  -- running | success | error
+    new_count      INT DEFAULT 0,
+    skipped_count  INT DEFAULT 0,
+    error_count    INT DEFAULT 0,
+    output_tail    TEXT,
+    triggered_by   TEXT DEFAULT 'ui',
+    dry_run        BOOLEAN DEFAULT FALSE  -- TRUE for preview runs
+);
+```
+
+### Terminal usage
+
+```bash
+# Preview — see what would be imported
+docker compose exec backend python /app/migration/phinvads_migrate.py \
+    --target-url http://localhost:8000 --resource all --preview
+
+# Live import
+docker compose exec backend python /app/migration/phinvads_migrate.py \
+    --target-url http://localhost:8000 --resource all
+```
+
+---
+
+## Testing
+
+The backend test suite runs entirely inside the `backend` container using `httpx.AsyncClient` with FastAPI's ASGI transport. PostgreSQL, Elasticsearch, and Redis are replaced with in-memory fakes (`FakeDB`, `FakeSearchEngine`, `FakeCache`) defined in `tests/conftest.py`. No live network calls are made.
+
+```bash
+# Run all 114 unit tests
+docker compose exec backend pytest
+
+# Run with verbose output
+docker compose exec backend pytest -v
+
+# Run a specific test file
+docker compose exec backend pytest tests/unit/test_snomed_loinc.py -v
+```
+
+### Test files
+
+| File | Coverage |
+|---|---|
+| `tests/unit/test_valueset.py` | ValueSet CRUD, `$expand`, `$validate-code` |
+| `tests/unit/test_codesystem.py` | CodeSystem CRUD, `$lookup` |
+| `tests/unit/test_health_and_meta.py` | `/health`, `/metadata`, `/$stats`, `/analytics/summary` |
+| `tests/unit/test_snomed_loinc.py` | SNOMED CT and LOINC code correctness; parameterized from golden fixture |
+| `tests/unit/test_ai_assist.py` | AI endpoints (`/ai/*`) with mocked provider and SDO calls |
+
+### Golden code fixture
+
+`tests/fixtures/golden_codes.json` contains **30 authoritative code→display pairs** verified against live public APIs:
+
+- **15 SNOMED CT codes** — verified against CSIRO Ontoserver (FHIR R4, international edition); US English preferred terms
+- **15 LOINC codes** — verified against NLM ClinicalTables `LONG_COMMON_NAME` (the same API used by `external_cs.py`)
+
+The fixture drives all parameterized tests in `test_snomed_loinc.py`. Adding a new code to the JSON file automatically adds test coverage.
+
+To re-verify display names against live APIs after a terminology release:
+
+```bash
+# Check for display drift (read-only)
+python tests/fixtures/verify_golden_codes.py
+
+# Update display names in-place and bump verified_date
+python tests/fixtures/verify_golden_codes.py --update
+```
+
+Display comparison strategy:
+- **SNOMED** — case-insensitive (preferred terms vary slightly between international and US editions)
+- **LOINC** — exact match (LONG_COMMON_NAME is edition-independent)

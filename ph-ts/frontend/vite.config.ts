@@ -20,6 +20,7 @@ export default defineConfig({
       '/ai': 'http://backend:8000',
       '/health': 'http://backend:8000',
       '/metadata': 'http://backend:8000',
+      '/admin': 'http://backend:8000',
     },
   },
   test: {

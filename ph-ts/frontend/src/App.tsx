@@ -3,7 +3,7 @@ import {
   Search, Download, FileCode, Layers,
   GitBranch, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2,
   ChevronDown, ChevronUp, Copy, Check, ExternalLink, ChevronLeft, ChevronRight, Plus, Settings, X, Filter, Pencil, Trash2,
-  Archive, ScrollText
+  Archive, ScrollText, RefreshCw
 } from 'lucide-react';
 import ValueSetBuilder from './ValueSetBuilder';
 import AppLogo from './components/AppLogo';
@@ -601,6 +601,13 @@ const ModernPHINVADS = () => {
   const [errorResources, setErrorResources] = useState<string | null>(null);
   const [errorStats, setErrorStats] = useState<string | null>(null);
 
+  // PHIN VADS sync state
+  const [syncRuns, setSyncRuns] = useState<any[]>([]);
+  const [syncResource, setSyncResource] = useState<'all' | 'valueset' | 'codesystem'>('all');
+  const [syncTriggering, setSyncTriggering] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [showSyncOutput, setShowSyncOutput] = useState(false);
+
   // Concept / Code search mode
   const [searchMode, setSearchMode] = useState<'name' | 'concept'>('name');
   const [conceptEntries, setConceptEntries] = useState<ConceptSearchEntry[]>([]);
@@ -656,6 +663,43 @@ const ModernPHINVADS = () => {
   }, []);
 
   useEffect(() => { loadStats(); }, [loadStats]);
+
+  // PHIN VADS sync helpers
+  const fetchSyncStatus = useCallback(async () => {
+    try {
+      const data = await apiFetch<{ runs: any[] }>('/admin/sync/status?limit=5');
+      setSyncRuns(data.runs ?? []);
+    } catch { /* silent — sync table may not exist yet on first boot */ }
+  }, []);
+
+  useEffect(() => { fetchSyncStatus(); }, [fetchSyncStatus]);
+
+  // Poll every 5 s while a sync is running
+  useEffect(() => {
+    const running = syncRuns.some(r => r.status === 'running');
+    if (!running) return;
+    const id = setInterval(async () => {
+      await fetchSyncStatus();
+      await loadStats();
+    }, 5000);
+    return () => clearInterval(id);
+  }, [syncRuns, fetchSyncStatus, loadStats]);
+
+  const triggerSync = useCallback(async (preview = false) => {
+    setSyncTriggering(true);
+    setSyncError(null);
+    setShowSyncOutput(false);
+    try {
+      const qs = new URLSearchParams({ resource: syncResource, preview: String(preview) });
+      const resp = await fetch(`/admin/sync/phinvads?${qs}`, { method: 'POST' });
+      if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText} — /admin/sync/phinvads`);
+      await fetchSyncStatus();
+    } catch (e) {
+      setSyncError((e as Error).message);
+    } finally {
+      setSyncTriggering(false);
+    }
+  }, [syncResource, fetchSyncStatus]);
 
   // Load disease/condition views catalogue once on mount
   useEffect(() => {
@@ -808,6 +852,129 @@ const ModernPHINVADS = () => {
             localhost:3001
           </a>
         </p>
+      </div>
+
+      {/* PHIN VADS Sync Card */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <RefreshCw className="w-5 h-5 text-green-500" /> PHIN VADS Sync
+        </h3>
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <select
+            className="border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+            value={syncResource}
+            onChange={e => setSyncResource(e.target.value as 'all' | 'valueset' | 'codesystem')}
+            disabled={syncTriggering || syncRuns[0]?.status === 'running'}
+          >
+            <option value="all">All (ValueSets + CodeSystems)</option>
+            <option value="valueset">ValueSets only</option>
+            <option value="codesystem">CodeSystems only</option>
+          </select>
+
+          {/* Preview button */}
+          <button
+            onClick={() => triggerSync(true)}
+            disabled={syncTriggering || syncRuns[0]?.status === 'running'}
+            className="flex items-center gap-2 px-4 py-1.5 bg-gray-100 text-gray-700 border border-gray-300 text-sm font-medium rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            title="Check what would be imported without actually importing anything"
+          >
+            {(syncTriggering || syncRuns[0]?.status === 'running') ? (
+              <><RefreshCw className="w-4 h-4 animate-spin" /> Running…</>
+            ) : (
+              <><RefreshCw className="w-4 h-4" /> Preview</>
+            )}
+          </button>
+
+          {/* Live import button */}
+          <button
+            onClick={() => triggerSync(false)}
+            disabled={syncTriggering || syncRuns[0]?.status === 'running'}
+            className="flex items-center gap-2 px-4 py-1.5 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {(syncTriggering || syncRuns[0]?.status === 'running') ? (
+              <><RefreshCw className="w-4 h-4 animate-spin" /> Sync in progress…</>
+            ) : (
+              <><RefreshCw className="w-4 h-4" /> Sync PHIN VADS</>
+            )}
+          </button>
+        </div>
+
+        <p className="text-xs text-gray-400 mb-4">
+          Use <strong>Preview</strong> to see what would be imported (no changes made), then <strong>Sync PHIN VADS</strong> to commit the import.
+        </p>
+
+        {syncError && <p className="text-sm text-red-600 mb-3">{syncError}</p>}
+
+        {syncRuns.length > 0 && (
+          <div className="space-y-2">
+            {syncRuns.map(run => (
+              <div key={run.run_id} className={`rounded-lg p-3 text-sm border ${run.preview ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-gray-500 text-xs">
+                    Run #{run.run_id} · {run.resource_type} ·{' '}
+                    {run.started_at ? new Date(run.started_at).toLocaleString() : '—'}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {run.preview && (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                        PREVIEW
+                      </span>
+                    )}
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      run.status === 'success' ? 'bg-green-100 text-green-700' :
+                      run.status === 'running'  ? 'bg-blue-100 text-blue-700' :
+                                                 'bg-red-100 text-red-700'
+                    }`}>
+                      {run.status}
+                    </span>
+                  </div>
+                </div>
+
+                {run.status !== 'running' && (
+                  <div className="flex gap-4 mt-1 text-xs text-gray-600">
+                    <span className="text-green-600 font-medium">
+                      {run.preview ? `${run.new_count} would be imported` : `+${run.new_count} imported`}
+                    </span>
+                    <span className="text-gray-500">{run.skipped_count} already present</span>
+                    {run.error_count > 0 && <span className="text-red-500">{run.error_count} errors</span>}
+                  </div>
+                )}
+
+                {/* Confirm import button shown after a completed preview */}
+                {run.preview && run.status === 'success' && run.new_count > 0 && (
+                  <button
+                    onClick={() => triggerSync(false)}
+                    disabled={syncTriggering || syncRuns[0]?.status === 'running'}
+                    className="mt-2 flex items-center gap-1.5 px-3 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Confirm — import {run.new_count} new resource{run.new_count !== 1 ? 's' : ''}
+                  </button>
+                )}
+
+                {run.output_tail && (
+                  <div className="mt-2">
+                    <button
+                      onClick={() => setShowSyncOutput(v => !v)}
+                      className="text-xs text-blue-500 hover:underline"
+                    >
+                      {showSyncOutput ? 'Hide' : 'Show'} output log
+                    </button>
+                    {showSyncOutput && (
+                      <pre className="mt-1 bg-gray-900 text-green-300 text-xs rounded p-3 overflow-auto max-h-48 whitespace-pre-wrap">
+                        {run.output_tail}
+                      </pre>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {syncRuns.length === 0 && (
+          <p className="text-sm text-gray-400">No sync runs yet. Click "Preview" to check for new PHIN VADS resources.</p>
+        )}
       </div>
     </div>
   );

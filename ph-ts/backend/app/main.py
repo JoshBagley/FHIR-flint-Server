@@ -441,6 +441,23 @@ class DatabaseManager:
 
                 CREATE INDEX IF NOT EXISTS idx_audit_resource ON audit_log(resource_id);
                 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_log(timestamp);
+
+                -- PHIN VADS sync history
+                CREATE TABLE IF NOT EXISTS sync_log (
+                    id             SERIAL PRIMARY KEY,
+                    source         TEXT NOT NULL DEFAULT 'phinvads',
+                    resource_type  TEXT NOT NULL DEFAULT 'all',
+                    started_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    completed_at   TIMESTAMPTZ,
+                    status         TEXT NOT NULL DEFAULT 'running',
+                    new_count      INT DEFAULT 0,
+                    skipped_count  INT DEFAULT 0,
+                    error_count    INT DEFAULT 0,
+                    output_tail    TEXT,
+                    triggered_by   TEXT DEFAULT 'ui',
+                    dry_run        BOOLEAN DEFAULT FALSE
+                );
+                ALTER TABLE sync_log ADD COLUMN IF NOT EXISTS dry_run BOOLEAN DEFAULT FALSE;
             """)
 
     def _extract_source(self, data: Dict[str, Any]) -> str:
@@ -915,6 +932,9 @@ app.add_middleware(
 app.include_router(fhir_operations_router)
 app.include_router(sdo_router)
 app.include_router(ai_router)
+
+from app.routes.admin import router as admin_router  # noqa: E402
+app.include_router(admin_router)
 
 
 @app.middleware("http")
