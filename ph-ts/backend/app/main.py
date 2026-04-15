@@ -499,14 +499,15 @@ class DatabaseManager:
 
             next_version = (version_row['max_version'] or 0) + 1
 
+            source = self._extract_source(data)
             result = await conn.execute("""
                 UPDATE fhir_resources
                 SET data = $1, url = $2, version = $3, status = $4, name = $5,
-                    title = $6, updated_at = NOW(), updated_by = $7
-                WHERE id = $8
+                    title = $6, source = $7, updated_at = NOW(), updated_by = $8
+                WHERE id = $9
             """, json.dumps(data), data.get('url'), data.get('version'),
                 data.get('status'), data.get('name'), data.get('title'),
-                user, resource_id)
+                source, user, resource_id)
 
             await conn.execute("""
                 INSERT INTO resource_versions (resource_id, version_number, data, created_by)
