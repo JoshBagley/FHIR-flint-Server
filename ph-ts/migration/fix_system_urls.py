@@ -179,6 +179,39 @@ URL_REMAPPINGS = [
         "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
         "HL7 RIM 2.26.2 download → http://terminology.hl7.org/CodeSystem/v3-RoleCode",
     ),
+    # ---------------------------------------------------------------------------
+    # HL7 V3 vocabulary OIDs stored as urn:oid: in the DB (imported before OID
+    # table was complete). Each maps to the canonical terminology.hl7.org URI.
+    # ---------------------------------------------------------------------------
+    ("urn:oid:2.16.840.1.113883.5.1",    "http://terminology.hl7.org/CodeSystem/v3-AdministrativeGender", "urn:oid: AdministrativeGender → v3-AdministrativeGender"),
+    ("urn:oid:2.16.840.1.113883.5.2",    "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",        "urn:oid: MaritalStatus → v3-MaritalStatus"),
+    ("urn:oid:2.16.840.1.113883.5.4",    "http://terminology.hl7.org/CodeSystem/v3-ActCode",               "urn:oid: ActCode → v3-ActCode"),
+    ("urn:oid:2.16.840.1.113883.5.6",    "http://terminology.hl7.org/CodeSystem/v3-ActClass",              "urn:oid: ActClass → v3-ActClass"),
+    ("urn:oid:2.16.840.1.113883.5.7",    "http://terminology.hl7.org/CodeSystem/v3-ActPriority",           "urn:oid: ActPriority → v3-ActPriority"),
+    ("urn:oid:2.16.840.1.113883.5.8",    "http://terminology.hl7.org/CodeSystem/v3-ActReason",             "urn:oid: ActReason → v3-ActReason"),
+    ("urn:oid:2.16.840.1.113883.5.14",   "http://terminology.hl7.org/CodeSystem/v3-ActStatus",             "urn:oid: ActStatus → v3-ActStatus"),
+    ("urn:oid:2.16.840.1.113883.5.25",   "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",       "urn:oid: Confidentiality → v3-Confidentiality"),
+    ("urn:oid:2.16.840.1.113883.5.42",   "http://terminology.hl7.org/CodeSystem/v3-EntityHandling",        "urn:oid: EntityHandling → v3-EntityHandling"),
+    ("urn:oid:2.16.840.1.113883.5.43",   "http://terminology.hl7.org/CodeSystem/v3-EntityNamePartQualifier", "urn:oid: EntityNamePartQualifier → v3-EntityNamePartQualifier"),
+    ("urn:oid:2.16.840.1.113883.5.45",   "http://terminology.hl7.org/CodeSystem/v3-EntityNameUse",         "urn:oid: EntityNameUse → v3-EntityNameUse"),
+    ("urn:oid:2.16.840.1.113883.5.53",   "http://nucc.org/provider-taxonomy",                              "urn:oid: HL7 HealthcareProviderTaxonomy → http://nucc.org/provider-taxonomy"),
+    ("urn:oid:2.16.840.1.113883.5.60",   "http://terminology.hl7.org/CodeSystem/v3-LanguageAbilityMode",   "urn:oid: LanguageAbilityMode → v3-LanguageAbilityMode"),
+    ("urn:oid:2.16.840.1.113883.5.61",   "http://terminology.hl7.org/CodeSystem/v3-LanguageAbilityProficiency", "urn:oid: LanguageAbilityProficiency → v3-LanguageAbilityProficiency"),
+    ("urn:oid:2.16.840.1.113883.5.63",   "http://terminology.hl7.org/CodeSystem/v3-LivingArrangement",     "urn:oid: LivingArrangement → v3-LivingArrangement"),
+    ("urn:oid:2.16.840.1.113883.5.74",   "http://terminology.hl7.org/CodeSystem/v3-NullFlavor",            "urn:oid: NullFlavor (alt OID .74) → v3-NullFlavor"),
+    ("urn:oid:2.16.840.1.113883.5.83",   "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation", "urn:oid: ObservationInterpretation → v3-ObservationInterpretation"),
+    ("urn:oid:2.16.840.1.113883.5.84",   "http://terminology.hl7.org/CodeSystem/v3-ObservationMethod",     "urn:oid: ObservationMethod → v3-ObservationMethod"),
+    ("urn:oid:2.16.840.1.113883.5.88",   "http://terminology.hl7.org/CodeSystem/v3-ParticipationFunction", "urn:oid: ParticipationFunction → v3-ParticipationFunction"),
+    ("urn:oid:2.16.840.1.113883.5.90",   "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",     "urn:oid: ParticipationType → v3-ParticipationType"),
+    ("urn:oid:2.16.840.1.113883.5.110",  "http://terminology.hl7.org/CodeSystem/v3-RoleClass",             "urn:oid: RoleClass → v3-RoleClass"),
+    ("urn:oid:2.16.840.1.113883.5.111",  "http://terminology.hl7.org/CodeSystem/v3-RoleCode",              "urn:oid: RoleCode → v3-RoleCode"),
+    ("urn:oid:2.16.840.1.113883.5.112",  "http://terminology.hl7.org/CodeSystem/v3-RouteOfAdministration", "urn:oid: RouteOfAdministration → v3-RouteOfAdministration"),
+    ("urn:oid:2.16.840.1.113883.5.1001", "http://terminology.hl7.org/CodeSystem/v3-ActMood",               "urn:oid: ActMood → v3-ActMood"),
+    ("urn:oid:2.16.840.1.113883.5.1008", "http://terminology.hl7.org/CodeSystem/v3-NullFlavor",            "urn:oid: NullFlavor → v3-NullFlavor"),
+    ("urn:oid:2.16.840.1.113883.5.1064", "http://terminology.hl7.org/CodeSystem/v3-ParticipationMode",     "urn:oid: ParticipationMode → v3-ParticipationMode"),
+    ("urn:oid:2.16.840.1.113883.5.1076", "http://terminology.hl7.org/CodeSystem/v3-ReligiousAffiliation",  "urn:oid: ReligiousAffiliation → v3-ReligiousAffiliation"),
+    ("urn:oid:2.16.840.1.113883.5.1077", "http://terminology.hl7.org/CodeSystem/v3-EducationLevel",        "urn:oid: EducationLevel → v3-EducationLevel"),
+    ("urn:oid:2.16.840.1.113883.5.1119", "http://terminology.hl7.org/CodeSystem/v3-AddressUse",            "urn:oid: AddressUse → v3-AddressUse"),
 ]
 
 

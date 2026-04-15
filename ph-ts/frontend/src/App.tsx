@@ -592,6 +592,7 @@ const ModernPHINVADS = () => {
   const [mcpChatOpen, setMcpChatOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResource, setSelectedResource] = useState<UiResource | null>(null);
+  const [deepLinked, setDeepLinked] = useState(false);
   const [expansionResource, setExpansionResource] = useState<UiResource | null>(null);
   const [builderOpen, setBuilderOpen] = useState(false);
 
@@ -759,6 +760,7 @@ const ModernPHINVADS = () => {
       const first = bundle.entry?.[0]?.resource;
       if (first) {
         setActiveTab(type);
+        setDeepLinked(true);
         setSelectedResource(toUiResource(first));
       }
     }).catch(() => {});
@@ -1009,14 +1011,16 @@ const ModernPHINVADS = () => {
   );
 
   // Detail panel
-  const DetailPanel = ({ resource }: { resource: UiResource }) => {
+  const DetailPanel = ({ resource, fullPage = false, onClose }: { resource: UiResource; fullPage?: boolean; onClose: () => void }) => {
     return (
-      <div className="fixed inset-y-0 right-0 w-[36rem] bg-white shadow-2xl border-l border-gray-200 z-50 overflow-y-auto">
+      <div className={fullPage
+        ? "fixed inset-0 bg-white z-50 overflow-y-auto"
+        : "fixed inset-y-0 right-0 w-[36rem] bg-white shadow-2xl border-l border-gray-200 z-50 overflow-y-auto"}>
         <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">Resource Details</h2>
-          <button onClick={() => setSelectedResource(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+          <h2 className="font-semibold text-gray-900">{fullPage ? (resource.title || resource.name || 'Resource Details') : 'Resource Details'}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none" title="Close">×</button>
         </div>
-        <div className="p-6 space-y-6">
+        <div className={`p-6 space-y-6${fullPage ? ' max-w-4xl mx-auto' : ''}`}>
           <div>
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <StatusBadge status={resource.status} />
@@ -2265,7 +2269,13 @@ const ModernPHINVADS = () => {
         )}
       </div>
 
-      {selectedResource && <DetailPanel resource={selectedResource} />}
+      {selectedResource && (
+        <DetailPanel
+          resource={selectedResource}
+          fullPage={deepLinked}
+          onClose={() => { setSelectedResource(null); setDeepLinked(false); }}
+        />
+      )}
 
       {editingResource && (
         editingResource.resourceType === 'CodeSystem' ? (
