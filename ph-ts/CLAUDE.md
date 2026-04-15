@@ -411,6 +411,81 @@ python migration/phinvads_migrate.py --resource valueset --batch-size 25
 
 ---
 
+## Multi-Environment Deployment
+
+PH-TS uses Docker Compose file layering + profiles + `.env` files to support dev, demo, and production from a single codebase.
+
+### File structure
+
+| File | Purpose | Auto-loaded? |
+|------|---------|-------------|
+| `docker-compose.yml` | Base: all service definitions, profiles | Always |
+| `docker-compose.override.yml` | Dev: hot-reload, src mounts, direct port exposure | Yes (dev) |
+| `docker-compose.prod.yml` | Prod/demo: SSL nginx, 4-worker backend, no dev mounts | Explicit (`-f`) |
+| `.env` | Local secrets (gitignored) | Default |
+| `.env.demo` / `.env.prod` | Cloud secrets (gitignored) | Explicit (`--env-file`) |
+| `.env.*.example` | Committed templates with placeholder values | — |
+
+### Service profiles
+
+| Profile | Services | Activate with |
+|---------|---------|--------------|
+| *(none)* | postgres, elasticsearch, redis, backend, frontend, nginx | `docker compose up -d` |
+| `observability` | + prometheus, grafana, loki, promtail | `--profile observability` |
+| `tools` | + adminer | `--profile tools` |
+| `admin` | + pgadmin, kibana | `--profile admin` |
+
+### Commands by environment
+
+```bash
+# Local dev — core only (auto-loads docker-compose.override.yml)
+docker compose up -d
+
+# Local dev — full stack with observability
+docker compose --profile observability --profile tools up -d
+
+# Demo — core only
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.demo up -d
+
+# Demo — with observability
+docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+  --env-file .env.demo --profile observability up -d
+
+# Production
+docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+  --env-file .env.prod --profile observability up -d
+```
+
+### Cloud deployment checklist
+
+1. Provision VM (AWS t3.large or Azure D2s_v3, 8 GB RAM, 50+ GB disk)
+2. Install Docker: `curl https://get.docker.com | sh && sudo usermod -aG docker $USER`
+3. Copy repo to VM: `rsync -av --exclude='.env' ph-ts/ user@host:~/ph-ts/`
+4. Create secrets file on VM: `cp .env.demo.example .env.demo` and fill in values
+5. Provision SSL: `sudo certbot certonly --standalone -d your-domain.com`
+6. Edit `infrastructure/docker/nginx/nginx.prod.conf`: replace `YOUR_DOMAIN_HERE`
+7. Backup local Postgres and restore on VM:
+   ```bash
+   # Local
+   docker compose exec postgres pg_dump phts -U phts > phts-backup.sql
+   # VM
+   docker compose up -d postgres
+   docker compose exec -T postgres psql phts -U phts < phts-backup.sql
+   ```
+8. `docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.demo up -d --build`
+
+### What changes between dev and prod
+
+| Concern | Dev | Prod/demo |
+|---------|-----|-----------|
+| Backend CMD | `--reload` (1 worker) | `--workers 4` (no reload) |
+| Frontend | Vite dev server (port 5173, HMR) | Nginx static serve (port 80) |
+| nginx config | `nginx.conf` (HTTP only, frontend:5173) | `nginx.prod.conf` (HTTPS, frontend:80) |
+| Ports exposed | All services exposed to host | Only 80/443 via nginx |
+| Base image | `python:3.12-slim` + `apt-get upgrade` | Same |
+
+---
+
 ## Nginx Routing Notes
 
 - Location blocks must be ordered **specific before general**.

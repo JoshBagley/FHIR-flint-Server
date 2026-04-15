@@ -877,8 +877,8 @@ const ModernPHINVADS = () => {
         </div>
         <p className="text-xs text-gray-400 mt-4 flex items-center gap-1">
           <Clock className="w-3 h-3" /> Full usage metrics available in Grafana at{' '}
-          <a href="http://localhost:3001" target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">
-            localhost:3001
+          <a href={`${window.location.protocol}//${window.location.hostname}:3001`} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">
+            Grafana
           </a>
         </p>
       </div>
@@ -1583,7 +1583,7 @@ const ModernPHINVADS = () => {
               >
                 <Plus className="w-4 h-4" /> Create Value Set
               </button>
-              <a href="http://localhost:8000/docs" target="_blank" rel="noreferrer"
+              <a href="/docs" target="_blank" rel="noreferrer"
                 className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg transition-colors text-sm font-medium">
                 API Docs
               </a>

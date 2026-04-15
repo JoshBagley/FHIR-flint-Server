@@ -1,0 +1,67 @@
+# docker-compose.override.yml — Local development overrides
+# Auto-loaded by Docker Compose alongside docker-compose.yml.
+# Adds hot-reload, source volume mounts, and direct port access for dev tools.
+#
+# Usage:  docker compose up -d                          (core only)
+#         docker compose --profile observability up -d  (+ Prometheus/Grafana/Loki)
+#         docker compose --profile tools up -d          (+ Adminer)
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"   # expose for local DB clients (TablePlus, DBeaver, etc.)
+
+  elasticsearch:
+    ports:
+      - "9200:9200"   # expose for direct ES queries / Kibana
+
+  redis:
+    ports:
+      - "6379:6379"   # expose for local Redis CLI
+
+  backend:
+    # Hot-reload + single worker for dev; volume mounts for live code changes
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    environment:
+      LOG_LEVEL: debug
+    ports:
+      - "8000:8000"   # expose for direct API access / Swagger UI at :8000/docs
+    volumes:
+      - ./backend:/app
+      - ./migration:/app/migration
+
+  frontend:
+    # Vite dev server with hot module replacement
+    build:
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+
+  # Expose observability UIs when running with --profile observability
+  prometheus:
+    ports:
+      - "9090:9090"
+
+  grafana:
+    ports:
+      - "3001:3000"
+
+  loki:
+    ports:
+      - "3100:3100"
+
+  # Expose tool UIs when running with --profile tools
+  adminer:
+    ports:
+      - "8181:8080"
+
+  # Expose admin UIs when running with --profile admin
+  pgadmin:
+    ports:
+      - "5050:80"
+
+  kibana:
+    ports:
+      - "5601:5601"

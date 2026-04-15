@@ -11,10 +11,12 @@ venv/
 dist/
 build/
 
-# Environment
+# Environment — actual secrets files (never commit)
 .env
 .env.local
 .env.*.local
+.env.demo
+.env.prod
 
 # IDEs
 .vscode/
@@ -42,5 +44,5 @@ dist/
 build/
 .next/
 
-# Docker
-docker-compose.override.yml
+# Docker — override files are intentionally committed (they define environment configs)
+# docker-compose.override.yml  ← removed from ignore; now committed as dev config

@@ -12,8 +12,6 @@ services:
       POSTGRES_INITDB_ARGS: "-E UTF8"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     networks:
       - phts-network
     healthcheck:
@@ -36,8 +34,6 @@ services:
       - xpack.security.http.ssl.enabled=false
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
     networks:
       - phts-network
     healthcheck:
@@ -56,8 +52,6 @@ services:
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
     networks:
       - phts-network
     healthcheck:
@@ -86,7 +80,7 @@ services:
       DATABASE_URL: postgresql://phts:${POSTGRES_PASSWORD:-phts_dev_password}@postgres:5432/phts
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
       REDIS_URL: redis://redis:6379
-      LOG_LEVEL: debug
+      LOG_LEVEL: ${LOG_LEVEL:-info}
       SECRET_KEY: ${SECRET_KEY:-change-this-secret-key-in-production}
       ENABLE_AUTH: ${ENABLE_AUTH:-false}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:3000,http://localhost:5173}
@@ -100,11 +94,6 @@ services:
       UMLS_API_KEY: ${UMLS_API_KEY:-}
       LOINC_USERNAME: ${LOINC_USERNAME:-}
       LOINC_PASSWORD: ${LOINC_PASSWORD:-}
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./backend:/app
-      - ./migration:/app/migration
     networks:
       - phts-network
     healthcheck:
@@ -116,23 +105,17 @@ services:
     restart: unless-stopped
 
   # ============================================================================
-  # Frontend (React + Vite)
+  # Frontend (React/Vite — production build served by nginx)
   # ============================================================================
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: phts-frontend
     depends_on:
       - backend
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend/src:/app/src
     networks:
       - phts-network
-    environment:
-      - VITE_API_URL=http://localhost:8000
     restart: unless-stopped
 
   # ============================================================================
@@ -158,7 +141,7 @@ services:
     restart: unless-stopped
 
   # ============================================================================
-  # Prometheus Metrics Collection
+  # Prometheus Metrics Collection          [profile: observability]
   # ============================================================================
   prometheus:
     image: prom/prometheus:latest
@@ -171,14 +154,14 @@ services:
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
     networks:
       - phts-network
+    profiles:
+      - observability
     restart: unless-stopped
 
   # ============================================================================
-  # Grafana Dashboards
+  # Grafana Dashboards                     [profile: observability]
   # ============================================================================
   grafana:
     image: grafana/grafana:latest
@@ -193,14 +176,14 @@ services:
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
       - grafana_data:/var/lib/grafana
-    ports:
-      - "3001:3000"
     networks:
       - phts-network
+    profiles:
+      - observability
     restart: unless-stopped
 
   # ============================================================================
-  # Loki — Log Aggregation
+  # Loki — Log Aggregation                 [profile: observability]
   # ============================================================================
   loki:
     image: grafana/loki:latest
@@ -209,8 +192,6 @@ services:
     volumes:
       - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
       - loki_data:/loki
-    ports:
-      - "3100:3100"
     networks:
       - phts-network
     healthcheck:
@@ -218,10 +199,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    profiles:
+      - observability
     restart: unless-stopped
 
   # ============================================================================
-  # Promtail — Log Collector (ships Docker logs → Loki)
+  # Promtail — Log Collector               [profile: observability]
   # ============================================================================
   promtail:
     image: grafana/promtail:latest
@@ -236,26 +219,28 @@ services:
     depends_on:
       loki:
         condition: service_healthy
+    profiles:
+      - observability
     restart: unless-stopped
 
   # ============================================================================
-  # Adminer — Database UI at http://localhost:8080
+  # Adminer — Database UI                  [profile: tools]
   # ============================================================================
   adminer:
     image: adminer:latest
     container_name: phts-adminer
     depends_on:
       - postgres
-    ports:
-      - "8181:8080"
     networks:
       - phts-network
     environment:
       ADMINER_DEFAULT_SERVER: postgres
+    profiles:
+      - tools
     restart: unless-stopped
 
   # ============================================================================
-  # pgAdmin — optional, start with: docker compose --profile admin up
+  # pgAdmin — Heavy DB UI                  [profile: admin]
   # ============================================================================
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -264,8 +249,6 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
       PGADMIN_CONFIG_SERVER_MODE: 'False'
-    ports:
-      - "5050:80"
     networks:
       - phts-network
     depends_on:
@@ -275,15 +258,13 @@ services:
     restart: unless-stopped
 
   # ============================================================================
-  # Kibana — optional, start with: docker compose --profile admin up
+  # Kibana — Elasticsearch UI              [profile: admin]
   # ============================================================================
   kibana:
     image: docker.elastic.co/kibana/kibana:8.11.0
     container_name: phts-kibana
     environment:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-    ports:
-      - "5601:5601"
     networks:
       - phts-network
     depends_on:

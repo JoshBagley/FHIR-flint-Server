@@ -1,0 +1,47 @@
+# docker-compose.prod.yml — Production / demo overrides
+# Layer on top of docker-compose.yml for cloud deployments.
+#
+# Usage:
+#   Demo  (core only):
+#     docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+#       --env-file .env.demo up -d
+#
+#   Demo  (+ observability):
+#     docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+#       --env-file .env.demo --profile observability up -d
+#
+#   Production (+ observability):
+#     docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+#       --env-file .env.prod --profile observability up -d
+#
+# Prerequisites on the cloud host:
+#   1. SSL certs provisioned via Let's Encrypt:
+#        sudo certbot certonly --standalone -d your-domain.com
+#      Certs will be at /etc/letsencrypt/live/your-domain.com/
+#   2. Update nginx.prod.conf: replace YOUR_DOMAIN_HERE with your actual domain
+#   3. Set all required vars in .env.demo / .env.prod (see .env.prod.example)
+
+services:
+  backend:
+    environment:
+      LOG_LEVEL: info
+    # No dev volume mounts — code is baked into the image at build time.
+    # Dockerfile CMD runs 4 workers (no --reload).
+
+  nginx:
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Swap to the production nginx config (SSL + frontend:80 upstream)
+      - ./infrastructure/docker/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      # Let's Encrypt certificates (provisioned on the host via certbot)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      # Certbot ACME webroot (used during cert renewal)
+      - /var/www/certbot:/var/www/certbot:ro
+
+  grafana:
+    environment:
+      # Override weak dev defaults in production
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
