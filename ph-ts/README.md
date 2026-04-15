@@ -107,6 +107,7 @@ python migration/phinvads_migrate.py --target-url http://localhost
 
 ## Documentation
 
+- [FHIR API Reference](docs/FHIR_API_REFERENCE.md) — all endpoints, operations, MCP integration, and sample calls
 - [Architecture](docs/ARCHITECTURE.md)
 - [Development Setup](docs/DEVELOPMENT.md)
 - [Local Setup Guide](docs/local_setup_guide.md)

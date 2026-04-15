@@ -936,6 +936,9 @@ app.include_router(ai_router)
 from app.routes.admin import router as admin_router  # noqa: E402
 app.include_router(admin_router)
 
+from app.routes.mcp_chat import router as mcp_chat_router  # noqa: E402
+app.include_router(mcp_chat_router)
+
 
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):

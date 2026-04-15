@@ -3,9 +3,10 @@ import {
   Search, Download, FileCode, Layers,
   GitBranch, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2,
   ChevronDown, ChevronUp, Copy, Check, ExternalLink, ChevronLeft, ChevronRight, Plus, Settings, X, Filter, Pencil, Trash2,
-  Archive, ScrollText, RefreshCw
+  Archive, ScrollText, RefreshCw, MessageSquare
 } from 'lucide-react';
 import ValueSetBuilder from './ValueSetBuilder';
+import MCPChatPage from './MCPChatPage';
 import AppLogo from './components/AppLogo';
 
 // ---------------------------------------------------------------------------
@@ -588,6 +589,7 @@ const ExpansionPage = ({ resource, onBack }: { resource: UiResource; onBack: () 
 const ModernPHINVADS = () => {
   const [activeTab, setActiveTab] = useState<'ValueSet' | 'CodeSystem'>('ValueSet');
   const [activeView, setActiveView] = useState('browse');
+  const [mcpChatOpen, setMcpChatOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResource, setSelectedResource] = useState<UiResource | null>(null);
   const [expansionResource, setExpansionResource] = useState<UiResource | null>(null);
@@ -1520,6 +1522,10 @@ const ModernPHINVADS = () => {
     return <ValueSetBuilder onBack={() => { setBuilderOpen(false); loadResources(); }} />;
   }
 
+  if (mcpChatOpen) {
+    return <MCPChatPage onBack={() => setMcpChatOpen(false)} />;
+  }
+
   if (expansionResource) {
     return <ExpansionPage resource={expansionResource} onBack={() => setExpansionResource(null)} />;
   }
@@ -1575,6 +1581,13 @@ const ModernPHINVADS = () => {
                 <span className="font-medium text-sm">{view.label}</span>
               </button>
             ))}
+            <button
+              onClick={() => setMcpChatOpen(true)}
+              className="flex items-center gap-2 px-1 py-4 border-b-2 border-transparent text-gray-600 hover:text-indigo-600 transition-colors"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span className="font-medium text-sm">MCP Chat</span>
+            </button>
           </div>
         </div>
       </div>

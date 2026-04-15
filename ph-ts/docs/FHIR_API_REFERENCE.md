@@ -1,0 +1,648 @@
+# PH-TS FHIR API Reference
+
+PH-TS is a custom FHIR R4 terminology server built on FastAPI. Base URL: `http://localhost:8000`  
+All responses use `Content-Type: application/fhir+json`.
+
+---
+
+## Table of Contents
+
+1. [Metadata & Health](#1-metadata--health)
+2. [ValueSet — Search & Read](#2-valueset--search--read)
+3. [ValueSet — FHIR Operations](#3-valueset--fhir-operations)
+4. [ValueSet — PH-TS Extensions](#4-valueset--ph-ts-extensions)
+5. [CodeSystem — Search & Read](#5-codesystem--search--read)
+6. [CodeSystem — FHIR Operations](#6-codesystem--fhir-operations)
+7. [ConceptMap](#7-conceptmap)
+8. [SDO / External Vocabulary Search](#8-sdo--external-vocabulary-search)
+9. [AI Assist](#9-ai-assist)
+10. [MCP Chat](#10-mcp-chat)
+11. [Admin / Sync](#11-admin--sync)
+12. [CRUD — Create, Update, Delete](#12-crud--create-update-delete)
+13. [MCP Integration (Claude Code / Claude Desktop)](#13-mcp-integration-claude-code--claude-desktop)
+
+---
+
+## 1. Metadata & Health
+
+```http
+GET /health
+```
+Returns `200 OK` when the service is up.
+
+```http
+GET /metadata
+```
+FHIR R4 CapabilityStatement — lists supported resource types, operations, and server info.
+
+```http
+GET /analytics/summary
+```
+Returns server-wide counts: total ValueSets, CodeSystems, archived resources, total versions.
+
+---
+
+## 2. ValueSet — Search & Read
+
+### List / Search
+
+```http
+GET /ValueSet
+```
+
+All list requests default to `_summary=true` (metadata only — no concept arrays). Append `_summary=false` for full resources.
+
+#### Search Parameters
+
+| Parameter | Description | Example |
+|---|---|---|
+| `name` | Partial match on name or title | `?name=race` |
+| `status` | `active`, `draft`, `retired`, `unknown` | `?status=active` |
+| `source` | Import source: `phinvads`, `vsac`, `hl7`, `hl7v2`, `icd9cm`, `internal` | `?source=phinvads` |
+| `context-value-code` | Disease/condition view slug | `?context-value-code=covid-19-case-notification` |
+| `identifier` | OID (bare or `urn:oid:` prefix) | `?identifier=2.16.840.1.114222.4.11.836` |
+| `_archived` | `true` to return archived resources only | `?_archived=true` |
+| `_count` | Page size | `?_count=20` |
+| `_offset` | Page offset | `?_offset=40` |
+
+```bash
+# All active ValueSets
+curl "http://localhost:8000/ValueSet?status=active"
+
+# Search by name
+curl "http://localhost:8000/ValueSet?name=COVID"
+
+# Filter by disease view
+curl "http://localhost:8000/ValueSet?context-value-code=influenza"
+
+# Filter by source
+curl "http://localhost:8000/ValueSet?source=phinvads"
+
+# Lookup by OID
+curl "http://localhost:8000/ValueSet?identifier=2.16.840.1.114222.4.11.836"
+```
+
+### Read a Single Resource
+
+```http
+GET /ValueSet/{id}
+```
+
+```bash
+curl "http://localhost:8000/ValueSet/{id}"
+```
+
+Returns the full FHIR R4 ValueSet including `compose.include` with all concepts.
+
+---
+
+## 3. ValueSet — FHIR Operations
+
+### `$expand`
+
+Expands a ValueSet and returns all codes in `expansion.contains`.
+
+```http
+GET /ValueSet/$expand?url={canonical_url}&count={n}&filter={text}
+```
+
+```bash
+# Expand by canonical URL
+curl "http://localhost:8000/ValueSet/\$expand?url=https://phinvads.cdc.gov/vads/ViewValueSet.action?id=2.16.840.1.114222.4.11.836"
+
+# With text filter
+curl "http://localhost:8000/ValueSet/\$expand?url={url}&filter=fever&count=20"
+```
+
+### `$validate-code`
+
+Checks whether a given code is a member of a ValueSet.
+
+```http
+GET /ValueSet/$validate-code?url={url}&system={system}&code={code}
+```
+
+```bash
+curl "http://localhost:8000/ValueSet/\$validate-code?url={url}&system=http://snomed.info/sct&code=840539006"
+```
+
+### `$validate-batch`
+
+Validates multiple codes in a single call (optimized for HL7 v2 message validation).
+
+```http
+POST /ValueSet/$validate-batch
+Content-Type: application/json
+```
+
+```bash
+curl -X POST http://localhost:8000/ValueSet/\$validate-batch \
+  -H "Content-Type: application/json" \
+  -d '{
+    "items": [
+      {"code": "M",       "system": "http://terminology.hl7.org/CodeSystem/v2-0001"},
+      {"code": "94500-6", "system": "http://loinc.org"},
+      {"code": "J12.82",  "system": "http://hl7.org/fhir/sid/icd-10-cm"}
+    ]
+  }'
+```
+
+### `$concept-search`
+
+Full-text search across concepts in all stored ValueSets.
+
+```http
+GET /ValueSet/$concept-search?q={term}&limit={n}
+```
+
+```bash
+curl "http://localhost:8000/ValueSet/\$concept-search?q=sepsis&limit=10"
+```
+
+### `$diff`
+
+Compares two versions of a ValueSet.
+
+```http
+GET /ValueSet/{id}/$diff?v1={version}&v2={version}
+```
+
+---
+
+## 4. ValueSet — PH-TS Extensions
+
+These endpoints are PH-TS-specific and not part of the FHIR spec.
+
+### Disease / Condition Views
+
+PHIN VADS "program views" are modeled as `useContext` entries. 107 views are configured in `backend/app/disease_views.json`.
+
+```bash
+# List all 107 views with live ValueSet counts
+curl "http://localhost:8000/ValueSet/\$views"
+
+# Add a view tag to a ValueSet
+curl -X POST "http://localhost:8000/ValueSet/\$tag-view?resource_id={id}&view_id=covid-19-case-notification"
+
+# Remove a view tag
+curl -X DELETE "http://localhost:8000/ValueSet/\$tag-view?resource_id={id}&view_id=covid-19-case-notification"
+```
+
+### Version History & Audit
+
+```bash
+# Version history
+curl "http://localhost:8000/ValueSet/{id}/_history"
+
+# Audit log (all actions on this resource)
+curl "http://localhost:8000/ValueSet/{id}/\$audit"
+```
+
+### Archive / Restore
+
+```bash
+# Archive (soft delete)
+curl -X PATCH "http://localhost:8000/ValueSet/{id}/\$archive"
+
+# Restore from archive
+curl -X PATCH "http://localhost:8000/ValueSet/{id}/\$archive?restore=true"
+```
+
+---
+
+## 5. CodeSystem — Search & Read
+
+```bash
+# List all
+curl "http://localhost:8000/CodeSystem"
+
+# Search by name
+curl "http://localhost:8000/CodeSystem?name=SNOMED"
+curl "http://localhost:8000/CodeSystem?name=LOINC"
+curl "http://localhost:8000/CodeSystem?name=ICD"
+
+# Filter by content type
+curl "http://localhost:8000/CodeSystem?content=complete"
+curl "http://localhost:8000/CodeSystem?content=fragment"
+
+# Read a single CodeSystem
+curl "http://localhost:8000/CodeSystem/{id}"
+```
+
+---
+
+## 6. CodeSystem — FHIR Operations
+
+### `$lookup`
+
+Retrieves display name and properties for a specific code.
+
+```http
+GET /CodeSystem/$lookup?system={system_url}&code={code}
+```
+
+```bash
+# SNOMED CT
+curl "http://localhost:8000/CodeSystem/\$lookup?system=http://snomed.info/sct&code=840539006"
+
+# LOINC
+curl "http://localhost:8000/CodeSystem/\$lookup?system=http://loinc.org&code=94500-6"
+
+# ICD-10-CM
+curl "http://localhost:8000/CodeSystem/\$lookup?system=http://hl7.org/fhir/sid/icd-10-cm&code=U07.1"
+
+# RxNorm
+curl "http://localhost:8000/CodeSystem/\$lookup?system=http://www.nlm.nih.gov/research/umls/rxnorm&code=1049502"
+
+# LOINC hierarchy properties (requires LOINC credentials)
+curl "http://localhost:8000/CodeSystem/\$lookup?system=http://loinc.org&code=94500-6&property=parent&property=child"
+```
+
+### `$subsumes`
+
+Tests whether one code is subsumed by (a child of) another in a hierarchy.
+
+```http
+GET /CodeSystem/$subsumes?system={system}&codeA={code}&codeB={code}
+```
+
+---
+
+## 7. ConceptMap
+
+ConceptMaps enable cross-system code translation. Can be created manually or generated by the AI mapping tool.
+
+```bash
+# List all ConceptMaps
+curl "http://localhost:8000/ConceptMap"
+
+# Read by ID
+curl "http://localhost:8000/ConceptMap/{id}"
+
+# Translate a code (requires a stored ConceptMap covering source → target)
+curl "http://localhost:8000/ConceptMap/\$translate?code=840539006&system=http://snomed.info/sct&target=http://hl7.org/fhir/sid/icd-10-cm"
+```
+
+---
+
+## 8. SDO / External Vocabulary Search
+
+Live search against external code systems via PH-TS connectors.
+
+```bash
+# List available systems and their availability
+curl "http://localhost:8000/sdo/systems"
+```
+
+```bash
+# SNOMED CT (via Snowstorm public server)
+curl "http://localhost:8000/sdo/search?system=snomed&q=sepsis&limit=10"
+
+# LOINC (via fhir.loinc.org or NLM ClinicalTables fallback)
+curl "http://localhost:8000/sdo/search?system=loinc&q=glucose&limit=10"
+
+# ICD-10-CM (via NLM ClinicalTables)
+curl "http://localhost:8000/sdo/search?system=icd10cm&q=pneumonia&limit=10"
+
+# RxNorm (via NLM RxNav)
+curl "http://localhost:8000/sdo/search?system=rxnorm&q=amoxicillin&limit=10"
+
+# VSAC (requires UMLS_API_KEY in .env)
+curl "http://localhost:8000/sdo/search?system=vsac&q=diabetes&limit=10"
+
+# PHIN VADS (CDC)
+curl "http://localhost:8000/sdo/search?system=phinvads&q=race&limit=10"
+```
+
+### SNOMED CT Hierarchy
+
+```bash
+# Direct children of a concept (uses ECL <!{id})
+curl "http://localhost:8000/sdo/snomed/children/840539006"
+```
+
+---
+
+## 9. AI Assist
+
+AI-powered terminology operations. Provider is configured via `AI_PROVIDER` env var (`anthropic`, `openai`, or `gemini`).
+
+### Provider Info
+
+```bash
+curl "http://localhost:8000/ai/provider"
+# → {"provider": "gemini", "model": "gemini-2.0-flash", "configured": true}
+```
+
+### Suggest Codes
+
+Natural language → ranked code candidates from one or more SDOs.
+
+```bash
+curl -X POST http://localhost:8000/ai/suggest \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "codes for COVID-19 diagnosis and laboratory confirmation",
+    "systems": ["snomed", "icd10cm", "loinc"],
+    "limit": 10
+  }'
+```
+
+### Generate ValueSet Metadata
+
+Given a list of selected codes, generate `name`, `title`, `description`, and `purpose`.
+
+```bash
+curl -X POST http://localhost:8000/ai/describe \
+  -H "Content-Type: application/json" \
+  -d '{
+    "codes": [
+      {"code": "840539006", "display": "COVID-19", "system": "http://snomed.info/sct"},
+      {"code": "U07.1",     "display": "COVID-19",  "system": "http://hl7.org/fhir/sid/icd-10-cm"}
+    ],
+    "context": "public health case reporting"
+  }'
+```
+
+### Cross-System Mapping
+
+Map codes from one system to another; returns FHIR equivalence values.
+
+```bash
+curl -X POST http://localhost:8000/ai/map \
+  -H "Content-Type: application/json" \
+  -d '{
+    "codes": [
+      {"code": "840539006", "display": "COVID-19", "system": "http://snomed.info/sct"}
+    ],
+    "source_system": "snomed",
+    "target_system": "icd10cm"
+  }'
+```
+
+Equivalence values: `equivalent`, `wider`, `narrower`, `inexact`, `unmatched`.
+
+### Save Mapping as ConceptMap
+
+```bash
+curl -X POST http://localhost:8000/ai/map-save \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mappings": [...],
+    "source_system_url": "http://snomed.info/sct",
+    "target_system": "icd10cm",
+    "name": "SnomedToIcd10CmCovid",
+    "title": "SNOMED → ICD-10-CM COVID-19 Mapping",
+    "status": "draft"
+  }'
+```
+
+### Multi-Turn Chat (ValueSet Builder)
+
+AI assistant with full context of the current ValueSet being built. Returns `reply` + structured `suggested_codes`.
+
+```bash
+curl -X POST http://localhost:8000/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "What SNOMED codes represent COVID-19 and its variants?"}
+    ],
+    "valueset_context": {
+      "name": "CovidDiagnosisCodes",
+      "description": "SNOMED codes for COVID-19 case reporting"
+    }
+  }'
+```
+
+---
+
+## 10. MCP Chat
+
+AI chat backed by six FHIR tool functions, mirroring the [xSoVx/fhir-mcp](https://github.com/xSoVx/fhir-mcp) tool set. The AI autonomously decides which tools to call to answer a question, then returns its answer along with a full trace of every tool invocation.
+
+### Available Tools
+
+| Tool | Description |
+|---|---|
+| `fhir_capabilities` | Server capability statement |
+| `fhir_search` | Search ValueSets, CodeSystems, or ConceptMaps |
+| `fhir_read` | Read a resource by type + ID |
+| `terminology_lookup` | Look up a code in a CodeSystem |
+| `terminology_expand` | Expand a ValueSet |
+| `terminology_translate` | Translate codes via a ConceptMap |
+
+```bash
+# List tools
+curl "http://localhost:8000/mcp-chat/tools"
+```
+
+### Chat Examples
+
+```bash
+# Simple fact query (triggers fhir_capabilities + fhir_search)
+curl -X POST http://localhost:8000/mcp-chat/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "How many ValueSets does this server have?"}
+    ]
+  }'
+
+# Multi-step query (AI chains fhir_search → terminology_expand)
+curl -X POST http://localhost:8000/mcp-chat/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "Find ValueSets related to race and ethnicity, then expand the first one"}
+    ]
+  }'
+
+# Code lookup
+curl -X POST http://localhost:8000/mcp-chat/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "What is SNOMED code 840539006?"}
+    ]
+  }'
+
+# Multi-turn conversation
+curl -X POST http://localhost:8000/mcp-chat/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user",      "content": "Find ValueSets for influenza"},
+      {"role": "assistant", "content": "I found 12 ValueSets related to influenza..."},
+      {"role": "user",      "content": "Expand the first one and show me the codes"}
+    ]
+  }'
+```
+
+### Response Format
+
+```json
+{
+  "reply": "The server contains 1,998 ValueSets...",
+  "tool_calls": [
+    {
+      "tool": "fhir_search",
+      "args": {"resource_type": "ValueSet", "count": 1},
+      "result": {"total": 1998, "resources": [...]}
+    }
+  ],
+  "provider": "gemini",
+  "model": "gemini-2.0-flash"
+}
+```
+
+The **MCP Chat** tab in the UI provides an interactive version with a collapsible tool trace for each response.
+
+---
+
+## 11. Admin / Sync
+
+PHIN VADS incremental sync — checks for new resources on phinvads.cdc.gov and imports them.
+
+```bash
+# Preview what would be imported (dry run — safe to run anytime)
+curl -X POST "http://localhost:8000/admin/sync/phinvads?preview=true" \
+  -H "Content-Type: application/json" \
+  -d '{"resource_type": "all"}'
+
+# Trigger a real sync (ValueSets only)
+curl -X POST http://localhost:8000/admin/sync/phinvads \
+  -H "Content-Type: application/json" \
+  -d '{"resource_type": "valueset"}'
+
+# List last 10 sync runs
+curl "http://localhost:8000/admin/sync/status"
+
+# Detail for a specific run
+curl "http://localhost:8000/admin/sync/status/{run_id}"
+```
+
+Resource types: `all`, `valueset`, `codesystem`
+
+---
+
+## 12. CRUD — Create, Update, Delete
+
+Standard FHIR REST operations. Same pattern for `ValueSet`, `CodeSystem`, and `ConceptMap`.
+
+### Create
+
+```bash
+curl -X POST http://localhost:8000/ValueSet \
+  -H "Content-Type: application/fhir+json" \
+  -d '{
+    "resourceType": "ValueSet",
+    "name": "TestValueSet",
+    "title": "Test Value Set",
+    "status": "draft",
+    "description": "Created for API testing",
+    "compose": {
+      "include": [{
+        "system": "http://snomed.info/sct",
+        "concept": [
+          {"code": "840539006", "display": "COVID-19"},
+          {"code": "407479009", "display": "Influenza A"}
+        ]
+      }]
+    }
+  }'
+```
+
+### Update (full replace)
+
+```bash
+curl -X PUT http://localhost:8000/ValueSet/{id} \
+  -H "Content-Type: application/fhir+json" \
+  -d '{ ...full FHIR resource... }'
+```
+
+### Delete
+
+```bash
+curl -X DELETE "http://localhost:8000/ValueSet/{id}"
+```
+
+---
+
+## 13. MCP Integration (Claude Code / Claude Desktop)
+
+PH-TS can be connected to Claude Code or Claude Desktop via the [xSoVx/fhir-mcp](https://github.com/xSoVx/fhir-mcp) MCP server, giving Claude direct access to all FHIR operations via natural language.
+
+### Configuration
+
+The following is already written to `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "fhir-phts": {
+      "command": "npx",
+      "args": ["-y", "fhir-mcp@latest"],
+      "env": {
+        "FHIR_BASE_URL": "http://localhost:8000",
+        "TERMINOLOGY_BASE_URL": "http://localhost:8000",
+        "PHI_MODE": "trusted",
+        "ENABLE_AUDIT": "true"
+      }
+    }
+  }
+}
+```
+
+PH-TS must be running (`docker compose up -d`) before Claude Code will be able to connect.
+
+### What Claude Can Do via MCP
+
+Once connected, Claude Code can answer questions like:
+
+- *"How many active ValueSets are on PH-TS?"*
+- *"Find ValueSets tagged to the COVID-19 case notification view"*
+- *"Expand the race and ethnicity ValueSet"*
+- *"Look up LOINC code 94500-6"*
+- *"What ConceptMaps does the server have?"*
+
+### Tools Exposed
+
+| MCP Tool | Operation |
+|---|---|
+| `fhir.capabilities` | `GET /metadata` |
+| `fhir.search` | `GET /ValueSet`, `/CodeSystem`, `/ConceptMap` |
+| `fhir.read` | `GET /{type}/{id}` |
+| `terminology.lookup` | `GET /CodeSystem/$lookup` |
+| `terminology.expand` | `GET /ValueSet/$expand` |
+| `terminology.translate` | `GET /ConceptMap/$translate` |
+
+### In-App MCP Chat
+
+The **MCP Chat** tab in the PH-TS web UI (`http://localhost`) provides a browser-based test interface for the same tool set — no external tooling required. Each AI response shows which tools were called, with full input/output JSON visible in a collapsible trace panel.
+
+---
+
+## Common Code System URLs
+
+| System | Canonical URL |
+|---|---|
+| SNOMED CT | `http://snomed.info/sct` |
+| LOINC | `http://loinc.org` |
+| ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` |
+| ICD-9-CM | `http://hl7.org/fhir/sid/icd-9-cm` |
+| RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` |
+| CVX (vaccines) | `http://hl7.org/fhir/sid/cvx` |
+| CPT | `http://www.ama-assn.org/go/cpt` |
+| NDC | `http://hl7.org/fhir/sid/ndc` |
+| HL7 v2 tables | `http://terminology.hl7.org/CodeSystem/v2-{table}` |
+
+---
+
+## Interactive API Documentation
+
+FastAPI auto-generates full interactive docs at:
+
+- **Swagger UI:** `http://localhost:8000/docs`
+- **ReDoc:** `http://localhost:8000/redoc`
+- **OpenAPI JSON:** `http://localhost:8000/openapi.json`

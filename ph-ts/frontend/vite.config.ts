@@ -21,6 +21,7 @@ export default defineConfig({
       '/health': 'http://backend:8000',
       '/metadata': 'http://backend:8000',
       '/admin': 'http://backend:8000',
+      '/mcp-chat': 'http://backend:8000',
     },
   },
   test: {
