@@ -417,6 +417,8 @@ python migration/phinvads_migrate.py --resource valueset --batch-size 25
 - The `/ai/` block has `proxy_read_timeout 120s` (Claude/Gemini can be slow).
 - The FHIR API regex covers: `^/(ValueSet|CodeSystem|ConceptMap|metadata|analytics|sdo|\$stats)`
 - After editing `nginx.conf`: `docker compose exec nginx nginx -s reload`
+- A second `server` block handles `phinvads.test` (legacy URL redirect demo — see "Legacy URL Redirect" section).
+- **Do not use `*.cdc.gov` for mock domains** — HSTS preloading forces HTTPS; use `.test` TLD instead.
 
 ---
 
@@ -632,6 +634,48 @@ The ValueSet browser in `App.tsx` shows a **"Condition / View"** dropdown filter
 
 ---
 
+## Legacy URL Redirect (Mock PHIN VADS)
+
+PH-TS can resolve legacy PHIN VADS links and open the cached resource automatically in the UI.
+
+### How It Works
+
+```
+http://phinvads.test/vads/ViewValueSet.action?oid=2.16.840.1.114222.4.11.1038
+  → nginx 302 → http://localhost/?phts_oid=2.16.840.1.114222.4.11.1038&phts_type=ValueSet
+    → App.tsx deep-link handler reads ?phts_oid=, fetches by identifier, opens drawer
+```
+
+### Setup (one-time, per machine)
+
+Add to `C:\Windows\System32\drivers\etc\hosts` (run Notepad as Administrator):
+```
+127.0.0.1   phinvads.test
+```
+
+### nginx Server Block
+
+`infrastructure/docker/nginx/nginx.conf` contains a second `server` block for `phinvads.test`:
+- `/vads/ViewValueSet.action?oid=X` → `302 http://localhost/?phts_oid=X&phts_type=ValueSet`
+- `/vads/ViewCodeSystem.action?oid=X` → `302 http://localhost/?phts_oid=X&phts_type=CodeSystem`
+- All other paths → `302 http://localhost/`
+
+After editing nginx.conf: `docker compose exec nginx nginx -s reload` (no rebuild needed).
+
+### Frontend Deep-Link Handler (`App.tsx`)
+
+A `useEffect` keyed on `loadingResources` with a `deepLinkHandled` ref fires once after the initial resource list loads (to avoid a race with `setSelectedResource(null)` in `loadResources`). It:
+1. Reads `?phts_oid=` and `?phts_type=` from `window.location.search`
+2. Calls `GET /{type}?identifier={oid}&_summary=true`
+3. Sets `selectedResource` to open the detail drawer
+4. Cleans the URL via `window.history.replaceState`
+
+### Domain Choice
+
+Use `.test` TLD (IANA-reserved for testing). Do **not** use `*.cdc.gov` subdomains — browsers enforce HSTS preloading for `*.gov`, forcing HTTPS on port 443 (nothing listens there). Underscores in hostnames (e.g. `mock_phinvads`) are also rejected by Chrome/Firefox per RFC 1123.
+
+---
+
 ## SNOMED CT Hierarchy Tree
 
 The ValueSet Builder includes a lazy-loaded hierarchy tree for SNOMED CT concept browsing.
@@ -674,3 +718,7 @@ The ValueSet Builder includes a lazy-loaded hierarchy tree for SNOMED CT concept
 - **3 PHIN VADS `.txt` files unparseable** — `PHVS_AdministrativeProcedure_CDC_ICD-10PCS_V11.txt`, `PHVS_LabTestName_CDC_V10.txt`, and `PHVS_LabTestResultCoded_CDC_V2.txt` have malformed metadata rows (OID field empty or missing). These 3 cannot be auto-imported and are not in the DB. (`Vaccines Administered (Pediatric Flu).txt` ghost records were cleaned up 2026-03-25.)
 - **`import_phinvads_txt.py` double-blank-line parse bug (fixed 2026-03-25)** — Some PHIN VADS `.txt` files have two blank lines between the metadata section and the concept section. The parser was using the second blank line as the `csv.DictReader` header row, yielding 0 concepts. Fixed by skipping all leading blank lines before the concept section.
 - **ES nested object limit** — Raised to 50,000 via `PUT /fhir_resources/_settings {"index.mapping.nested_objects.limit": 50000}` to support large PHIN VADS ValueSets. Default is 10,000. If the setting resets after an ES container restart, re-apply it before running large imports.
+- **PHIN VADS source badge showed "PHTS" (fixed 2026-04-14)** — 137 PHIN VADS resources were imported before the source extension code existed in `_post_resource()`. They had no `extension` key in their JSONB data; `_extract_source()` returned `'internal'`; the frontend displayed "PHTS". Fixed by SQL backfill: injected `{"url":"http://phts.local/StructureDefinition/source","valueCode":"phinvads"}` into `data->'extension'` and set `source='phinvads'` for all records where `url LIKE 'https://phinvads.cdc.gov/%'` and extension was absent. Redis cache flushed after.
+- **`update_resource()` did not update `source` column (fixed 2026-04-14)** — The UPDATE query in `DatabaseManager.update_resource()` (`main.py`) omitted the `source` column, so a PUT with a corrected source extension would not update the DB column used for `?source=` filtering. Fixed: `_extract_source(data)` is now called and `source=$7` included in the UPDATE (parameter indices shifted).
+- **`nul` file created in `backend/` directory** — Windows reserved device name (`nul` ≡ `/dev/null`) was created as a literal file when a migration script redirected output. Git refuses to commit files named after reserved device names. Delete with `rm backend/nul`; the file contains no meaningful data.
+- **Mock PHIN VADS domain rejects: underscores and `*.cdc.gov`** — `mock_phinvads.cdc.gov` fails in browsers: (1) underscores are invalid in RFC 1123 hostnames and rejected by Chrome/Firefox; (2) `*.cdc.gov` is in the HSTS preload list, forcing HTTPS to port 443. Use `phinvads.test` instead.
