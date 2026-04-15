@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Search, Download, FileCode, Layers,
   GitBranch, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2,
@@ -736,6 +736,33 @@ const ModernPHINVADS = () => {
       setActiveSdos(new Set(systems.map(s => s.id)));
     }).catch(() => {});
   }, []);
+
+  // Deep-link handler: resolve ?phts_oid= set by mock_phinvads.cdc.gov nginx redirect.
+  // Waits for the initial resource load to finish so setSelectedResource(null) in
+  // loadResources() doesn't race with and clear the drawer we're about to open.
+  const deepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (loadingResources || deepLinkHandled.current) return;
+    deepLinkHandled.current = true;
+
+    const params = new URLSearchParams(window.location.search);
+    const oid = params.get('phts_oid');
+    const type = (params.get('phts_type') ?? 'ValueSet') as 'ValueSet' | 'CodeSystem';
+    if (!oid) return;
+
+    // Clean up the URL so the params don't persist on manual refresh
+    window.history.replaceState({}, '', window.location.pathname);
+
+    apiFetch<{ entry?: Array<{ resource: FhirResource }> }>(
+      `/${type}?identifier=${encodeURIComponent(oid)}&_summary=true`
+    ).then(bundle => {
+      const first = bundle.entry?.[0]?.resource;
+      if (first) {
+        setActiveTab(type);
+        setSelectedResource(toUiResource(first));
+      }
+    }).catch(() => {});
+  }, [loadingResources]);
 
   // Concept/code search — fires when in concept mode with a debounced term
   useEffect(() => {
