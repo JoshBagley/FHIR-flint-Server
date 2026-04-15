@@ -119,6 +119,24 @@ _OID_TO_CANONICAL: Dict[str, str] = {
 }
 
 
+_HL7_V2_TABLE_PREFIX = "2.16.840.1.113883.12."
+
+
+def _v2_table_oid_to_url(oid: str) -> Optional[str]:
+    """
+    Auto-generate a canonical FHIR URL for any HL7 v2 table OID.
+    OID pattern: 2.16.840.1.113883.12.N  →  http://terminology.hl7.org/CodeSystem/v2-XXXX
+    where XXXX is N zero-padded to 4 digits.
+    Returns None if the OID does not match the pattern.
+    """
+    if not oid.startswith(_HL7_V2_TABLE_PREFIX):
+        return None
+    suffix = oid[len(_HL7_V2_TABLE_PREFIX):]
+    if suffix.isdigit():
+        return f"http://terminology.hl7.org/CodeSystem/v2-{int(suffix):04d}"
+    return None
+
+
 def _normalize_system_url(system: Optional[str]) -> Optional[str]:
     """
     Convert a code system reference to its canonical FHIR URL where known.
@@ -127,6 +145,11 @@ def _normalize_system_url(system: Optional[str]) -> Optional[str]:
       - "urn:oid:2.16.840.1.113883.6.1"   (prefixed OID)
       - "2.16.840.1.113883.6.1"            (bare OID)
       - "http://loinc.org"                 (already canonical — leave as-is)
+
+    Resolution order:
+      1. Static well-known map (_OID_TO_CANONICAL)
+      2. Auto-generated HL7 v2 table URL (2.16.840.1.113883.12.N → v2-XXXX)
+      3. urn:oid: passthrough for unknown OIDs
     """
     if not system:
         return system
@@ -136,7 +159,13 @@ def _normalize_system_url(system: Optional[str]) -> Optional[str]:
     elif system[:1].isdigit() and "." in system:
         oid = system
     if oid is not None:
-        return _OID_TO_CANONICAL.get(oid, f"urn:oid:{oid}")
+        canonical = _OID_TO_CANONICAL.get(oid)
+        if canonical:
+            return canonical
+        v2_url = _v2_table_oid_to_url(oid)
+        if v2_url:
+            return v2_url
+        return f"urn:oid:{oid}"
     return system
 
 
@@ -475,12 +504,152 @@ def _save_checkpoint(path: str, state: Dict):
 
 
 # ---------------------------------------------------------------------------
-# Single-OID fetch
+# Single-OID fetch (ValueSet)
 # ---------------------------------------------------------------------------
 
 def _normalise_oid(oid: str) -> str:
     """Strip leading 'urn:oid:' prefix if the user included it."""
     return oid.removeprefix("urn:oid:").strip()
+
+
+# ---------------------------------------------------------------------------
+# Single-OID fetch (CodeSystem) + batch missing-OID import
+# ---------------------------------------------------------------------------
+
+async def fetch_codesystem_by_oid(
+    client: httpx.AsyncClient,
+    oid: str,
+) -> Optional[Dict]:
+    """
+    Fetch a single CodeSystem from PHIN VADS by OID.
+
+    Tries identifier search with bare OID first, then urn:oid: prefix,
+    then direct path read — matching the WAF-safe order used for ValueSets.
+    Returns the raw STU3 resource dict, or None if not found.
+    """
+    oid = _normalise_oid(oid)
+
+    for id_form in [oid, f"urn:oid:{oid}"]:
+        try:
+            bundle = await _get_json(
+                client,
+                f"{PHINVADS_BASE}/CodeSystem",
+                params={"identifier": id_form, "_format": "json"},
+            )
+            entries = bundle.get("entry", [])
+            if entries:
+                resource = entries[0].get("resource")
+                if resource:
+                    logger.info(
+                        "Found CodeSystem %s via identifier=%s (title=%s)",
+                        oid, id_form, resource.get("title", ""),
+                    )
+                    return resource
+        except Exception:
+            pass
+
+    # Direct read as last resort
+    try:
+        data = await _get_json(client, f"{PHINVADS_BASE}/CodeSystem/{oid}",
+                               params={"_format": "json"})
+        if data.get("resourceType") == "CodeSystem":
+            logger.info("Found CodeSystem %s via direct read", oid)
+            return data
+    except Exception:
+        pass
+
+    logger.warning("CodeSystem OID %s not found in PHIN VADS", oid)
+    return None
+
+
+async def migrate_codesystem_by_oid(
+    phinvads_client: httpx.AsyncClient,
+    target_client: httpx.AsyncClient,
+    oid: str,
+    target_base: str,
+    dry_run: bool,
+    output_dir: Optional[Path],
+) -> Dict:
+    """Fetch one CodeSystem by OID from PHIN VADS, convert it, and import it."""
+    stats: Dict[str, int] = {"fetched": 0, "converted": 0, "imported": 0, "skipped": 0, "errors": 0}
+
+    raw = await fetch_codesystem_by_oid(phinvads_client, oid)
+    if raw is None:
+        stats["errors"] += 1
+        return stats
+    stats["fetched"] = 1
+
+    try:
+        r4 = _convert_codesystem_stu3_to_r4(raw)
+        stats["converted"] = 1
+    except Exception as exc:
+        logger.error("Conversion failed for CodeSystem OID %s: %s", oid, exc)
+        stats["errors"] += 1
+        return stats
+
+    if output_dir:
+        safe = _normalise_oid(oid).replace(".", "_")
+        out_path = output_dir / f"CodeSystem_{safe}.json"
+        out_path.write_text(json.dumps(r4, indent=2, default=str))
+
+    # Skip if this URL+version already exists
+    pv_url = r4.get("url", "")
+    if not dry_run and pv_url:
+        already = await _resource_exists(target_client, target_base, "CodeSystem", pv_url, r4.get("version"))
+        if already:
+            logger.info("  = CodeSystem %s already exists — skipped", pv_url)
+            stats["skipped"] = 1
+            return stats
+
+    success, detail = await _post_resource(target_client, target_base, "CodeSystem", r4, dry_run)
+    if success:
+        stats["imported"] = 1
+        logger.info("  OK CodeSystem OID=%s  title=%r  %s", oid, r4.get("title", ""), detail)
+    else:
+        stats["errors"] += 1
+        logger.error("  FAIL CodeSystem OID=%s: %s", oid, detail)
+
+    return stats
+
+
+async def migrate_missing_codesystems(
+    phinvads_client: httpx.AsyncClient,
+    target_client: httpx.AsyncClient,
+    oid_file: str,
+    target_base: str,
+    dry_run: bool,
+    output_dir: Optional[Path],
+) -> Dict:
+    """
+    Import CodeSystems by OID from a file, bypassing the broken PHIN VADS
+    bulk-pagination endpoint that only returns 50 records regardless of offset.
+
+    The OID file should contain one OID per line (bare or urn:oid: prefixed).
+    Lines starting with '#' and blank lines are ignored.
+
+    Typical usage: generate the OID list from a DB query that finds system URLs
+    in ValueSets without matching CodeSystem records, then run this mode.
+    """
+    with open(oid_file) as f:
+        oids = [
+            line.strip().removeprefix("urn:oid:")
+            for line in f
+            if line.strip() and not line.startswith("#")
+        ]
+
+    logger.info("=== Missing CodeSystem import: %d OIDs from %s ===", len(oids), oid_file)
+
+    totals: Dict[str, int] = {"fetched": 0, "converted": 0, "imported": 0, "skipped": 0, "errors": 0}
+    for i, oid in enumerate(oids, 1):
+        logger.info("[%d/%d] Importing CodeSystem OID=%s", i, len(oids), oid)
+        result = await migrate_codesystem_by_oid(
+            phinvads_client, target_client, oid, target_base, dry_run, output_dir
+        )
+        for k in totals:
+            totals[k] += result.get(k, 0)
+        await asyncio.sleep(0.5)   # be polite to PHIN VADS
+
+    return totals
 
 
 async def fetch_by_oid(
@@ -818,8 +987,20 @@ async def run(args: argparse.Namespace):
 
         all_stats: Dict[str, Dict] = {}
 
+        # ── Missing-CodeSystem-by-OID mode ────────────────────────────────
+        if getattr(args, "missing_codesystems", None):
+            cs_stats = await migrate_missing_codesystems(
+                phinvads_client=phinvads_client,
+                target_client=target_client,
+                oid_file=args.missing_codesystems,
+                target_base=args.target_url,
+                dry_run=args.dry_run,
+                output_dir=output_dir,
+            )
+            all_stats["CodeSystem (missing OIDs)"] = cs_stats
+
         # ── Single-OID mode ────────────────────────────────────────────────
-        if args.oid:
+        elif args.oid:
             oid_stats = await migrate_single_oid(
                 phinvads_client=phinvads_client,
                 target_client=target_client,
@@ -903,6 +1084,12 @@ def main():
     parser.add_argument("--oid", metavar="OID",
                         help="Import a single ValueSet by OID (e.g. 2.16.840.1.113883.1.11.1). "
                              "Skips bulk migration. urn:oid: prefix is optional.")
+    parser.add_argument("--missing-codesystems", metavar="OID_FILE",
+                        help="Import CodeSystems by OID from a file (one OID per line). "
+                             "Bypasses the broken PHIN VADS bulk CodeSystem pagination which only "
+                             "returns 50 records. Generate the file from a DB query for system URLs "
+                             "in ValueSets that have no matching CodeSystem record. "
+                             "urn:oid: prefix is optional; lines starting with # are ignored.")
     parser.add_argument("--resume", metavar="CHECKPOINT_FILE",
                         help="Path to checkpoint JSON file for resuming")
     parser.add_argument("--dry-run", action="store_true",

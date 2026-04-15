@@ -604,7 +604,8 @@ class DatabaseManager:
             param_idx += 1
 
         if 'identifier' in params:
-            # Strip urn:oid: prefix if present — identifiers are stored as bare OIDs
+            # Normalise to bare OID so we can match both storage forms:
+            # some importers store "urn:oid:{oid}", others store the bare OID.
             ident_val = params['identifier']
             if ident_val.startswith('urn:oid:'):
                 ident_val = ident_val[len('urn:oid:'):]
@@ -613,6 +614,7 @@ class DatabaseManager:
                     SELECT 1
                     FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) AS ident
                     WHERE ident->>'value' = ${param_idx}
+                       OR ident->>'value' = 'urn:oid:' || ${param_idx}
                 )
             """)
             values.append(ident_val)

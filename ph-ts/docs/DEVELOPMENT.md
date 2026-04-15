@@ -60,15 +60,21 @@ ph-ts/
 ## Running Locally
 
 ```bash
-# Start full stack
-docker compose up -d --build
+# Core services only
+make start
+
+# Core + observability (Prometheus, Grafana, Loki, Promtail) + Adminer
+make start-obs
+
+# Everything including pgAdmin and Kibana
+make start-full
 
 # Check health
 docker compose ps
 curl http://localhost/health
 ```
 
-See [local_setup_guide.md](local_setup_guide.md) for full setup details.
+See [local_setup_guide.md](local_setup_guide.md) for full setup details including service profiles and endpoints.
 
 ---
 
@@ -201,10 +207,13 @@ See [migration/README.md](../migration/README.md) for all flags.
 
 ## Observability
 
+Start with `make start-obs` to include these services.
+
 | Tool | URL | Purpose |
 |------|-----|---------|
 | Grafana | http://localhost:3001 | Dashboards (admin/admin by default) |
 | Prometheus | http://localhost:9090 | Raw metrics scrape |
+| Loki | http://localhost:3100 | Log aggregation API |
 | Backend metrics | http://localhost:8000/metrics | Prometheus endpoint |
 
 ---

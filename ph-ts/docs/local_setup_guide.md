@@ -33,8 +33,10 @@ cd ph-ts
 # 2. Copy environment file (first time only)
 cp .env.example .env   # edit values as needed
 
-# 3. Start all services
-docker compose up -d --build
+# 3. Start services (choose one)
+make start          # Core services only
+make start-obs      # Core + observability (Prometheus, Grafana, Loki, Promtail) + Adminer
+make start-full     # Everything including pgAdmin and Kibana
 
 # 4. Confirm everything is healthy (~60 s)
 docker compose ps
@@ -214,9 +216,27 @@ docker compose logs -f nginx
 
 ---
 
+## Make Commands
+
+The `Makefile` provides shortcuts for the most common workflows:
+
+| Command | Description |
+|---------|-------------|
+| `make start` | Start core services (postgres, elasticsearch, redis, backend, frontend, nginx) |
+| `make start-obs` | Core + observability (Prometheus, Grafana, Loki, Promtail) + Adminer |
+| `make start-full` | All of the above + pgAdmin and Kibana |
+| `make stop` | Stop all running services |
+| `make restart` | Restart all services |
+| `make logs` | Tail logs for all services |
+| `make test` | Run backend test suite |
+| `make migrate` | Run database migrations |
+| `make clean` | Stop and remove all data volumes (full reset) |
+
+---
+
 ## Optional Admin Services
 
-pgAdmin and Kibana are included but disabled by default. Start them with the `admin` profile:
+pgAdmin and Kibana are included but disabled by default. Use `make start-full` to include them, or start them individually with the `admin` profile:
 
 ```bash
 docker compose --profile admin up -d

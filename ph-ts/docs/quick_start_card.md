@@ -21,25 +21,28 @@ make start
 
 | Command | Description |
 |---------|-------------|
-| `make start` | Start all services |
+| `make start` | Start core services |
+| `make start-obs` | Core + observability + Adminer |
+| `make start-full` | All services including pgAdmin and Kibana |
 | `make stop` | Stop all services |
 | `make logs` | View real-time logs |
-| `make status` | Check service health |
-| `make clean` | Remove everything |
+| `make clean` | Remove all data volumes (full reset) |
 | `make restart` | Restart all services |
 
 ---
 
-## 🌐 Access Points (After `make start`)
+## 🌐 Access Points
 
-| Service | URL | Purpose |
-|---------|-----|---------|
-| **Web UI** | http://localhost | Main application |
-| **API** | http://localhost:8000 | REST API |
-| **API Docs** | http://localhost:8000/docs | Interactive API docs |
-| **Grafana** | http://localhost:3001 | Monitoring (admin/admin) |
-| **Elasticsearch** | http://localhost:9200 | Search engine |
-| **pgAdmin** | http://localhost:5050 | Database admin |
+| Service | URL | Available with |
+|---------|-----|----------------|
+| **Web UI** | http://localhost | `make start` |
+| **API** | http://localhost:8000 | `make start` |
+| **API Docs** | http://localhost:8000/docs | `make start` |
+| **Adminer** | http://localhost:8181 | `make start-obs` |
+| **Prometheus** | http://localhost:9090 | `make start-obs` |
+| **Grafana** | http://localhost:3001 | `make start-obs` (admin/admin) |
+| **pgAdmin** | http://localhost:5050 | `make start-full` |
+| **Kibana** | http://localhost:5601 | `make start-full` |
 
 ---
 
@@ -50,11 +53,11 @@ make start
 curl http://localhost:8000/health
 
 # Check all services
-docker-compose ps
+docker compose ps
 
 # View specific service logs
-docker-compose logs backend
-docker-compose logs postgres
+docker compose logs backend
+docker compose logs postgres
 ```
 
 ---
@@ -82,10 +85,10 @@ netstat -ano | findstr :8000  # Windows
 ### Database connection errors
 ```bash
 # Wait for database to be ready
-docker-compose logs postgres | grep "ready"
+docker compose logs postgres | grep "ready"
 
 # Then restart backend
-docker-compose restart backend
+docker compose restart backend
 ```
 
 ### Out of memory
@@ -124,10 +127,10 @@ docker-compose restart backend
 ### 3. Test changes
 ```bash
 # Backend
-docker-compose exec backend pytest
+docker compose exec backend pytest
 
 # Frontend  
-docker-compose exec frontend npm test
+docker compose exec frontend npm test
 ```
 
 ### 4. Commit
@@ -167,8 +170,8 @@ make clean
 
 ### Restart specific service
 ```bash
-docker-compose restart backend
-docker-compose restart frontend
+docker compose restart backend
+docker compose restart frontend
 ```
 
 ---

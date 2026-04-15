@@ -235,6 +235,9 @@ export default function ValueSetBuilder({ onBack }: Props) {
   const [translateResults, setTranslateResults] = useState<TranslateResult[] | null>(null);
   const [translateLoading, setTranslateLoading] = useState(false);
 
+  // Available Systems legend — local list collapsed by default (can be very long)
+  const [localSystemsExpanded, setLocalSystemsExpanded] = useState(false);
+
   // Save AI mapping as ConceptMap
   const [mapSaveOpen, setMapSaveOpen] = useState(false);
   const [mapSaveName, setMapSaveName] = useState('');
@@ -1115,9 +1118,20 @@ export default function ValueSetBuilder({ onBack }: Props) {
                 {localSystems.length > 0 && (
                   <>
                     <div className="border-t border-gray-100 my-1" />
-                    <p className="text-xs text-gray-400 font-medium mb-0.5">Local</p>
-                    {localSystems.map(s => (
-                      <div key={s.id} className="flex items-center gap-2 text-xs">
+                    <button
+                      onClick={() => setLocalSystemsExpanded(x => !x)}
+                      className="flex items-center gap-1 w-full text-left text-xs text-gray-400 font-medium hover:text-gray-600"
+                    >
+                      <svg
+                        className={`w-3 h-3 flex-shrink-0 transition-transform ${localSystemsExpanded ? 'rotate-90' : ''}`}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      Local ({localSystems.length})
+                    </button>
+                    {localSystemsExpanded && localSystems.map(s => (
+                      <div key={s.id} className="flex items-center gap-2 text-xs pl-4">
                         <span className="w-2 h-2 rounded-full flex-shrink-0 bg-purple-400" />
                         <span className="font-medium text-gray-700 truncate flex-1">{s.name}</span>
                         <span className="ml-auto px-1.5 py-0.5 rounded text-xs bg-purple-50 text-purple-600 flex-shrink-0">

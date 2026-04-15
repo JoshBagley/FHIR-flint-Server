@@ -418,6 +418,11 @@ const ExpansionPage = ({ resource, onBack }: { resource: UiResource; onBack: () 
   const PAGE = 50;
 
   useEffect(() => {
+    if (!resource.url) {
+      setError('This value set has no canonical URL and cannot be expanded.');
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     fetchExpansion(resource.url)
@@ -1017,7 +1022,15 @@ const ModernPHINVADS = () => {
         ? "fixed inset-0 bg-white z-50 overflow-y-auto"
         : "fixed inset-y-0 right-0 w-[36rem] bg-white shadow-2xl border-l border-gray-200 z-50 overflow-y-auto"}>
         <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">{fullPage ? (resource.title || resource.name || 'Resource Details') : 'Resource Details'}</h2>
+          <div className="flex items-center gap-3">
+            {fullPage && (
+              <a href="/" className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium" title="Back to PH-TS">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                PH-TS
+              </a>
+            )}
+            <h2 className="font-semibold text-gray-900">{fullPage ? (resource.title || resource.name || 'Resource Details') : 'Resource Details'}</h2>
+          </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none" title="Close">×</button>
         </div>
         <div className={`p-6 space-y-6${fullPage ? ' max-w-4xl mx-auto' : ''}`}>
@@ -1191,6 +1204,7 @@ const ModernPHINVADS = () => {
           )}
 
           <div className="pt-4 border-t border-gray-200 space-y-2">
+            {resource.url && (
             <a
               href={resource.resourceType === 'ValueSet'
                 ? `/ValueSet/$expand?url=${encodeURIComponent(resource.url)}`
@@ -1201,6 +1215,7 @@ const ModernPHINVADS = () => {
             >
               <ExternalLink className="w-4 h-4" /> Raw {resource.resourceType === 'ValueSet' ? '$expand' : '$lookup'} JSON
             </a>
+            )}
             <button
               onClick={() => handleDownloadJson(resource)}
               className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2"

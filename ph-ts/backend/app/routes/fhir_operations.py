@@ -46,15 +46,22 @@ _SYSTEM_DISPLAY_NAMES: Dict[str, str] = {
     "http://www.ama-assn.org/go/cpt":                                 "CPT",
     "http://www.cms.gov/Medicare/Coding/ICD10":                       "ICD-10-PCS",
     "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl":             "NCI Thesaurus",
+    "http://nucc.org/provider-taxonomy":                              "Healthcare Provider Taxonomy (HIPAA)",
     "http://hl7.org/fhir/v3/NullFlavor":                              "HL7 v3 NullFlavor",
     "http://terminology.hl7.org/CodeSystem/v3-NullFlavor":            "HL7 v3 NullFlavor",
     "http://terminology.hl7.org/CodeSystem/v3-AdministrativeGender":  "HL7 Administrative Gender",
     "http://terminology.hl7.org/CodeSystem/v3-Race":                  "HL7 v3 Race",
     "http://terminology.hl7.org/CodeSystem/v3-Ethnicity":             "HL7 v3 Ethnicity",
-    # CDC / PHIN VADS code systems (well-known OIDs)
-    "https://www.cdc.gov/vaccines/programs/iis/code-sets/vis-barcode-look": "CDC VIS Barcode",
-    "https://phinvads.cdc.gov/vads/ViewCodeSystem.action?id=2.16.840.1.114222.4.5.274": "PHC (PHIN Concepts)",
-    # OID aliases — produced by PHIN VADS imports
+    # CDC / PHIN VADS local code systems — baseStu3 URL form (stored in ValueSets by txt importer)
+    # and urn:oid: form (fallback). Both must be present since either URL may appear.
+    "https://phinvads.cdc.gov/vads/ViewCodeSystem.action?id=2.16.840.1.114222.4.5.274": "PHIN VS (CDC Local Coding System)",
+    "https://phinvads.cdc.gov/baseStu3/CodeSystem/2.16.840.1.114222.4.5.274":           "PHIN VS (CDC Local Coding System)",
+    "https://phinvads.cdc.gov/baseStu3/CodeSystem/2.16.840.1.114222.4.5.288":           "PHIN VS (CDC Local Coding System)",
+    "https://phinvads.cdc.gov/baseStu3/CodeSystem/2.16.840.1.114222.4.5.232":           "PHIN Questions",
+    "https://phinvads.cdc.gov/baseStu3/CodeSystem/2.16.840.1.114222.4.5.314":           "PHIN VS (Notifiable Event)",
+    "https://phinvads.cdc.gov/baseStu3/CodeSystem/2.16.840.1.114222.4.5.315":           "PHIN VS (Lab Result)",
+    "https://www.cdc.gov/vaccines/programs/iis/code-sets/vis-barcode-look":             "CDC VIS Barcode",
+    # OID aliases — produced by PHIN VADS imports where txt importer used urn:oid: passthrough
     "urn:oid:2.16.840.1.113883.6.1":               "LOINC",
     "urn:oid:2.16.840.1.113883.6.96":              "SNOMED CT",
     "urn:oid:2.16.840.1.113883.6.90":              "ICD-10-CM",
@@ -64,9 +71,16 @@ _SYSTEM_DISPLAY_NAMES: Dict[str, str] = {
     "urn:oid:2.16.840.1.113883.12.227":            "MVX (Vaccine Manufacturer)",
     "urn:oid:2.16.840.1.113883.5.1":               "HL7 Administrative Gender",
     "urn:oid:2.16.840.1.113883.5.1008":            "HL7 v3 NullFlavor",
-    "urn:oid:2.16.840.1.114222.4.5.274":           "PHC (PHIN Concepts)",
+    "urn:oid:2.16.840.1.114222.4.5.274":           "PHIN VS (CDC Local Coding System)",
+    "urn:oid:2.16.840.1.114222.4.5.288":           "PHIN VS (CDC Local Coding System)",
     "urn:oid:2.16.840.1.114222.4.5.232":           "PHIN Questions",
     "urn:oid:2.16.840.1.114222.4.5.236":           "PHIN Vaccine Admin Route",
+    "urn:oid:2.16.840.1.113883.6.238":             "Race & Ethnicity - CDC",
+    # ISO codes — not published by PHIN VADS; static entries required
+    "urn:oid:1.0.3166.1":                          "ISO 3166-1 (Country Codes)",
+    "urn:oid:1.0.3166.2":                          "ISO 3166-2 (Country Subdivision Codes)",
+    "urn:oid:1.0.3166.3":                          "ISO 3166-3 (Former Country Codes)",
+    "urn:oid:1.0.639.3":                           "ISO 639-3 (Language Codes)",
 }
 
 _SYSTEM_URL_TO_SDO: Dict[str, str] = {
@@ -135,10 +149,18 @@ def _filters_to_ecl(filters: list) -> str:
 
 
 def _hl7_system_display_name(system: str) -> str:
-    """Generate a human-readable name for HL7 v2/v3 terminology URLs."""
+    """Generate a human-readable name for HL7 v2/v3 terminology URLs.
+
+    Only used as a fallback when the CodeSystem is not in the database.
+    Non-numeric v2 suffixes (e.g. 'v2-tables') return a generic label
+    rather than producing nonsense like 'HL7 Table tables'.
+    """
     local = system[len(_HL7_TERMINOLOGY_BASE):]   # e.g., "v2-0001", "v3-AdministrativeGender"
     if local.startswith("v2-"):
-        return f"HL7 Table {local[3:]}"
+        table = local[3:]
+        if table.isdigit():
+            return f"HL7 Table {table}"
+        return "HL7 v2 Tables"
     if local.startswith("v3-"):
         return f"HL7 v3 {local[3:]}"
     return f"HL7 {local}"
@@ -180,11 +202,14 @@ async def _get_system_name(
     Resolution order:
       1. Per-request cache (avoid duplicate DB hits)
       2. Static well-known map (_SYSTEM_DISPLAY_NAMES)
-      3. HL7 terminology URL pattern (v2/v3 table names)
-      4. title / name from a CodeSystem record already fetched by the caller
-      5. DB lookup by URL
-      6. Pattern-based fallback for PHIN VADS, CDC, and other known URL shapes
-      7. Domain extraction as last resort
+      3. title / name from a CodeSystem record already fetched by the caller
+      4. DB lookup by URL (preferred over pattern — returns actual CodeSystem title)
+      5. PHIN VADS baseStu3 URL fallback for urn:oid: references — phinvads_migrate.py
+         imports CodeSystems using https://phinvads.cdc.gov/baseStu3/CodeSystem/{oid}
+         as the URL, but the txt importer may store compose.include.system as urn:oid:
+      6. HL7 terminology URL pattern (v2/v3 table names — fallback when not in DB)
+      7. Pattern-based fallback for PHIN VADS, CDC, and other known URL shapes
+      8. Domain extraction as last resort
     """
     if not system:
         return None
@@ -193,10 +218,6 @@ async def _get_system_name(
     if system in _SYSTEM_DISPLAY_NAMES:
         cache[system] = _SYSTEM_DISPLAY_NAMES[system]
         return cache[system]
-    if _is_hl7_terminology_url(system):
-        name = _hl7_system_display_name(system)
-        cache[system] = name
-        return name
     if cs:
         name = cs.get('title') or cs.get('name') or _url_to_display_name(system)
         cache[system] = name
@@ -204,8 +225,24 @@ async def _get_system_name(
     cs_results = await state.db.search_resources('CodeSystem', {'url': system})
     if cs_results:
         name = cs_results[0].get('title') or cs_results[0].get('name') or _url_to_display_name(system)
-    else:
-        name = _url_to_display_name(system)
+        cache[system] = name
+        return name
+    # For urn:oid: references, also try the PHIN VADS baseStu3 URL pattern.
+    # phinvads_migrate.py imports CodeSystems using that URL as the canonical,
+    # but the txt importer may store compose.include.system as urn:oid: instead.
+    if system.startswith("urn:oid:"):
+        bare_oid = system[len("urn:oid:"):]
+        phinvads_url = f"https://phinvads.cdc.gov/baseStu3/CodeSystem/{bare_oid}"
+        cs_results2 = await state.db.search_resources('CodeSystem', {'url': phinvads_url})
+        if cs_results2:
+            name = cs_results2[0].get('title') or cs_results2[0].get('name') or _url_to_display_name(system)
+            cache[system] = name
+            return name
+    if _is_hl7_terminology_url(system):
+        name = _hl7_system_display_name(system)
+        cache[system] = name
+        return name
+    name = _url_to_display_name(system)
     cache[system] = name
     return name
 
@@ -327,10 +364,17 @@ async def _perform_expansion(
         if 'concept' in include:
             system_name = await _get_system_name(system, system_name_cache)
             for concept in include['concept']:
+                # Prefer the Preferred Concept Name stored in designation over
+                # the raw Concept Name in display — PHIN VADS txt importer stores
+                # the preferred name as designation[].value when it differs from display.
+                preferred = next(
+                    (d['value'] for d in concept.get('designation', []) if d.get('value')),
+                    None,
+                )
                 c: Dict[str, Any] = {
                     'system': system,
                     'code': concept['code'],
-                    'display': concept.get('display', concept['code']),
+                    'display': preferred or concept.get('display', concept['code']),
                 }
                 if system_name:
                     c['systemName'] = system_name
@@ -383,10 +427,14 @@ async def _perform_expansion(
                             all_concepts.append(c)
                 else:
                     for concept in local_concepts:
+                        preferred = next(
+                            (d['value'] for d in concept.get('designation', []) if d.get('value')),
+                            None,
+                        )
                         c = {
                             'system': system,
                             'code': concept['code'],
-                            'display': concept.get('display', concept['code']),
+                            'display': preferred or concept.get('display', concept['code']),
                         }
                         if system_name:
                             c['systemName'] = system_name

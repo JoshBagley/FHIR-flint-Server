@@ -134,20 +134,42 @@ _OID_TO_CANONICAL: Dict[str, str] = {
 }
 
 
+_HL7_V2_TABLE_PREFIX = "2.16.840.1.113883.12."
+
+
+def _v2_table_oid_to_url(oid: str) -> Optional[str]:
+    """
+    Auto-generate a canonical FHIR URL for any HL7 v2 table OID.
+    OID pattern: 2.16.840.1.113883.12.N  →  http://terminology.hl7.org/CodeSystem/v2-XXXX
+    where XXXX is N zero-padded to 4 digits.
+    Returns None if the OID does not match the pattern.
+    """
+    if not oid.startswith(_HL7_V2_TABLE_PREFIX):
+        return None
+    suffix = oid[len(_HL7_V2_TABLE_PREFIX):]
+    if suffix.isdigit():
+        return f"http://terminology.hl7.org/CodeSystem/v2-{int(suffix):04d}"
+    return None
+
+
 def _oid_to_system(oid: str) -> str:
-    """Normalize a code system OID to a canonical FHIR URL, or keep as urn:oid:."""
+    """Normalize a code system OID to a canonical FHIR URL, or keep as urn:oid:.
+
+    Resolution order:
+      1. Static well-known map (_OID_TO_CANONICAL)
+      2. Auto-generated HL7 v2 table URL (2.16.840.1.113883.12.N → v2-XXXX)
+      3. urn:oid: passthrough for unknown OIDs
+    """
     if not oid:
         return ""
-    canonical = _OID_TO_CANONICAL.get(oid)
+    bare = oid[len("urn:oid:"):] if oid.startswith("urn:oid:") else oid
+    canonical = _OID_TO_CANONICAL.get(bare)
     if canonical:
         return canonical
-    if oid.startswith("urn:oid:"):
-        inner = oid[len("urn:oid:"):]
-        canonical = _OID_TO_CANONICAL.get(inner)
-        if canonical:
-            return canonical
-        return oid
-    return f"urn:oid:{oid}"
+    v2_url = _v2_table_oid_to_url(bare)
+    if v2_url:
+        return v2_url
+    return f"urn:oid:{bare}"
 
 
 def _normalize_status(raw: str) -> str:
@@ -174,10 +196,13 @@ def _parse_date(raw: str) -> Optional[str]:
 # Parser
 # ---------------------------------------------------------------------------
 
-def parse_phinvads_txt(path: Path) -> Optional[Dict]:
+def parse_phinvads_txt(path: Path) -> Optional[Tuple[Dict, Dict[str, str]]]:
     """
     Parse a PHIN VADS .txt export file into an R4 ValueSet dict.
-    Returns None on parse error.
+
+    Returns a (valueset, cs_names) tuple where cs_names maps
+    system URL → PHIN VADS Code System Name for each system referenced by
+    the ValueSet's concepts.  Returns None on parse error.
     """
     try:
         text = path.read_text(encoding="utf-8-sig", errors="replace")
@@ -217,6 +242,23 @@ def parse_phinvads_txt(path: Path) -> Optional[Dict]:
     status_raw = (vs.get("Value Set Status") or "").strip()
     date_raw = (vs.get("VS Last Updated Date") or "").strip()
 
+    # Some files split the metadata: the title is on its own line (no tabs) and the
+    # OID/code/version appear on the following line with a leading tab. In that case
+    # vs_rows[0] has the title but an empty OID — fall through to subsequent rows.
+    if not oid and len(vs_rows) > 1:
+        for extra_row in vs_rows[1:]:
+            extra_oid = (extra_row.get("Value Set OID") or "").strip()
+            if extra_oid:
+                oid = extra_oid
+                name = name or (extra_row.get("Value Set Code") or "").strip()
+                title = title or (extra_row.get("Value Set Name") or "").strip()
+                version = version or (extra_row.get("Value Set Version") or "").strip()
+                definition = definition or (extra_row.get("Value Set Definition") or "").strip()
+                release_notes = release_notes or (extra_row.get("VS Release Comments") or "").strip()
+                status_raw = status_raw or (extra_row.get("Value Set Status") or "").strip()
+                date_raw = date_raw or (extra_row.get("VS Last Updated Date") or "").strip()
+                break
+
     description = definition
     if release_notes:
         description = f"{description}\n\nRelease Notes: {release_notes}" if description else f"Release Notes: {release_notes}"
@@ -231,14 +273,17 @@ def parse_phinvads_txt(path: Path) -> Optional[Dict]:
     concept_section = "\r\n".join(lines[concept_start:])
     concept_reader = csv.DictReader(io.StringIO(concept_section), delimiter="\t")
 
-    # Group concepts by code system OID → compose.include entries
-    includes: Dict[str, Dict] = {}  # key: (system_url, version)
+    # Group concepts by code system OID → compose.include entries.
+    # Also collect Code System Name from PHIN VADS for CodeSystem title enrichment.
+    includes: Dict[str, Dict] = {}        # key: (system_url, version) → include entry
+    cs_names: Dict[str, str] = {}         # system_url → PHIN VADS Code System Name
 
     for row in concept_reader:
         code = (row.get("Concept Code") or "").strip()
         display = (row.get("Concept Name") or "").strip()
         preferred = (row.get("Preferred Concept Name") or "").strip()
         cs_oid = (row.get("Code System OID") or "").strip()
+        cs_name = (row.get("Code System Name") or "").strip()
         cs_version = (row.get("Code System Version") or "").strip()
 
         if not code or not cs_oid:
@@ -246,6 +291,9 @@ def parse_phinvads_txt(path: Path) -> Optional[Dict]:
 
         system_url = _oid_to_system(cs_oid)
         key = (system_url, cs_version)
+
+        if cs_name and system_url and system_url not in cs_names:
+            cs_names[system_url] = cs_name
 
         if key not in includes:
             includes[key] = {
@@ -303,7 +351,7 @@ def parse_phinvads_txt(path: Path) -> Optional[Dict]:
     }
 
     # Strip None-valued keys
-    return {k: v for k, v in r4.items() if v is not None}
+    return {k: v for k, v in r4.items() if v is not None}, cs_names
 
 
 # ---------------------------------------------------------------------------
@@ -363,11 +411,243 @@ async def _post_valueset(
 # Main import logic
 # ---------------------------------------------------------------------------
 
+async def _update_codesystem_titles(
+    client: httpx.AsyncClient,
+    target_base: str,
+    cs_names: Dict[str, str],
+    dry_run: bool,
+) -> None:
+    """
+    For each (system_url, phinvads_name) pair, fetch the CodeSystem from
+    PH-TS and update its title to the PHIN VADS Code System Name if the
+    current title is absent or less descriptive (shorter).
+
+    This makes the PHIN VADS-friendly name (e.g. "Administrative sex (HL7)")
+    the title returned by $expand for any ValueSet that references that system.
+    """
+    updated = skipped = errors = 0
+    for system_url, phinvads_name in sorted(cs_names.items()):
+        try:
+            resp = await client.get(
+                f"{target_base}/CodeSystem",
+                params={"url": system_url},
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                logger.warning("  CodeSystem lookup failed for %s: HTTP %d", system_url, resp.status_code)
+                errors += 1
+                continue
+
+            bundle = resp.json()
+            entries = bundle.get("entry", [])
+            if not entries:
+                logger.debug("  No CodeSystem found for %s — skipping title update", system_url)
+                skipped += 1
+                continue
+
+            cs = entries[0]["resource"]
+            current_title = cs.get("title") or ""
+
+            # Only update if the PHIN VADS name is more descriptive
+            if current_title == phinvads_name:
+                skipped += 1
+                continue
+            if current_title and len(current_title) >= len(phinvads_name):
+                logger.debug(
+                    "  Keeping existing title %r over %r for %s",
+                    current_title, phinvads_name, system_url,
+                )
+                skipped += 1
+                continue
+
+            if dry_run:
+                logger.info(
+                    "  [dry-run] Would update CodeSystem %r title: %r -> %r",
+                    system_url, current_title, phinvads_name,
+                )
+                updated += 1
+                continue
+
+            cs["title"] = phinvads_name
+            cs_id = cs.get("id")
+            put_resp = await client.put(
+                f"{target_base}/CodeSystem/{cs_id}",
+                json=cs,
+                headers={"Content-Type": "application/fhir+json"},
+                timeout=30,
+            )
+            if put_resp.status_code in (200, 201):
+                logger.info(
+                    "  Updated CodeSystem %r title: %r -> %r",
+                    system_url, current_title, phinvads_name,
+                )
+                updated += 1
+            else:
+                logger.warning(
+                    "  Failed to update CodeSystem %r: HTTP %d %s",
+                    system_url, put_resp.status_code, put_resp.text[:200],
+                )
+                errors += 1
+
+        except Exception as exc:
+            logger.warning("  Error updating CodeSystem %s: %s", system_url, exc)
+            errors += 1
+
+    print(f"\nCodeSystem title updates: {updated} updated, {skipped} skipped, {errors} errors")
+
+
+def _match_includes_by_concepts(
+    existing_includes: List[Dict],
+    txt_includes: List[Dict],
+) -> Dict[int, str]:
+    """
+    Match each existing compose.include to the txt include with the greatest
+    concept-code overlap, then return a dict of {existing_index: correct_system_url}
+    for any existing include whose system URL should change.
+
+    Matching is skipped (no correction applied) when:
+    - No txt include overlaps at all (Jaccard = 0)
+    - The best-match txt include has the same system URL as the existing include
+    """
+    corrections: Dict[int, str] = {}
+
+    # Pre-build sets of concept codes per txt include
+    txt_code_sets = []
+    for inc in txt_includes:
+        codes = {c["code"] for c in inc.get("concept", [])}
+        txt_code_sets.append((codes, inc.get("system", "")))
+
+    for ei, existing_inc in enumerate(existing_includes):
+        existing_system = existing_inc.get("system", "")
+        existing_codes = {c["code"] for c in existing_inc.get("concept", [])}
+
+        if not existing_codes or not txt_code_sets:
+            continue
+
+        # Find the txt include with the highest Jaccard similarity
+        best_jaccard = 0.0
+        best_system = existing_system
+        for txt_codes, txt_system in txt_code_sets:
+            if not txt_codes:
+                continue
+            intersection = len(existing_codes & txt_codes)
+            union = len(existing_codes | txt_codes)
+            jaccard = intersection / union if union else 0.0
+            if jaccard > best_jaccard:
+                best_jaccard = jaccard
+                best_system = txt_system
+
+        # Only correct if we found a clear match (>50% overlap) and system differs
+        if best_jaccard >= 0.5 and best_system != existing_system:
+            corrections[ei] = best_system
+
+    return corrections
+
+
+async def _repair_system_urls(
+    client: httpx.AsyncClient,
+    target_base: str,
+    txt_files: List[Path],
+    dry_run: bool,
+) -> None:
+    """
+    For each txt file, parse the correct compose.include.system URLs (via OID mapping)
+    and compare them against the existing ValueSet in PH-TS using concept-code overlap
+    matching (not index-based).  Where a system URL differs and the match is unambiguous
+    (>= 50% Jaccard similarity of concept codes), PUT the corrected ValueSet back,
+    preserving all fields not in the txt file (useContext, disease view tags, etc.).
+    """
+    repaired = skipped = errors = not_found = 0
+
+    for path in txt_files:
+        result = parse_phinvads_txt(path)
+        if result is None:
+            continue
+        txt_vs, _ = result
+
+        vs_url = txt_vs.get("url")
+        version = txt_vs.get("version")
+        if not vs_url:
+            continue
+
+        # Fetch the existing ValueSet from PH-TS
+        try:
+            params: Dict = {"url": vs_url}
+            if version:
+                params["version"] = version
+            resp = await client.get(f"{target_base}/ValueSet", params=params, timeout=15)
+            if resp.status_code != 200:
+                errors += 1
+                continue
+            bundle = resp.json()
+            entries = bundle.get("entry", [])
+            if not entries:
+                not_found += 1
+                continue
+            existing = entries[0]["resource"]
+        except Exception as exc:
+            logger.warning("Fetch failed for %s: %s", vs_url, exc)
+            errors += 1
+            continue
+
+        existing_includes = existing.get("compose", {}).get("include", [])
+        txt_includes = txt_vs.get("compose", {}).get("include", [])
+
+        corrections = _match_includes_by_concepts(existing_includes, txt_includes)
+        if not corrections:
+            skipped += 1
+            continue
+
+        # Apply corrections to the existing resource (preserves useContext, tags, etc.)
+        corrected = dict(existing)
+        corrected_includes = []
+        title = existing.get("title") or vs_url
+        for i, inc in enumerate(existing_includes):
+            corrected_inc = dict(inc)
+            if i in corrections:
+                logger.info("  %s: system %r -> %r", title, inc.get("system"), corrections[i])
+                corrected_inc["system"] = corrections[i]
+            corrected_includes.append(corrected_inc)
+
+        corrected.setdefault("compose", {})["include"] = corrected_includes
+
+        if dry_run:
+            repaired += 1
+            continue
+
+        vs_id = existing.get("id")
+        try:
+            put_resp = await client.put(
+                f"{target_base}/ValueSet/{vs_id}",
+                json=corrected,
+                headers={"Content-Type": "application/fhir+json"},
+                timeout=30,
+            )
+            if put_resp.status_code in (200, 201):
+                repaired += 1
+            else:
+                logger.warning(
+                    "  PUT failed for %s: HTTP %d %s",
+                    vs_url, put_resp.status_code, put_resp.text[:200],
+                )
+                errors += 1
+        except Exception as exc:
+            logger.warning("  PUT error for %s: %s", vs_url, exc)
+            errors += 1
+
+    print(
+        f"\nSystem URL repair: {repaired} updated, {skipped} already correct, "
+        f"{not_found} not in PH-TS, {errors} errors"
+    )
+
+
 async def import_all(
     source_dir: Path,
     target_base: str,
     dry_run: bool,
     limit: Optional[int],
+    update_cs_titles: bool,
+    repair_system_urls: bool,
 ) -> None:
     txt_files = sorted(source_dir.glob("*.txt"))
     if limit:
@@ -389,13 +669,18 @@ async def import_all(
             sys.exit(1)
 
         sem = asyncio.Semaphore(CONCURRENT_POSTS)
+        all_cs_names: Dict[str, str] = {}  # accumulated system_url → PHIN VADS name
 
         async def process_file(path: Path) -> None:
-            resource = parse_phinvads_txt(path)
-            if resource is None:
+            result = parse_phinvads_txt(path)
+            if result is None:
                 stats["parse_errors"] += 1
                 return
+            resource, cs_names = result
             stats["parsed"] += 1
+
+            # Accumulate code system names from every file
+            all_cs_names.update(cs_names)
 
             vs_url = resource.get("url")
             version = resource.get("version")
@@ -428,6 +713,15 @@ async def import_all(
             logger.info("Processing batch %d/%d (files %d–%d of %d)…",
                         batch_num, total_batches, i + 1, min(i + batch_size, total_files), total_files)
             await asyncio.gather(*[process_file(f) for f in batch])
+
+        if update_cs_titles and all_cs_names:
+            logger.info("\nUpdating CodeSystem titles from PHIN VADS names (%d unique systems)…",
+                        len(all_cs_names))
+            await _update_codesystem_titles(client, target_base, all_cs_names, dry_run)
+
+        if repair_system_urls:
+            logger.info("\nRepairing compose.include.system URLs in existing ValueSets…")
+            await _repair_system_urls(client, target_base, txt_files, dry_run)
 
     print("\n" + "=" * 60)
     print("IMPORT SUMMARY")
@@ -469,6 +763,25 @@ def main() -> None:
         default=None,
         help="Only process the first N files (for testing)",
     )
+    parser.add_argument(
+        "--update-cs-titles",
+        action="store_true",
+        help=(
+            "After importing ValueSets, update the title of each referenced CodeSystem "
+            "in PH-TS to the PHIN VADS 'Code System Name' (e.g. 'Administrative sex (HL7)'). "
+            "Only updates when the PHIN VADS name is more descriptive than the current title."
+        ),
+    )
+    parser.add_argument(
+        "--repair-system-urls",
+        action="store_true",
+        help=(
+            "For existing ValueSets, correct any compose.include.system URLs that were "
+            "stored incorrectly (e.g. 'v2-tables' → 'v2-0001') using the OID mapping "
+            "from the txt files. Preserves useContext, disease view tags, and all other "
+            "metadata. Safe to re-run."
+        ),
+    )
     args = parser.parse_args()
 
     source_dir = Path(args.source_dir)
@@ -481,7 +794,10 @@ def main() -> None:
         logger.error("Source directory not found: %s", source_dir)
         sys.exit(1)
 
-    asyncio.run(import_all(source_dir, args.target_url, args.dry_run, args.limit))
+    asyncio.run(import_all(
+        source_dir, args.target_url, args.dry_run, args.limit,
+        args.update_cs_titles, args.repair_system_urls,
+    ))
 
 
 if __name__ == "__main__":

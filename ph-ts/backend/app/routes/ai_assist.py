@@ -14,6 +14,7 @@ Returns HTTP 503 if the configured provider's API key is missing.
 """
 
 import os
+import re
 import json
 import logging
 import asyncio
@@ -309,6 +310,10 @@ Your task:
 4. If a code is close but has an important caveat (too broad, retired, wrong context), note it in "caveats".
 5. Suggest 2-3 additional search terms the specialist could use to find better candidates.
 
+CRITICAL: You MUST copy the "code", "display", "system", and "systemName" values EXACTLY as they \
+appear in the candidate list above. Do NOT paraphrase, translate, or rewrite display names — \
+the authoritative display from the source system must be preserved verbatim.
+
 Respond ONLY with valid JSON in this exact structure (no markdown, no explanation outside the JSON):
 {{
   "suggestions": [
@@ -512,6 +517,86 @@ async def save_map_as_concept_map(req: MapSaveRequest):
     return JSONResponse(content=saved, status_code=201)
 
 
+_URL_TO_SDO_ID = {
+    "http://snomed.info/sct":                       "snomed",
+    "http://loinc.org":                             "loinc",
+    "http://hl7.org/fhir/sid/icd-10-cm":           "icd10cm",
+    "http://www.nlm.nih.gov/research/umls/rxnorm": "rxnorm",
+}
+
+# Regex patterns for detecting codes mentioned in free-text conversation.
+# Only match formats that are unambiguous enough to be worth a live lookup.
+_CODE_PATTERNS = [
+    # SNOMED CT: 6–12 digit plain integer
+    ("snomed", "http://snomed.info/sct", "SNOMED CT",
+     re.compile(r'(?<!\d)(\d{6,12})(?!\d)')),
+    # LOINC: digits-check-digit, e.g. 94500-6
+    ("loinc", "http://loinc.org", "LOINC",
+     re.compile(r'(?<!\d)(\d{1,5}-\d)(?!\d)')),
+    # ICD-10-CM: letter + 2 digits + optional .chars, e.g. J12.82
+    ("icd10cm", "http://hl7.org/fhir/sid/icd-10-cm", "ICD-10-CM",
+     re.compile(r'\b([A-Z]\d{2}(?:\.\d{1,4})?)\b')),
+]
+
+
+async def _lookup_codes_in_text(text: str) -> list[dict]:
+    """
+    Scan free text for recognisable code patterns, look each up against the live
+    terminology server, and return authoritative {code, system, systemName, display}
+    records.  Only codes that resolve successfully are included.
+    """
+    seen: set[tuple[str, str]] = set()
+    tasks: list[tuple[str, str, str, str]] = []  # (sdo_id, url, system_name, code)
+
+    for sdo_id, url, system_name, pattern in _CODE_PATTERNS:
+        for m in pattern.finditer(text):
+            code = m.group(1)
+            key = (sdo_id, code)
+            if key not in seen:
+                seen.add(key)
+                tasks.append((sdo_id, url, system_name, code))
+
+    if not tasks:
+        return []
+
+    async def _do_lookup(sdo_id, url, system_name, code):
+        try:
+            result = await asyncio.wait_for(
+                external_cs.lookup(sdo_id, code), timeout=5.0
+            )
+            if result and result.get("display"):
+                return {"code": code, "system": url,
+                        "systemName": system_name, "display": result["display"]}
+        except Exception:
+            pass
+        return None
+
+    results = await asyncio.gather(*[_do_lookup(*t) for t in tasks])
+    return [r for r in results if r is not None]
+
+
+async def _validate_suggested_code(entry: dict) -> dict:
+    """Replace AI-generated display with the authoritative live-lookup value."""
+    system = entry.get("system", "")
+    code = entry.get("code", "")
+    if not system or not code:
+        return entry
+    sdo_id = _URL_TO_SDO_ID.get(system)
+    if not sdo_id:
+        return entry
+    try:
+        result = await asyncio.wait_for(
+            external_cs.lookup(sdo_id, code), timeout=5.0
+        )
+        if result and result.get("display"):
+            return {**entry, "display": result["display"]}
+        if result is None:
+            return {**entry, "caveats": "Code not found in live terminology server — verify before use."}
+    except Exception:
+        pass
+    return entry
+
+
 @router.post("/chat")
 async def chat_sme(req: ChatRequest):
     """
@@ -541,7 +626,28 @@ async def chat_sme(req: ChatRequest):
         )
         context_lines.append(f"Codes selected so far ({len(codes)}): {summary}")
 
-    context_block = "\n".join(context_lines) if context_lines else "No ValueSet context provided yet — the user has not filled in details or selected codes."
+    context_block = "\n".join(context_lines) if context_lines else "No ValueSet context provided yet."
+
+    # Pre-lookup: scan the latest user message for code patterns and inject
+    # authoritative results into the system prompt BEFORE the AI responds.
+    # This eliminates hallucinated code meanings — the AI is given ground-truth
+    # data and forbidden from substituting its own training-data memory.
+    latest_user_text = next(
+        (m.content for m in reversed(req.messages) if m.role == "user"), ""
+    )
+    live_lookups = await _lookup_codes_in_text(latest_user_text)
+
+    if live_lookups:
+        lookup_lines = "\n".join(
+            f"  {r['systemName']} {r['code']} = \"{r['display']}\""
+            for r in live_lookups
+        )
+        live_lookup_block = (
+            f"\n\nAuthoritative code lookups from the live terminology server "
+            f"(verified — use these exact values):\n{lookup_lines}"
+        )
+    else:
+        live_lookup_block = ""
 
     system_prompt = f"""You are an AI Assistant with deep expertise in FHIR R4 terminology and vocabulary, \
 embedded in a public health FHIR Terminology Server. You are assisting a public health informaticist \
@@ -563,23 +669,32 @@ Your expertise covers:
 - FHIR R4 ValueSet design: intensional vs extensional definitions, use of filters and \
   hierarchy operators, versioning strategy, canonical URL conventions
 
-When you recommend specific codes and are confident in them, emit them in a structured block \
-so the user can add them to the ValueSet with one click:
+CRITICAL — Code accuracy rules (follow these without exception):
+1. NEVER state what a specific code number means from your training data memory alone.
+2. If authoritative lookup results are provided below, use ONLY those values when \
+   discussing those codes. Do not contradict or supplement them.
+3. If the user asks about a code that has NO lookup result below, say: \
+   "I cannot confirm the meaning of [code] from my training data — please use the \
+   Search or $lookup tool to get the authoritative display from the live system."
+4. When emitting <suggested_codes> blocks, only include codes whose display you obtained \
+   from live lookup results or from the /ai/suggest search results — never from memory.
+5. It is better to say "I don't know the exact code" than to state a wrong one.
+
+When you recommend specific codes that have been verified by live lookup, emit them so the \
+user can add them to the ValueSet with one click:
 
 <suggested_codes>
-[{{"code": "263495000", "display": "Gender", "system": "http://snomed.info/sct", "systemName": "SNOMED CT"}}]
+[{{"code": "119297000", "display": "Blood specimen", "system": "http://snomed.info/sct", "systemName": "SNOMED CT"}}]
 </suggested_codes>
 
-Only use this format when you are confident in the specific code values. For exploratory \
-suggestions where the user should verify, describe them in prose and recommend they search manually.
-
-Be concise and practical. Cite specific codes, systems, and hierarchy paths where helpful. \
+Be concise and practical. Explain terminology hierarchies, design trade-offs, and system \
+differences in prose. For specific code values, always rely on live lookup results or \
+direct the user to search.
 Flag licensing constraints (SNOMED affiliate license, LOINC free account, CPT AMA license) \
-when the user is asking about restricted systems. When there are multiple valid options, \
-explain the trade-offs so the user can make an informed choice.
+when relevant.
 
 Current ValueSet being built:
-{context_block}"""
+{context_block}{live_lookup_block}"""
 
     conversation = [{"role": m.role, "content": m.content} for m in req.messages]
 
@@ -592,7 +707,6 @@ Current ValueSet being built:
         raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e
 
     # Extract and strip <suggested_codes> blocks
-    import re
     suggested_codes: list[dict] = []
     code_block_re = re.compile(r"<suggested_codes>\s*(.*?)\s*</suggested_codes>", re.DOTALL)
     for match in code_block_re.finditer(raw):
@@ -604,5 +718,12 @@ Current ValueSet being built:
             pass
 
     reply_text = code_block_re.sub("", raw).strip()
+
+    # Post-validate: replace any AI-written displays in suggested_codes with
+    # authoritative live-lookup values (second line of defence).
+    if suggested_codes:
+        suggested_codes = list(
+            await asyncio.gather(*[_validate_suggested_code(c) for c in suggested_codes])
+        )
 
     return {"reply": reply_text, "suggested_codes": suggested_codes}
