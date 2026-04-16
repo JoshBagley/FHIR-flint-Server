@@ -32,6 +32,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    healthcheck:
+      disable: true
     volumes:
       # Swap to the production nginx config (SSL + frontend:80 upstream)
       - ./infrastructure/docker/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
