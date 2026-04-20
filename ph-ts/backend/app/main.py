@@ -959,6 +959,9 @@ app.include_router(admin_router)
 from app.routes.mcp_chat import router as mcp_chat_router  # noqa: E402
 app.include_router(mcp_chat_router)
 
+from app.routes.auth_routes import router as auth_router  # noqa: E402
+app.include_router(auth_router)
+
 
 def _fhir_issue_code(status_code: int) -> str:
     return {

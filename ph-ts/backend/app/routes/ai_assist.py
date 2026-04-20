@@ -26,9 +26,9 @@ from pydantic import BaseModel
 
 from app.services import external_cs
 from app import state
-from app.auth import require_api_key
+from app.auth import require_access
 
-router = APIRouter(prefix="/ai", tags=["AI Assistant"], dependencies=[Depends(require_api_key)])
+router = APIRouter(prefix="/ai", tags=["AI Assistant"], dependencies=[Depends(require_access)])
 logger = logging.getLogger(__name__)
 
 

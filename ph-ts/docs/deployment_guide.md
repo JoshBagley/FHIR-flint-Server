@@ -153,13 +153,74 @@ curl http://localhost:8000/\$stats
 
 ## Security
 
-### Enable Authentication
+### Authentication
+
+PH-TS supports three auth modes controlled by environment variables. The default (`ENABLE_AUTH=false`) is safe for demos — no changes break until you flip the flag.
+
+#### Mode 1 — No auth (demo default)
 
 ```bash
-# .env
-SECRET_KEY=your_generated_key
-ENABLE_AUTH=true
+ENABLE_AUTH=false   # default — /admin and /ai use X-API-Key if ADMIN_API_KEY is set
 ```
+
+#### Mode 2 — Built-in JWT (production testing)
+
+```bash
+ENABLE_AUTH=true
+AUTH_USERNAME=admin
+AUTH_PASSWORD=<strong-password>   # generate: openssl rand -hex 16
+SECRET_KEY=<generated-secret>     # generate: openssl rand -hex 32
+# OIDC_ISSUER_URL must be unset or empty
+```
+
+Obtain a token:
+```bash
+curl -X POST http://localhost:8000/auth/token \
+  -d "username=admin&password=<password>"
+# returns {"access_token": "...", "token_type": "bearer", "expires_in": 3600}
+```
+
+Use the token:
+```bash
+curl http://localhost:8000/admin/sync/status \
+  -H "Authorization: Bearer <access_token>"
+
+curl -X POST http://localhost:8000/ai/suggest \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "diabetes"}'
+```
+
+#### Mode 3 — External OIDC (Keycloak / Auth0 / Azure AD)
+
+```bash
+ENABLE_AUTH=true
+OIDC_ISSUER_URL=https://keycloak.example.com/realms/phts
+# AUTH_USERNAME / AUTH_PASSWORD are ignored in this mode
+# /auth/token endpoint is disabled — clients obtain tokens from the OIDC provider
+```
+
+SMART on FHIR discovery document (always available):
+```bash
+curl http://localhost:8000/auth/.well-known/smart-configuration
+```
+
+#### Auth testing checklist
+
+**Local (built-in JWT):**
+- [ ] Start stack with `ENABLE_AUTH=false` — confirm `/admin/sync/status` returns 200
+- [ ] Set `ENABLE_AUTH=true`, `AUTH_USERNAME=admin`, `AUTH_PASSWORD=testpass` — confirm same endpoint returns 401
+- [ ] `POST /auth/token` with correct credentials — confirm 200 + token returned
+- [ ] Retry `/admin/sync/status` with `Authorization: Bearer <token>` — confirm 200
+- [ ] Retry with expired/invalid token — confirm 401
+
+**Production (`phts.informatixlabs.com`):**
+- [ ] Confirm `ENABLE_AUTH=false` in `.env.demo` before go-live
+- [ ] When ready: set `ENABLE_AUTH=true` + `AUTH_PASSWORD` in `.env.demo`, redeploy
+- [ ] Run same checklist against `https://phts.informatixlabs.com`
+- [ ] Confirm frontend AI assistant still works (it sends X-API-Key in demo mode; will need Bearer token wiring when ENABLE_AUTH=true)
+
+> **Note — Keycloak (future):** For full SMART App Launch 2.0 compliance, SSO, and user management UI, consider replacing built-in JWT with a self-hosted Keycloak instance added as a Docker service. Set `OIDC_ISSUER_URL` to the Keycloak realm URL — no other backend changes required.
 
 ### Enable HTTPS (production)
 

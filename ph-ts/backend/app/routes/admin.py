@@ -23,9 +23,9 @@ from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 
 from app import state
-from app.auth import require_api_key
+from app.auth import require_access
 
-router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(require_api_key)])
+router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(require_access)])
 logger = logging.getLogger(__name__)
 
 # Path inside the container (./migration is mounted at /app/migration)
