@@ -916,7 +916,7 @@ const ModernPHINVADS = () => {
   const loadResources = useCallback(async () => {
     setLoadingResources(true);
     setErrorResources(null);
-    setSelectedResource(null);
+    if (!deepLinkPending.current) setSelectedResource(null);
     try {
       const status = activeTab === 'CodeSystem' ? csStatusFilter : (vsArchivedView ? '' : vsStatusFilter);
       const content = activeTab === 'CodeSystem' ? csContentFilter : undefined;
@@ -941,21 +941,21 @@ const ModernPHINVADS = () => {
     }).catch(() => {});
   }, []);
 
-  // Deep-link handler: resolve ?phts_oid= set by mock_phinvads.cdc.gov nginx redirect.
-  // Waits for the initial resource load to finish so setSelectedResource(null) in
-  // loadResources() doesn't race with and clear the drawer we're about to open.
-  const deepLinkHandled = useRef(false);
-  useEffect(() => {
-    if (loadingResources || deepLinkHandled.current) return;
-    deepLinkHandled.current = true;
+  // deepLinkPending is true from mount until the identifier fetch resolves.
+  // loadResources() checks this ref before clearing selectedResource so the
+  // drawer open doesn't race with the list load clearing it.
+  const deepLinkPending = useRef(
+    new URLSearchParams(window.location.search).has('phts_oid')
+  );
 
+  // Deep-link handler: fires immediately on mount — no waiting for the resource list.
+  useEffect(() => {
+    if (!deepLinkPending.current) return;
     const params = new URLSearchParams(window.location.search);
     const oid = params.get('phts_oid');
     const type = (params.get('phts_type') ?? 'ValueSet') as 'ValueSet' | 'CodeSystem';
-    if (!oid) return;
-
-    // Clean up the URL so the params don't persist on manual refresh
     window.history.replaceState({}, '', window.location.pathname);
+    if (!oid) { deepLinkPending.current = false; return; }
 
     apiFetch<{ entry?: Array<{ resource: FhirResource }> }>(
       `/${type}?identifier=${encodeURIComponent(oid)}&_summary=true`
@@ -966,8 +966,9 @@ const ModernPHINVADS = () => {
         setDeepLinked(true);
         setSelectedResource(toUiResource(first));
       }
-    }).catch(() => {});
-  }, [loadingResources]);
+    }).catch(() => {})
+      .finally(() => { deepLinkPending.current = false; });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Concept/code search — fires when in concept mode with a debounced term
   useEffect(() => {
