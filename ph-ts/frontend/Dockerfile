@@ -6,6 +6,10 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+
+ARG VITE_ADMIN_API_KEY=""
+ENV VITE_ADMIN_API_KEY=$VITE_ADMIN_API_KEY
+
 RUN npm run build
 
 FROM nginx:alpine

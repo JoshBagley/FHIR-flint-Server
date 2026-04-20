@@ -142,8 +142,17 @@ function toUiResource(r: FhirResource): UiResource {
   };
 }
 
+const _API_KEY = import.meta.env.VITE_ADMIN_API_KEY as string | undefined;
+
+function _authHeaders(path: string): Record<string, string> {
+  if (_API_KEY && (path.startsWith('/ai/') || path.startsWith('/admin/'))) {
+    return { 'X-API-Key': _API_KEY };
+  }
+  return {};
+}
+
 async function apiFetch<T>(path: string): Promise<T> {
-  const resp = await fetch(path, { headers: { Accept: 'application/fhir+json' } });
+  const resp = await fetch(path, { headers: { Accept: 'application/fhir+json', ..._authHeaders(path) } });
   if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText} — ${path}`);
   return resp.json() as Promise<T>;
 }

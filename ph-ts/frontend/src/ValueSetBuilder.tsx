@@ -114,10 +114,20 @@ interface Props {
 // Helpers
 // ---------------------------------------------------------------------------
 
+const _API_KEY = import.meta.env.VITE_ADMIN_API_KEY;
+
+function _buildHeaders(path: string, extra?: HeadersInit): Record<string, string> {
+  const base: Record<string, string> = { 'Content-Type': 'application/json', Accept: 'application/fhir+json' };
+  if (_API_KEY && (path.startsWith('/ai/') || path.startsWith('/admin/'))) {
+    base['X-API-Key'] = _API_KEY;
+  }
+  return { ...base, ...(extra as Record<string, string> | undefined) };
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const resp = await fetch(path, {
-    headers: { 'Content-Type': 'application/json', Accept: 'application/fhir+json', ...options?.headers },
     ...options,
+    headers: _buildHeaders(path, options?.headers),
   });
   if (!resp.ok) {
     const body = await resp.text();

@@ -113,6 +113,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_ADMIN_API_KEY: ${ADMIN_API_KEY:-}
     container_name: phts-frontend
     depends_on:
       - backend

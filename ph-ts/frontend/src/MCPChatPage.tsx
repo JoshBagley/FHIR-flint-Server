@@ -259,14 +259,17 @@ export default function MCPChatPage({ onBack }: MCPChatPageProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const _apiKey = import.meta.env.VITE_ADMIN_API_KEY;
+  const _authHeader = (_apiKey ? { 'X-API-Key': _apiKey } : {}) as Record<string, string>;
+
   // Fetch tool list + provider info on mount
   useEffect(() => {
-    fetch('/mcp-chat/tools')
+    fetch('/mcp-chat/tools', { headers: _authHeader })
       .then(r => r.json())
       .then(d => setTools(d.tools ?? []))
       .catch(() => {});
 
-    fetch('/ai/provider')
+    fetch('/ai/provider', { headers: _authHeader })
       .then(r => r.json())
       .then(d => setProvider(d))
       .catch(() => {});
@@ -292,7 +295,7 @@ export default function MCPChatPage({ onBack }: MCPChatPageProps) {
     try {
       const resp = await fetch('/mcp-chat/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ..._authHeader },
         body: JSON.stringify({
           messages: nextMessages.map(m => ({ role: m.role, content: m.content })),
         }),
