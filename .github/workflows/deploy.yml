@@ -69,6 +69,10 @@ jobs:
             docker compose -f docker-compose.yml -f docker-compose.prod.yml \
               --env-file .env.demo up -d --build backend frontend
 
+            echo "Reloading nginx config..."
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+              --env-file .env.demo exec -T nginx nginx -s reload || true
+
             echo "Verifying deployment..."
             sleep 10
             curl -f https://phts-demo.click/health
