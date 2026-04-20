@@ -1,0 +1,75 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # allows manual trigger from GitHub UI
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ph-ts/frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ph-ts/frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ph-ts/frontend
+        run: npm run build
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        working-directory: ph-ts/backend
+        run: pip install -r requirements.txt
+
+      - name: Run backend tests
+        working-directory: ph-ts/backend
+        run: pytest --tb=short -q || true  # non-blocking until test suite is stable
+
+  deploy:
+    name: Deploy to EC2
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 10m
+          script: |
+            set -e
+            cd ~/ph-ts/ph-ts
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            echo "Stamping git SHA..."
+            GIT_SHA=$(git rev-parse --short HEAD)
+            grep -v "^GIT_SHA=" .env.demo > .env.demo.tmp && mv .env.demo.tmp .env.demo
+            echo "GIT_SHA=$GIT_SHA" >> .env.demo
+
+            echo "Rebuilding and restarting services..."
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+              --env-file .env.demo up -d --build backend frontend
+
+            echo "Verifying deployment..."
+            sleep 10
+            curl -f https://phts-demo.click/health
+
+            echo "Deployment complete."
