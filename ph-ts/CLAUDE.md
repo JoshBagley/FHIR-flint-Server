@@ -247,6 +247,7 @@ Once registered, `$lookup` and `$expand` calls referencing that system URL will 
 | `migration/phinvads_migrate.py` | PHIN VADS STU3 API | `complete` / `fragment` | 300 CodeSystems (limited by API pagination) |
 | `migration/import_phinvads_txt.py` | PHIN VADS .txt downloads (`docs/PHINVADSValueSets/`) | `complete` | 1,995 of 1,998 ValueSets (3 have malformed metadata) |
 | `migration/repair_empty_phinvads_valuesets.py` | PHIN VADS STU3 API (targeted repair) | `complete` | Re-fetches concepts for ValueSets imported with empty `compose.include`; PUTs to existing records by ID; safe to re-run |
+| `migration/import_cvx.py` | CDC Excel (`docs/cvx_codes/web_cvx.xlsx`) primary; NLM ClinicalTables fallback (`--source nlm`) | `complete` | 289 CVX vaccine codes; includes status (Active/Inactive/Non-US/Never Active) and nonVaccine boolean properties; upserts (PUT if exists, POST if new) |
 
 ```bash
 # Import HL7 FHIR R4 core administrative code systems (no license required)
@@ -279,6 +280,16 @@ python migration/phinvads_migrate.py --resource codesystem --target-url http://l
 
 # Import single PHIN VADS ValueSet by OID via API
 python migration/phinvads_migrate.py --oid 2.16.840.1.114222.4.11.1066 --target-url http://localhost
+
+# Import CDC CVX vaccine codes (289 codes from Excel file — recommended)
+# Requires: pip install openpyxl httpx
+python migration/import_cvx.py --target-url http://localhost
+
+# Dry run — writes cvx_codesystem.json without importing
+python migration/import_cvx.py --dry-run
+
+# Fallback to NLM ClinicalTables (fewer codes, no status/notes)
+python migration/import_cvx.py --source nlm --target-url http://localhost
 ```
 
 ### Licensing Notes
@@ -292,6 +303,7 @@ python migration/phinvads_migrate.py --oid 2.16.840.1.114222.4.11.1066 --target-
 | LOINC | Free account | Register at loinc.org; store as `fragment` or `not-present` |
 | RxNorm | None | NLM public domain; delegate via RxNav |
 | CPT | AMA paid **or** UMLS (free application) | Never store locally without a license; use `content: "not-present"` + VSAC delegation |
+| CVX | None | CDC/HL7 public domain; freely redistributable; `content: "complete"` |
 
 ---
 

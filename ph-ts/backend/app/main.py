@@ -991,7 +991,7 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    status = {"status": "healthy", "services": {}}
+    status = {"status": "healthy", "git_sha": os.environ.get("GIT_SHA", "unknown"), "services": {}}
     try:
         if not state.db or not state.db.pool:
             raise RuntimeError("Database not initialised")

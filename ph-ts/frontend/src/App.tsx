@@ -588,6 +588,194 @@ const ExpansionPage = ({ resource, onBack }: { resource: UiResource; onBack: () 
 };
 
 // ---------------------------------------------------------------------------
+// CodeSystem concept browser
+// ---------------------------------------------------------------------------
+
+const CodeSystemConceptsPage = ({ resource, onBack }: { resource: UiResource; onBack: () => void }) => {
+  const [concepts, setConcepts] = useState<{ code: string; display?: string; definition?: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState('');
+  const [page, setPage] = useState(0);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const PAGE = 50;
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    fetch(`/CodeSystem/${resource.id}`)
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+      .then(data => setConcepts(data.concept ?? []))
+      .catch(e => setError((e as Error).message))
+      .finally(() => setLoading(false));
+  }, [resource.id]);
+
+  const handleCopy = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 1500);
+  };
+
+  const hasDefinition = concepts.some(c => c.definition);
+  const filtered = concepts.filter(c => {
+    const q = filter.toLowerCase();
+    return !q || c.code.toLowerCase().includes(q) || (c.display ?? '').toLowerCase().includes(q);
+  });
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const paginated = filtered.slice(currentPage * PAGE, currentPage * PAGE + PAGE);
+
+  const exportCsvCs = () => {
+    const header = hasDefinition ? 'code,display,definition\n' : 'code,display\n';
+    const rows = filtered.map(c =>
+      hasDefinition
+        ? `${c.code},${JSON.stringify(c.display ?? '')},${JSON.stringify(c.definition ?? '')}`
+        : `${c.code},${JSON.stringify(c.display ?? '')}`
+    ).join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${resource.name}-concepts.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back
+          </button>
+          <div className="h-5 w-px bg-gray-300" />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="font-semibold text-gray-900 truncate">{resource.title || resource.name}</h1>
+              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                resource.status === 'active' ? 'bg-green-100 text-green-700' :
+                resource.status === 'draft'  ? 'bg-yellow-100 text-yellow-700' :
+                'bg-gray-100 text-gray-500'}`}>{resource.status}</span>
+              {resource.version && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">v{resource.version}</span>}
+            </div>
+            <p className="text-xs text-gray-400 font-mono truncate mt-0.5">{resource.url}</p>
+          </div>
+          <button
+            onClick={exportCsvCs}
+            disabled={loading || filtered.length === 0}
+            className="flex items-center gap-1.5 text-sm bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-40 transition-colors"
+          >
+            <Download className="w-4 h-4" /> Export CSV
+          </button>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {!loading && !error && (
+          <div className="flex items-center gap-6 mb-4 text-sm text-gray-600">
+            <span><span className="font-semibold text-gray-900">{concepts.length}</span> total concepts</span>
+            {filter && <span><span className="font-semibold text-gray-900">{filtered.length}</span> matching</span>}
+          </div>
+        )}
+
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3 mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Filter by code or display…"
+              value={filter}
+              onChange={e => { setFilter(e.target.value); setPage(0); }}
+              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+            />
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-32 gap-3 text-gray-400">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+            <p className="text-sm">Loading concepts…</p>
+          </div>
+        ) : error ? (
+          <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-24 text-gray-400">
+            <p className="text-sm">{filter ? `No concepts match "${filter}"` : 'This CodeSystem has no locally stored concepts.'}</p>
+          </div>
+        ) : (
+          <>
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500 uppercase text-xs tracking-wide w-44">Code</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500 uppercase text-xs tracking-wide">Display</th>
+                    {hasDefinition && <th className="text-left px-4 py-3 font-medium text-gray-500 uppercase text-xs tracking-wide">Definition</th>}
+                    <th className="w-10" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {paginated.map((c, i) => (
+                    <tr key={`${c.code}-${i}`} className="hover:bg-purple-50 group transition-colors">
+                      <td className="px-4 py-3 font-mono text-purple-700 text-sm align-top whitespace-nowrap">{c.code}</td>
+                      <td className="px-4 py-3 text-gray-800 align-top">{c.display ?? <span className="italic text-gray-400">—</span>}</td>
+                      {hasDefinition && (
+                        <td className="px-4 py-3 text-gray-500 text-xs align-top">{c.definition ?? ''}</td>
+                      )}
+                      <td className="px-3 py-3 align-top">
+                        <button
+                          onClick={() => handleCopy(c.code)}
+                          title="Copy code"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-purple-600"
+                        >
+                          {copiedCode === c.code
+                            ? <Check className="w-4 h-4 text-green-500" />
+                            : <Copy className="w-4 h-4" />}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
+                <button
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={currentPage === 0}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Previous
+                </button>
+                <span className="text-gray-500">
+                  Page <span className="font-semibold text-gray-900">{currentPage + 1}</span> of{' '}
+                  <span className="font-semibold text-gray-900">{totalPages}</span>
+                  <span className="text-gray-400 ml-2">({filtered.length} concepts)</span>
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={currentPage >= totalPages - 1}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Next <ExternalLink className="w-4 h-4 rotate-90" />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -599,6 +787,7 @@ const ModernPHINVADS = () => {
   const [selectedResource, setSelectedResource] = useState<UiResource | null>(null);
   const [deepLinked, setDeepLinked] = useState(false);
   const [expansionResource, setExpansionResource] = useState<UiResource | null>(null);
+  const [csConceptsResource, setCsConceptsResource] = useState<UiResource | null>(null);
   const [builderOpen, setBuilderOpen] = useState(false);
 
   const [resources, setResources] = useState<UiResource[]>([]);
@@ -1193,14 +1382,24 @@ const ModernPHINVADS = () => {
             </>
           )}
 
-          {/* Edit — CodeSystem */}
+          {/* Browse Concepts + Edit — CodeSystem */}
           {resource.resourceType === 'CodeSystem' && (
-            <button
-              onClick={() => setEditingResource(resource)}
-              className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg border border-purple-300 text-purple-700 text-sm font-medium hover:bg-purple-50 transition-colors"
-            >
-              <Pencil className="w-4 h-4" /> Edit Display Name / Details
-            </button>
+            <>
+              {(resource.conceptCount ?? 0) > 0 && (
+                <button
+                  onClick={() => { setCsConceptsResource(resource); setSelectedResource(null); }}
+                  className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center justify-center gap-2"
+                >
+                  <FileCode className="w-4 h-4" /> Browse Concepts ({resource.conceptCount})
+                </button>
+              )}
+              <button
+                onClick={() => setEditingResource(resource)}
+                className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg border border-purple-300 text-purple-700 text-sm font-medium hover:bg-purple-50 transition-colors"
+              >
+                <Pencil className="w-4 h-4" /> Edit Display Name / Details
+              </button>
+            </>
           )}
 
           <div className="pt-4 border-t border-gray-200 space-y-2">
@@ -1574,6 +1773,10 @@ const ModernPHINVADS = () => {
 
   if (expansionResource) {
     return <ExpansionPage resource={expansionResource} onBack={() => setExpansionResource(null)} />;
+  }
+
+  if (csConceptsResource) {
+    return <CodeSystemConceptsPage resource={csConceptsResource} onBack={() => setCsConceptsResource(null)} />;
   }
 
   return (
