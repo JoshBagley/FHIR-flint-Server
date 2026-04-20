@@ -20,11 +20,12 @@ import re
 import sys
 from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 
 from app import state
+from app.auth import require_api_key
 
-router = APIRouter(prefix="/admin", tags=["Admin"])
+router = APIRouter(prefix="/admin", tags=["Admin"], dependencies=[Depends(require_api_key)])
 logger = logging.getLogger(__name__)
 
 # Path inside the container (./migration is mounted at /app/migration)

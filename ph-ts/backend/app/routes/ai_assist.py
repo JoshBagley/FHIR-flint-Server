@@ -20,14 +20,15 @@ import logging
 import asyncio
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from app.services import external_cs
 from app import state
+from app.auth import require_api_key
 
-router = APIRouter(prefix="/ai", tags=["AI Assistant"])
+router = APIRouter(prefix="/ai", tags=["AI Assistant"], dependencies=[Depends(require_api_key)])
 logger = logging.getLogger(__name__)
 
 

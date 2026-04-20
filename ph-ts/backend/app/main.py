@@ -943,8 +943,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-API-Key", "Accept", "Prefer"],
+    expose_headers=["ETag", "Last-Modified", "Location", "Content-Length"],
+    max_age=600,
 )
 
 app.include_router(fhir_operations_router)

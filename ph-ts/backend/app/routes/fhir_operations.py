@@ -175,8 +175,8 @@ async def expand_valueset_get(
     url: Optional[str] = Query(None),
     valueSetVersion: Optional[str] = Query(None),
     filter: Optional[str] = Query(None),
-    offset: int = Query(0),
-    count: int = Query(100)
+    offset: int = Query(0, ge=0, le=50000),
+    count: int = Query(100, ge=1, le=10000)
 ):
     return await _perform_expansion(url, valueSetVersion, filter, offset, count)
 
@@ -506,7 +506,7 @@ async def _perform_expansion(
 
 @router.get("/ValueSet/$concept-search")
 async def concept_search(
-    q: str = Query(..., description="Term to search in concept codes and displays"),
+    q: str = Query(..., max_length=500, description="Term to search in concept codes and displays"),
     limit: int = Query(20, ge=1, le=100),
     ids: Optional[str] = Query(None, description="Comma-separated ValueSet IDs to restrict search to"),
 ):

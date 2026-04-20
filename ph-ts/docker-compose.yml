@@ -93,6 +93,7 @@ services:
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
       UMLS_API_KEY: ${UMLS_API_KEY:-}
       GIT_SHA: ${GIT_SHA:-unknown}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-}
       LOINC_USERNAME: ${LOINC_USERNAME:-}
       LOINC_PASSWORD: ${LOINC_PASSWORD:-}
     networks:
