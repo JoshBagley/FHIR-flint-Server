@@ -57,7 +57,8 @@ jobs:
             cd ~/ph-ts/ph-ts
 
             echo "Pulling latest code..."
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
 
             echo "Stamping git SHA..."
             GIT_SHA=$(git rev-parse --short HEAD)
