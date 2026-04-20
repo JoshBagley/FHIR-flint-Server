@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any, Literal
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from contextlib import asynccontextmanager
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
@@ -35,6 +35,7 @@ import os
 import time
 import logging
 import sys
+from email.utils import formatdate
 from app import state
 from app.routes.fhir_operations import router as fhir_operations_router
 from app.routes.sdo_search import router as sdo_router
@@ -575,12 +576,26 @@ class DatabaseManager:
         async with self.pool.acquire() as conn:
             if version:
                 row = await conn.fetchrow("""
-                    SELECT data FROM resource_versions WHERE resource_id = $1 AND version_number = $2
+                    SELECT v.data, v.created_at AS updated_at, v.version_number
+                    FROM resource_versions v
+                    WHERE v.resource_id = $1 AND v.version_number = $2
                 """, resource_id, version)
             else:
-                row = await conn.fetchrow("SELECT data FROM fhir_resources WHERE id = $1", resource_id)
-
-            return json.loads(row['data']) if row else None
+                row = await conn.fetchrow("""
+                    SELECT r.data, r.updated_at,
+                           COALESCE(MAX(v.version_number), 1) AS version_number
+                    FROM fhir_resources r
+                    LEFT JOIN resource_versions v ON v.resource_id = r.id
+                    WHERE r.id = $1
+                    GROUP BY r.data, r.updated_at
+                """, resource_id)
+            if not row:
+                return None
+            data = json.loads(row['data'])
+            meta = data.setdefault('meta', {})
+            meta['versionId'] = str(row['version_number'])
+            meta['lastUpdated'] = row['updated_at'].strftime('%Y-%m-%dT%H:%M:%SZ')
+            return data
 
     async def search_resources(self, resource_type: str, params: Dict[str, Any], summary: bool = False, archived_only: bool = False) -> List[Dict]:
         archived_condition = "archived = TRUE" if archived_only else "archived = FALSE"
@@ -943,6 +958,30 @@ from app.routes.mcp_chat import router as mcp_chat_router  # noqa: E402
 app.include_router(mcp_chat_router)
 
 
+def _fhir_issue_code(status_code: int) -> str:
+    return {
+        400: "invalid", 401: "security", 403: "forbidden",
+        404: "not-found", 405: "not-supported", 409: "conflict",
+        410: "deleted", 422: "processing",
+    }.get(status_code, "processing")
+
+
+def _fhir_response(resource: Dict, status_code: int = 200, extra_headers: Optional[Dict] = None) -> JSONResponse:
+    headers: Dict[str, str] = {}
+    meta = resource.get('meta', {})
+    if vid := meta.get('versionId'):
+        headers['ETag'] = f'W/"{vid}"'
+    if lu := meta.get('lastUpdated'):
+        try:
+            dt = datetime.strptime(lu, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+            headers['Last-Modified'] = formatdate(dt.timestamp(), usegmt=True)
+        except ValueError:
+            pass
+    if extra_headers:
+        headers.update(extra_headers)
+    return JSONResponse(content=resource, status_code=status_code, headers=headers)
+
+
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
     start_time = time.time()
@@ -957,11 +996,12 @@ async def metrics_middleware(request: Request, call_next):
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
+    severity = "fatal" if exc.status_code >= 500 else "error"
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "resourceType": "OperationOutcome",
-            "issue": [{"severity": "error", "code": "processing", "diagnostics": exc.detail}]
+            "issue": [{"severity": severity, "code": _fhir_issue_code(exc.status_code), "diagnostics": exc.detail}]
         }
     )
 
@@ -1042,38 +1082,98 @@ async def analytics_summary():
 
 @app.get("/metadata")
 async def capability_statement():
-    return {
+    return JSONResponse(content={
         "resourceType": "CapabilityStatement",
+        "id": "phts-capability",
+        "name": "PHTerminologyServiceCapabilityStatement",
+        "title": "PH-TS FHIR Terminology Server Capability Statement",
         "status": "active",
-        "date": datetime.now().isoformat(),
+        "experimental": False,
+        "date": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+        "publisher": "Public Health Informatics",
+        "description": "FHIR R4 terminology server supporting ValueSet, CodeSystem, and ConceptMap resources with full terminology operations.",
         "kind": "instance",
+        "software": {
+            "name": "PH-TS",
+            "version": os.environ.get("GIT_SHA", "unknown")
+        },
         "fhirVersion": "4.0.1",
-        "format": ["json"],
+        "format": ["application/fhir+json", "json"],
         "rest": [{
             "mode": "server",
+            "security": {
+                "cors": True,
+                "description": "No authentication required (ENABLE_AUTH=false). SMART on FHIR planned."
+            },
             "resource": [
                 {
                     "type": "ValueSet",
                     "interaction": [
-                        {"code": "read"}, {"code": "create"},
-                        {"code": "update"}, {"code": "search-type"}
+                        {"code": "read"}, {"code": "create"}, {"code": "update"},
+                        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"}
                     ],
+                    "versioning": "versioned",
+                    "readHistory": True,
                     "searchParam": [
                         {"name": "name", "type": "string"},
                         {"name": "url", "type": "uri"},
-                        {"name": "status", "type": "token"}
+                        {"name": "status", "type": "token"},
+                        {"name": "identifier", "type": "token"},
+                        {"name": "context-value-code", "type": "token"},
+                        {"name": "_summary", "type": "token"},
+                        {"name": "_archived", "type": "token"}
+                    ],
+                    "operation": [
+                        {"name": "expand", "definition": "http://hl7.org/fhir/OperationDefinition/ValueSet-expand"},
+                        {"name": "validate-code", "definition": "http://hl7.org/fhir/OperationDefinition/ValueSet-validate-code"},
+                        {"name": "validate-batch", "definition": "http://phts.local/OperationDefinition/ValueSet-validate-batch"},
+                        {"name": "diff", "definition": "http://phts.local/OperationDefinition/ValueSet-diff"},
+                        {"name": "views", "definition": "http://phts.local/OperationDefinition/ValueSet-views"},
+                        {"name": "tag-view", "definition": "http://phts.local/OperationDefinition/ValueSet-tag-view"},
+                        {"name": "audit", "definition": "http://phts.local/OperationDefinition/resource-audit"}
                     ]
                 },
                 {
                     "type": "CodeSystem",
                     "interaction": [
-                        {"code": "read"}, {"code": "create"},
-                        {"code": "update"}, {"code": "search-type"}
+                        {"code": "read"}, {"code": "create"}, {"code": "update"},
+                        {"code": "search-type"}, {"code": "history-instance"}
+                    ],
+                    "versioning": "versioned",
+                    "readHistory": True,
+                    "searchParam": [
+                        {"name": "name", "type": "string"},
+                        {"name": "url", "type": "uri"},
+                        {"name": "status", "type": "token"}
+                    ],
+                    "operation": [
+                        {"name": "lookup", "definition": "http://hl7.org/fhir/OperationDefinition/CodeSystem-lookup"},
+                        {"name": "validate-code", "definition": "http://hl7.org/fhir/OperationDefinition/CodeSystem-validate-code"},
+                        {"name": "subsumes", "definition": "http://hl7.org/fhir/OperationDefinition/CodeSystem-subsumes"},
+                        {"name": "audit", "definition": "http://phts.local/OperationDefinition/resource-audit"}
+                    ]
+                },
+                {
+                    "type": "ConceptMap",
+                    "interaction": [
+                        {"code": "read"}, {"code": "create"}, {"code": "update"},
+                        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"}
+                    ],
+                    "versioning": "versioned",
+                    "readHistory": True,
+                    "searchParam": [
+                        {"name": "name", "type": "string"},
+                        {"name": "url", "type": "uri"},
+                        {"name": "status", "type": "token"}
+                    ],
+                    "operation": [
+                        {"name": "translate", "definition": "http://hl7.org/fhir/OperationDefinition/ConceptMap-translate"},
+                        {"name": "audit", "definition": "http://phts.local/OperationDefinition/resource-audit"}
                     ]
                 }
             ]
         }]
-    }
+    }, headers={"Content-Type": "application/fhir+json"})
 
 
 # ============================================================================
@@ -1088,7 +1188,7 @@ async def create_value_set(value_set: ValueSet):
     await state.cache.invalidate_pattern("ValueSet:*")
     RESOURCE_COUNT.labels(resource_type="ValueSet", operation="create").inc()
     resource = await state.db.get_resource(resource_id)
-    return JSONResponse(content=resource, status_code=201)
+    return _fhir_response(resource, status_code=201, extra_headers={"Location": f"/ValueSet/{resource_id}/_history/1"})
 
 
 @app.get("/ValueSet/{resource_id}")
@@ -1103,7 +1203,7 @@ async def get_value_set(resource_id: str, version: Optional[int] = None):
         raise HTTPException(status_code=404, detail=f"ValueSet/{resource_id} not found")
 
     await state.cache.set(cache_key, resource)
-    return resource
+    return _fhir_response(resource)
 
 
 @app.put("/ValueSet/{resource_id}")
@@ -1226,7 +1326,7 @@ async def create_code_system(code_system: CodeSystem):
     await state.cache.invalidate_pattern("CodeSystem:*")
     RESOURCE_COUNT.labels(resource_type="CodeSystem", operation="create").inc()
     resource = await state.db.get_resource(resource_id)
-    return JSONResponse(content=resource, status_code=201)
+    return _fhir_response(resource, status_code=201, extra_headers={"Location": f"/CodeSystem/{resource_id}/_history/1"})
 
 
 @app.get("/CodeSystem/{resource_id}")
@@ -1241,7 +1341,7 @@ async def get_code_system(resource_id: str, version: Optional[int] = None):
         raise HTTPException(status_code=404, detail=f"CodeSystem/{resource_id} not found")
 
     await state.cache.set(cache_key, resource)
-    return resource
+    return _fhir_response(resource)
 
 
 @app.put("/CodeSystem/{resource_id}")
@@ -1322,7 +1422,7 @@ async def create_concept_map(concept_map: ConceptMap):
     await state.cache.invalidate_pattern("ConceptMap:*")
     RESOURCE_COUNT.labels(resource_type="ConceptMap", operation="create").inc()
     resource = await state.db.get_resource(resource_id)
-    return JSONResponse(content=resource, status_code=201)
+    return _fhir_response(resource, status_code=201, extra_headers={"Location": f"/ConceptMap/{resource_id}/_history/1"})
 
 
 @app.get("/ConceptMap/{resource_id}")
@@ -1337,7 +1437,7 @@ async def get_concept_map(resource_id: str, version: Optional[int] = None):
         raise HTTPException(status_code=404, detail=f"ConceptMap/{resource_id} not found")
 
     await state.cache.set(cache_key, resource)
-    return resource
+    return _fhir_response(resource)
 
 
 @app.put("/ConceptMap/{resource_id}")
