@@ -75,6 +75,6 @@ jobs:
 
             echo "Verifying deployment..."
             sleep 10
-            curl -f https://phts-demo.click/health
+            curl -f https://phts.informatixlabs.com/health
 
             echo "Deployment complete."
