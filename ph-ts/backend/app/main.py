@@ -1301,6 +1301,15 @@ async def get_code_system_history(resource_id: str):
     return {"resourceType": "Bundle", "type": "history", "total": len(history), "entry": history}
 
 
+@app.get("/CodeSystem/{resource_id}/$audit")
+async def get_code_system_audit(resource_id: str):
+    existing = await state.db.get_resource(resource_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"CodeSystem/{resource_id} not found")
+    entries = await state.db.get_audit_log(resource_id)
+    return {"resourceId": resource_id, "total": len(entries), "entries": entries}
+
+
 # ============================================================================
 # ConceptMap Endpoints
 # ============================================================================
@@ -1386,3 +1395,12 @@ async def get_concept_map_history(resource_id: str):
     if not history:
         raise HTTPException(status_code=404, detail=f"ConceptMap/{resource_id} not found")
     return {"resourceType": "Bundle", "type": "history", "total": len(history), "entry": history}
+
+
+@app.get("/ConceptMap/{resource_id}/$audit")
+async def get_concept_map_audit(resource_id: str):
+    existing = await state.db.get_resource(resource_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"ConceptMap/{resource_id} not found")
+    entries = await state.db.get_audit_log(resource_id)
+    return {"resourceId": resource_id, "total": len(entries), "entries": entries}

@@ -222,8 +222,8 @@ async function archiveResource(id: string, restore = false): Promise<void> {
   if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
 }
 
-async function fetchAuditLog(id: string): Promise<AuditEntry[]> {
-  const data = await apiFetch<{ entries: AuditEntry[] }>(`/ValueSet/${id}/$audit`);
+async function fetchAuditLog(id: string, resourceType = 'ValueSet'): Promise<AuditEntry[]> {
+  const data = await apiFetch<{ entries: AuditEntry[] }>(`/${resourceType}/${id}/$audit`);
   return data.entries ?? [];
 }
 
@@ -1429,21 +1429,19 @@ const ModernPHINVADS = () => {
             >
               <GitBranch className="w-4 h-4" /> Full History (FHIR)
             </a>
-            {resource.resourceType === 'ValueSet' && (
-              <button
-                onClick={async () => {
-                  setAuditLoading(true);
-                  setAuditResource(resource);
-                  setAuditLog([]);
-                  try { setAuditLog(await fetchAuditLog(resource.id)); }
-                  catch { setAuditLog([]); }
-                  finally { setAuditLoading(false); }
-                }}
-                className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2"
-              >
-                <ScrollText className="w-4 h-4" /> Audit Log
-              </button>
-            )}
+            <button
+              onClick={async () => {
+                setAuditLoading(true);
+                setAuditResource(resource);
+                setAuditLog([]);
+                try { setAuditLog(await fetchAuditLog(resource.id, resource.resourceType)); }
+                catch { setAuditLog([]); }
+                finally { setAuditLoading(false); }
+              }}
+              className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2"
+            >
+              <ScrollText className="w-4 h-4" /> Audit Log
+            </button>
           </div>
         </div>
       </div>
