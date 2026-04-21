@@ -13,6 +13,31 @@ import AppLogo from './components/AppLogo';
 // Types
 // ---------------------------------------------------------------------------
 
+interface ConceptMapGroup {
+  source?: string;
+  target?: string;
+  element: Array<{
+    code: string;
+    display?: string;
+    target: Array<{ code?: string; display?: string; equivalence: string; comment?: string }>;
+  }>;
+}
+
+interface ConceptMapSummary {
+  id: string;
+  name: string;
+  title: string;
+  status: string;
+  description?: string;
+  mappingCount: number;
+  sources: string[];
+  targets: string[];
+}
+
+interface ConceptMapFull extends ConceptMapSummary {
+  group: ConceptMapGroup[];
+}
+
 interface FhirResource {
   id: string;
   resourceType: 'ValueSet' | 'CodeSystem';
@@ -185,6 +210,36 @@ async function fetchResources(
     .map(e => e.resource)
     .filter(Boolean)
     .map(toUiResource);
+}
+
+async function fetchConceptMaps(search: string): Promise<ConceptMapSummary[]> {
+  const params = new URLSearchParams({ _summary: 'true' });
+  if (search.trim()) params.set('name', search.trim());
+  const bundle = await apiFetch<{
+    entry?: Array<{ resource: {
+      id: string; name?: string; title?: string; status: string; description?: string;
+      version?: string; group?: ConceptMapGroup[];
+    } }>
+  }>(`/ConceptMap?${params}`);
+  return (bundle.entry ?? []).map(e => {
+    const r = e.resource;
+    const groups: ConceptMapGroup[] = r.group ?? [];
+    const mappingCount = groups.reduce((n, g) => n + (g.element?.length ?? 0), 0);
+    const sources = [...new Set(groups.map(g => g.source).filter(Boolean))] as string[];
+    const targets = [...new Set(groups.map(g => g.target).filter(Boolean))] as string[];
+    return { id: r.id, name: r.name ?? r.id, title: r.title ?? r.name ?? r.id, status: r.status, description: r.description, mappingCount, sources, targets };
+  });
+}
+
+async function fetchConceptMapFull(id: string): Promise<ConceptMapFull> {
+  const r = await apiFetch<{
+    id: string; name?: string; title?: string; status: string; description?: string; group?: ConceptMapGroup[];
+  }>(`/ConceptMap/${id}`);
+  const groups: ConceptMapGroup[] = r.group ?? [];
+  const mappingCount = groups.reduce((n, g) => n + (g.element?.length ?? 0), 0);
+  const sources = [...new Set(groups.map(g => g.source).filter(Boolean))] as string[];
+  const targets = [...new Set(groups.map(g => g.target).filter(Boolean))] as string[];
+  return { id: r.id, name: r.name ?? r.id, title: r.title ?? r.name ?? r.id, status: r.status, description: r.description, mappingCount, sources, targets, group: groups };
 }
 
 interface DiseaseView {
@@ -789,7 +844,7 @@ const CodeSystemConceptsPage = ({ resource, onBack }: { resource: UiResource; on
 // ---------------------------------------------------------------------------
 
 const ModernPHINVADS = () => {
-  const [activeTab, setActiveTab] = useState<'ValueSet' | 'CodeSystem'>('ValueSet');
+  const [activeTab, setActiveTab] = useState<'ValueSet' | 'CodeSystem' | 'ConceptMap'>('ValueSet');
   const [activeView, setActiveView] = useState('browse');
   const [mcpChatOpen, setMcpChatOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -849,6 +904,14 @@ const ModernPHINVADS = () => {
   const [vsArchivedView, setVsArchivedView] = useState(false); // show archived instead of active
   const [vsPage, setVsPage] = useState(0);
   const VS_PAGE_SIZE = 25;
+
+  // ConceptMap browser state
+  const [cmResources, setCmResources] = useState<ConceptMapSummary[]>([]);
+  const [selectedCm, setSelectedCm] = useState<ConceptMapFull | null>(null);
+  const [loadingCm, setLoadingCm] = useState(false);
+  const [loadingCmDetail, setLoadingCmDetail] = useState(false);
+  const [cmPage, setCmPage] = useState(0);
+  const CM_PAGE_SIZE = 25;
 
   // Disease/condition views catalogue
   const [diseaseViews, setDiseaseViews] = useState<DiseaseView[]>([]);
@@ -914,16 +977,18 @@ const ModernPHINVADS = () => {
 
   // Load resources when tab, debounced search, or active filters change
   const loadResources = useCallback(async () => {
+    if (activeTab === 'ConceptMap') return;
     setLoadingResources(true);
     setErrorResources(null);
     if (!deepLinkPending.current) setSelectedResource(null);
     try {
-      const status = activeTab === 'CodeSystem' ? csStatusFilter : (vsArchivedView ? '' : vsStatusFilter);
-      const content = activeTab === 'CodeSystem' ? csContentFilter : undefined;
-      const contextCode = activeTab === 'ValueSet' && !vsArchivedView ? vsViewFilter : undefined;
-      const source = activeTab === 'ValueSet' ? vsSourceFilter : undefined;
-      const archived = activeTab === 'ValueSet' ? vsArchivedView : false;
-      setResources(await fetchResources(activeTab, debouncedSearch, status, content, contextCode, source, archived));
+      const tab = activeTab as 'ValueSet' | 'CodeSystem';
+      const status = tab === 'CodeSystem' ? csStatusFilter : (vsArchivedView ? '' : vsStatusFilter);
+      const content = tab === 'CodeSystem' ? csContentFilter : undefined;
+      const contextCode = tab === 'ValueSet' && !vsArchivedView ? vsViewFilter : undefined;
+      const source = tab === 'ValueSet' ? vsSourceFilter : undefined;
+      const archived = tab === 'ValueSet' ? vsArchivedView : false;
+      setResources(await fetchResources(tab, debouncedSearch, status, content, contextCode, source, archived));
     } catch (e) {
       setErrorResources((e as Error).message);
     } finally {
@@ -932,6 +997,17 @@ const ModernPHINVADS = () => {
   }, [activeTab, debouncedSearch, csStatusFilter, csContentFilter, vsStatusFilter, vsViewFilter, vsSourceFilter, vsArchivedView]);
 
   useEffect(() => { loadResources(); }, [loadResources]);
+
+  // Load ConceptMaps when tab is ConceptMap or search term changes
+  useEffect(() => {
+    if (activeTab !== 'ConceptMap') return;
+    setLoadingCm(true);
+    setSelectedCm(null);
+    fetchConceptMaps(debouncedSearch)
+      .then(setCmResources)
+      .catch(() => setCmResources([]))
+      .finally(() => setLoadingCm(false));
+  }, [activeTab, debouncedSearch]);
 
   // Load available SDO systems once on mount; initialise all as active
   useEffect(() => {
@@ -1894,12 +1970,20 @@ const ModernPHINVADS = () => {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex gap-2">
-                  {searchMode === 'name' && ([['ValueSet', 'Value Sets', 'bg-blue-600'], ['CodeSystem', 'Code Systems', 'bg-purple-600']] as const).map(([id, label, active]) => (
-                    <button key={id} onClick={() => setActiveTab(id)}
-                      className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                        activeTab === id ? `${active} text-white` : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}>{label}</button>
-                  ))}
+                  {searchMode === 'name' && (
+                    <>
+                      {([['ValueSet', 'Value Sets', 'bg-blue-600'], ['CodeSystem', 'Code Systems', 'bg-purple-600']] as const).map(([id, label, active]) => (
+                        <button key={id} onClick={() => setActiveTab(id)}
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                            activeTab === id ? `${active} text-white` : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}>{label}</button>
+                      ))}
+                      <button onClick={() => setActiveTab('ConceptMap')}
+                        className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                          activeTab === 'ConceptMap' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}>Concept Maps</button>
+                    </>
+                  )}
                   {searchMode === 'concept' && (
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
@@ -2111,6 +2195,164 @@ const ModernPHINVADS = () => {
                           </div>
                         )}
                       </>
+                    )}
+                  </>
+                );
+              })() : activeTab === 'ConceptMap' ? (() => {
+                // --- ConceptMap table view ---
+                const cmTotalPages = Math.max(1, Math.ceil(cmResources.length / CM_PAGE_SIZE));
+                const cmPageClamped = Math.min(cmPage, cmTotalPages - 1);
+                const cmPaginated = cmResources.slice(cmPageClamped * CM_PAGE_SIZE, cmPageClamped * CM_PAGE_SIZE + CM_PAGE_SIZE);
+                return (
+                  <>
+                    <p className="mb-4 text-sm text-gray-600">
+                      Showing <span className="font-semibold">{cmResources.length}</span>
+                      <span className="text-gray-400"> concept maps</span>
+                      {debouncedSearch && <span className="text-gray-400"> matching "{debouncedSearch}"</span>}
+                    </p>
+                    {loadingCm ? (
+                      <LoadingSpinner message="Loading concept maps…" />
+                    ) : cmResources.length === 0 ? (
+                      <div className="text-center py-20 text-gray-400">
+                        <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                        <p className="text-sm">{debouncedSearch ? 'No concept maps match the search.' : 'No concept maps found.'}</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                              <tr>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Name / Title</th>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden md:table-cell">Source → Target</th>
+                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</th>
+                                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Mappings</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                              {cmPaginated.map(cm => (
+                                <tr key={cm.id}
+                                  className="hover:bg-amber-50 cursor-pointer transition-colors group"
+                                  onClick={() => {
+                                    setLoadingCmDetail(true);
+                                    setSelectedCm(null);
+                                    fetchConceptMapFull(cm.id)
+                                      .then(setSelectedCm)
+                                      .catch(() => {})
+                                      .finally(() => setLoadingCmDetail(false));
+                                  }}
+                                >
+                                  <td className="px-4 py-3">
+                                    <div className="font-medium text-gray-900 group-hover:text-amber-700 transition-colors line-clamp-1">{cm.title || cm.name}</div>
+                                    {cm.description && <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{cm.description}</div>}
+                                  </td>
+                                  <td className="px-4 py-3 hidden md:table-cell">
+                                    <div className="text-xs font-mono text-gray-500 space-y-0.5">
+                                      {cm.sources.slice(0, 2).map((s, i) => (
+                                        <div key={i} className="flex items-center gap-1 truncate max-w-xs">
+                                          <span className="truncate">{s.split('/').pop() ?? s}</span>
+                                          <span className="text-gray-300 mx-1">→</span>
+                                          <span className="truncate">{(cm.targets[i] ?? cm.targets[0] ?? '?').split('/').pop()}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={cm.status} /></td>
+                                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                                    <span className="text-xs text-gray-500">{cm.mappingCount.toLocaleString()}</span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        {cmTotalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between gap-2 flex-wrap">
+                            <p className="text-xs text-gray-500">Page {cmPageClamped + 1} of {cmTotalPages} · {cmResources.length} results</p>
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => setCmPage(p => Math.max(0, p - 1))} disabled={cmPageClamped === 0}
+                                className="p-1.5 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                                <ChevronLeft className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => setCmPage(p => Math.min(cmTotalPages - 1, p + 1))} disabled={cmPageClamped >= cmTotalPages - 1}
+                                className="p-1.5 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* ConceptMap detail side panel */}
+                    {(selectedCm || loadingCmDetail) && (
+                      <div className="fixed inset-0 bg-black/40 z-40 flex items-start justify-end" onClick={() => { setSelectedCm(null); }}>
+                        <div className="w-full max-w-2xl h-full bg-white shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-amber-50">
+                            <div className="min-w-0">
+                              <h2 className="font-semibold text-gray-900 truncate">{selectedCm?.title || selectedCm?.name || 'Concept Map'}</h2>
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                {selectedCm && <StatusBadge status={selectedCm.status} />}
+                                <span className="text-xs text-gray-400">{selectedCm?.mappingCount.toLocaleString()} mappings</span>
+                              </div>
+                            </div>
+                            <button onClick={() => setSelectedCm(null)} className="text-gray-400 hover:text-gray-700 ml-4"><X className="w-5 h-5" /></button>
+                          </div>
+                          <div className="flex-1 overflow-y-auto p-5">
+                            {loadingCmDetail ? (
+                              <LoadingSpinner message="Loading mappings…" />
+                            ) : selectedCm ? (
+                              <>
+                                {selectedCm.description && (
+                                  <p className="text-sm text-gray-600 mb-4">{selectedCm.description}</p>
+                                )}
+                                {selectedCm.group.map((grp, gi) => (
+                                  <div key={gi} className="mb-6">
+                                    <div className="flex items-center gap-2 mb-2 text-xs font-mono text-gray-500">
+                                      <span className="truncate">{grp.source?.split('/').pop() ?? grp.source ?? '?'}</span>
+                                      <span className="text-gray-300 mx-1">→</span>
+                                      <span className="truncate">{grp.target?.split('/').pop() ?? grp.target ?? '?'}</span>
+                                    </div>
+                                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                      <table className="w-full text-xs">
+                                        <thead className="bg-gray-50 border-b border-gray-200">
+                                          <tr>
+                                            <th className="text-left px-3 py-2 font-semibold text-gray-600">Source Code</th>
+                                            <th className="text-left px-3 py-2 font-semibold text-gray-600">Source Display</th>
+                                            <th className="text-left px-3 py-2 font-semibold text-gray-600">Target Code</th>
+                                            <th className="text-left px-3 py-2 font-semibold text-gray-600">Target Display</th>
+                                            <th className="text-left px-3 py-2 font-semibold text-gray-600">Equivalence</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                          {grp.element.map((el, ei) => (
+                                            el.target.map((tgt, ti) => (
+                                              <tr key={`${ei}-${ti}`} className="hover:bg-amber-50">
+                                                <td className="px-3 py-2 font-mono text-gray-700">{el.code}</td>
+                                                <td className="px-3 py-2 text-gray-600">{el.display ?? ''}</td>
+                                                <td className="px-3 py-2 font-mono text-gray-700">{tgt.code ?? ''}</td>
+                                                <td className="px-3 py-2 text-gray-600">{tgt.display ?? ''}</td>
+                                                <td className="px-3 py-2">
+                                                  <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                                                    tgt.equivalence === 'equivalent' ? 'bg-green-100 text-green-700' :
+                                                    tgt.equivalence === 'wider' || tgt.equivalence === 'narrower' ? 'bg-blue-100 text-blue-700' :
+                                                    tgt.equivalence === 'unmatched' ? 'bg-red-100 text-red-600' :
+                                                    'bg-gray-100 text-gray-600'
+                                                  }`}>{tgt.equivalence}</span>
+                                                  {tgt.comment && <span className="ml-2 text-gray-400 italic">{tgt.comment}</span>}
+                                                </td>
+                                              </tr>
+                                            ))
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </div>
+                                ))}
+                              </>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </>
                 );
