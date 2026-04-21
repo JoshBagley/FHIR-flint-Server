@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import {
   Search, Plus, Trash2, Save, Sparkles, ChevronLeft, Loader2,
   AlertCircle, CheckCircle, BookOpen, ArrowRightLeft, Info, X,
@@ -1562,7 +1563,13 @@ export default function ValueSetBuilder({ onBack }: Props) {
                           ? 'bg-blue-600 text-white'
                           : 'bg-gray-100 text-gray-800'
                       }`}>
-                        <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
+                        {msg.role === 'assistant' ? (
+                          <ReactMarkdown className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-li:my-0 prose-code:bg-white prose-code:px-1 prose-code:rounded prose-code:text-xs prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:text-xs">
+                            {msg.content}
+                          </ReactMarkdown>
+                        ) : (
+                          <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
+                        )}
                         {/* Suggested code cards */}
                         {msg.suggested_codes && msg.suggested_codes.length > 0 && (
                           <div className="mt-2 space-y-1.5">

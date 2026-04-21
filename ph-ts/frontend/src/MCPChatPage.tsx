@@ -10,6 +10,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import ReactMarkdown from 'react-markdown';
 import {
   ArrowLeft, Send, Loader2, ChevronDown, ChevronUp,
   MessageSquare, Wrench, Zap, AlertCircle, RotateCcw,
@@ -192,13 +193,17 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
   return (
     <div className="flex flex-col gap-1.5 max-w-[85%]">
       {/* Assistant bubble */}
-      <div className={`rounded-2xl rounded-tl-sm px-4 py-3 text-sm whitespace-pre-wrap ${
+      <div className={`rounded-2xl rounded-tl-sm px-4 py-3 text-sm ${
         msg.error
           ? 'bg-red-50 text-red-700 border border-red-200'
           : 'bg-white border border-gray-200 text-gray-800 shadow-sm'
       }`}>
         {msg.error && <AlertCircle className="w-4 h-4 inline mr-1.5 -mt-0.5" />}
-        {msg.content}
+        <ReactMarkdown
+          className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-li:my-0 prose-code:bg-gray-100 prose-code:px-1 prose-code:rounded prose-code:text-xs prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:text-xs"
+        >
+          {msg.content}
+        </ReactMarkdown>
       </div>
 
       {/* Tool trace */}
