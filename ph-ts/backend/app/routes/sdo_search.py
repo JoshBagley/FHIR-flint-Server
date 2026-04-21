@@ -6,9 +6,19 @@ GET /sdo/search           — search concepts in a specific code system
 GET /sdo/lookup           — look up a single code
 """
 
+import re
 from fastapi import APIRouter, HTTPException, Query
 from app.services import external_cs
 from app import state
+
+# Patterns that indicate the query is a code, not a text term.
+# When matched, /sdo/search tries $lookup first before falling back to text search.
+_CODE_PATTERNS: dict[str, re.Pattern] = {
+    "snomed":  re.compile(r"^\d{6,18}$"),
+    "loinc":   re.compile(r"^\d+-\d$"),
+    "icd10cm": re.compile(r"^[A-Za-z]\d{2}(\.\d{1,4})?$"),
+    "rxnorm":  re.compile(r"^\d{3,10}$"),
+}
 
 router = APIRouter(prefix="/sdo", tags=["SDO Search"])
 
@@ -98,6 +108,28 @@ async def search_concepts(
             status_code=400,
             detail=f"Unknown system '{system}'. Valid values: {list(external_cs._SEARCH_FNS.keys()) + ['hl7v2']}",
         )
+
+    # If the query matches the code pattern for this system, try $lookup first.
+    # Text-search APIs (e.g. SNOMED $expand with filter=) don't match on concept IDs.
+    pattern = _CODE_PATTERNS.get(system)
+    if pattern and pattern.match(q.strip()):
+        hit = await external_cs.lookup(system, q.strip())
+        if hit:
+            result = {
+                "code": hit["code"],
+                "display": hit.get("display", ""),
+                "system": hit.get("system", ""),
+                "systemName": hit.get("systemName", system),
+                "sourceUrl": hit.get("sourceUrl"),
+            }
+            return {
+                "system": system,
+                "query": q,
+                "count": 1,
+                "results": [result],
+                "note": "Matched by code lookup",
+            }
+
     results = await external_cs.search(system, q, limit)
     return {
         "system": system,

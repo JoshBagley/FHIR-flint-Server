@@ -132,7 +132,7 @@ ph-ts/
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── App.tsx                  # Main app shell; disease view filter in ValueSet browser
+│   │   ├── App.tsx                  # Main app shell; ValueSet/CodeSystem/ConceptMap browsers; disease view filter
 │   │   └── ValueSetBuilder.tsx      # 3-panel value set creation page
 │   └── vite.config.ts               # Contains usePolling:true for Windows Docker HMR
 ├── infrastructure/
