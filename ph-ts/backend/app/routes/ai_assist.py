@@ -232,6 +232,12 @@ def _sdo_id_to_url(sdo_id: str) -> str:
     return info.get("url", sdo_id)
 
 
+class ValidateValueSetRequest(BaseModel):
+    codes: list[dict] = []          # inline code list: [{code, system, display?, systemName?}]
+    valueset_id: Optional[str] = None  # pull codes from a stored ValueSet instead
+    context: Optional[str] = None   # optional free-text context for the AI narrative
+
+
 class ChatTurn(BaseModel):
     role: str   # "user" | "assistant"
     content: str
@@ -334,7 +340,7 @@ Respond ONLY with valid JSON in this exact structure (no markdown, no explanatio
 
     try:
         raw = _complete(prompt, max_tokens=2048)
-        return _parse_json_response(raw)
+        parsed = _parse_json_response(raw)
     except HTTPException:
         raise
     except (json.JSONDecodeError, IndexError, KeyError) as e:
@@ -347,6 +353,17 @@ Respond ONLY with valid JSON in this exact structure (no markdown, no explanatio
     except Exception as e:
         logger.error("Unexpected error in /ai/suggest: %s", e, exc_info=True)
         raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e
+
+    # Validate every suggestion against the live terminology server.
+    # Sets validated=True (confirmed), False (not found), or None (system not connected).
+    suggestions = parsed.get("suggestions", [])
+    if suggestions:
+        suggestions = list(
+            await asyncio.gather(*[_validate_suggested_code(s) for s in suggestions])
+        )
+        parsed["suggestions"] = suggestions
+
+    return parsed
 
 
 @router.post("/describe")
@@ -518,11 +535,35 @@ async def save_map_as_concept_map(req: MapSaveRequest):
     return JSONResponse(content=saved, status_code=201)
 
 
+async def _find_alternative_codes(entry: dict) -> dict:
+    """For a code that failed validation, search the same system for close matches."""
+    sdo_id = _URL_TO_SDO_ID.get(entry.get("system", ""))
+    if not sdo_id:
+        return {**entry, "alternatives": []}
+    query = entry.get("display") or entry.get("code", "")
+    try:
+        results = await asyncio.wait_for(
+            external_cs.search(sdo_id, query, 3), timeout=5.0
+        )
+        return {**entry, "alternatives": results[:3]}
+    except Exception:
+        return {**entry, "alternatives": []}
+
+
 _URL_TO_SDO_ID = {
     "http://snomed.info/sct":                       "snomed",
     "http://loinc.org":                             "loinc",
     "http://hl7.org/fhir/sid/icd-10-cm":           "icd10cm",
     "http://www.nlm.nih.gov/research/umls/rxnorm": "rxnorm",
+}
+
+_URL_TO_SYSTEM_NAME = {
+    "http://snomed.info/sct":                       "SNOMED CT",
+    "http://loinc.org":                             "LOINC",
+    "http://hl7.org/fhir/sid/icd-10-cm":           "ICD-10-CM",
+    "http://hl7.org/fhir/sid/icd-9-cm":            "ICD-9-CM",
+    "http://www.nlm.nih.gov/research/umls/rxnorm": "RxNorm",
+    "http://hl7.org/fhir/sid/cvx":                 "CVX",
 }
 
 # Regex patterns for detecting codes mentioned in free-text conversation.
@@ -577,25 +618,170 @@ async def _lookup_codes_in_text(text: str) -> list[dict]:
 
 
 async def _validate_suggested_code(entry: dict) -> dict:
-    """Replace AI-generated display with the authoritative live-lookup value."""
+    """
+    Replace AI-generated display with the authoritative live-lookup value.
+    Adds 'validated' field: True = confirmed, False = not found, None = system not connected.
+    """
     system = entry.get("system", "")
     code = entry.get("code", "")
     if not system or not code:
-        return entry
+        return {**entry, "validated": None}
     sdo_id = _URL_TO_SDO_ID.get(system)
     if not sdo_id:
-        return entry
+        return {**entry, "validated": None}
     try:
         result = await asyncio.wait_for(
             external_cs.lookup(sdo_id, code), timeout=5.0
         )
         if result and result.get("display"):
-            return {**entry, "display": result["display"]}
+            return {**entry, "display": result["display"], "validated": True}
         if result is None:
-            return {**entry, "caveats": "Code not found in live terminology server — verify before use."}
+            return {
+                **entry,
+                "caveats": "Code not found in live terminology server — verify before use.",
+                "validated": False,
+            }
     except Exception:
         pass
-    return entry
+    return {**entry, "validated": None}
+
+
+@router.post("/validate-valueset")
+async def validate_valueset(req: ValidateValueSetRequest):
+    """
+    Agentic ValueSet validation. Two-phase:
+
+    Phase 1 — mechanical: run live $lookup on every code, categorise as
+      valid / invalid / unvalidatable (system not connected).
+      For invalid codes, search the same system for close alternatives.
+
+    Phase 2 — AI narrative: feed the full validation report to the AI,
+      which explains each failure, recommends specific replacements, flags
+      overall quality concerns, and returns a ready_to_save verdict.
+
+    Accepts either an inline code list or a valueset_id to pull from the DB.
+    """
+    # ── 1. Resolve codes ──────────────────────────────────────────────────────
+    codes: list[dict] = list(req.codes)
+
+    if req.valueset_id and not codes:
+        resource = await state.db.get_resource(req.valueset_id)
+        if not resource:
+            raise HTTPException(status_code=404, detail=f"ValueSet {req.valueset_id} not found")
+        for include in resource.get("compose", {}).get("include", []):
+            system = include.get("system", "")
+            system_name = _URL_TO_SYSTEM_NAME.get(system, system)
+            for concept in include.get("concept", []):
+                codes.append({
+                    "code": concept.get("code", ""),
+                    "display": concept.get("display", ""),
+                    "system": system,
+                    "systemName": system_name,
+                })
+        if not codes:
+            return {
+                "total": 0,
+                "passed": 0,
+                "failed": 0,
+                "unvalidatable": 0,
+                "results": {"valid": [], "invalid": [], "unvalidatable": []},
+                "ai_review": {
+                    "summary": "ValueSet has no explicit concepts (intensional definition). Use $expand to preview codes before validating.",
+                    "issues": [],
+                    "overall_concerns": ["Intensional ValueSets cannot be validated without expansion."],
+                    "ready_to_save": None,
+                },
+            }
+
+    if not codes:
+        raise HTTPException(status_code=400, detail="Provide codes[] or a valueset_id with stored concepts.")
+
+    # Attach systemName where missing
+    for c in codes:
+        if not c.get("systemName"):
+            c["systemName"] = _URL_TO_SYSTEM_NAME.get(c.get("system", ""), c.get("system", ""))
+
+    # ── 2. Live validation — concurrent $lookup for every code ────────────────
+    validated = list(await asyncio.gather(*[_validate_suggested_code(c) for c in codes]))
+
+    passed = [c for c in validated if c.get("validated") is True]
+    failed = [c for c in validated if c.get("validated") is False]
+    unvalidatable = [c for c in validated if c.get("validated") is None]
+
+    # ── 3. Find alternatives for failed codes ─────────────────────────────────
+    if failed:
+        failed = list(await asyncio.gather(*[_find_alternative_codes(c) for c in failed]))
+
+    # ── 4. AI narrative ───────────────────────────────────────────────────────
+    def _slim(codes_list: list, include_alts: bool = False) -> list:
+        out = []
+        for c in codes_list:
+            entry = {"code": c["code"], "display": c.get("display", ""), "system": c.get("systemName", c.get("system", ""))}
+            if include_alts and c.get("alternatives"):
+                entry["alternatives"] = [{"code": a["code"], "display": a.get("display", "")} for a in c["alternatives"]]
+            out.append(entry)
+        return out
+
+    context_note = f"\nAdditional context: {req.context}" if req.context else ""
+    prompt = f"""You are a clinical terminology expert reviewing a FHIR ValueSet for quality.{context_note}
+
+Live terminology server validation results:
+
+PASSED — {len(passed)} codes confirmed valid in the live server:
+{json.dumps(_slim(passed), indent=2)}
+
+FAILED — {len(failed)} codes NOT found in the live server (with search candidates for replacement):
+{json.dumps(_slim(failed, include_alts=True), indent=2)}
+
+UNVALIDATABLE — {len(unvalidatable)} codes whose system is not connected to this server:
+{json.dumps(_slim(unvalidatable), indent=2)}
+
+Tasks:
+1. Write a 2-3 sentence quality summary.
+2. For each FAILED code: explain the likely reason (retired code, wrong system, typo, version mismatch) and pick the best replacement from the alternatives provided.
+3. Note any overall concerns: duplicate concepts, inconsistent specificity, missing coverage gaps, licensing issues.
+4. Set ready_to_save to true only if all validatable codes passed.
+
+Respond ONLY with valid JSON — no markdown, no text outside the JSON:
+{{
+  "summary": "string",
+  "issues": [
+    {{
+      "code": "string",
+      "display": "string",
+      "issue": "string",
+      "recommendation": "string",
+      "suggested_replacement": {{"code": "string", "display": "string", "system": "string"}} | null
+    }}
+  ],
+  "overall_concerns": ["string"],
+  "ready_to_save": true | false | null
+}}"""
+
+    try:
+        raw = _complete(prompt, max_tokens=2048)
+        ai_review = _parse_json_response(raw)
+    except Exception as e:
+        logger.warning("AI narrative failed in /ai/validate-valueset: %s", e)
+        ai_review = {
+            "summary": f"{len(passed)} of {len(codes)} codes confirmed valid. {len(failed)} not found. {len(unvalidatable)} could not be checked (system not connected).",
+            "issues": [],
+            "overall_concerns": [],
+            "ready_to_save": len(failed) == 0 or None,
+        }
+
+    return {
+        "total": len(codes),
+        "passed": len(passed),
+        "failed": len(failed),
+        "unvalidatable": len(unvalidatable),
+        "results": {
+            "valid": passed,
+            "invalid": failed,
+            "unvalidatable": unvalidatable,
+        },
+        "ai_review": ai_review,
+    }
 
 
 @router.post("/chat")
