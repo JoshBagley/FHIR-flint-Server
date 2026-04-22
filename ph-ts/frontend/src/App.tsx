@@ -1148,7 +1148,7 @@ const ModernPHINVADS = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { label: 'FHIR Version', value: 'R4 (4.0.1)' },
-            { label: 'API Endpoint', value: '/ValueSet, /CodeSystem' },
+            { label: 'API Endpoints', value: '/ValueSet · /CodeSystem · /ConceptMap · $expand · $validate-code · $lookup · $translate · $concept-search · /ai · /admin' },
             { label: 'Documentation', value: 'Available at /docs' },
           ].map(({ label, value }) => (
             <div key={label} className="bg-gray-50 rounded-lg p-4">
