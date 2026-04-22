@@ -1370,6 +1370,7 @@ async def search_code_systems(
     url: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     content: Optional[str] = Query(None),
+    source: Optional[str] = Query(None),
     q: Optional[str] = Query(None),
     _summary: bool = Query(False, alias="_summary"),
 ):
@@ -1386,8 +1387,10 @@ async def search_code_systems(
         params['status'] = status
     if content:
         params['content'] = content
+    if source:
+        params['source'] = source
 
-    cache_key = f"CodeSystem:list:{name or ''}:{url or ''}:{status or ''}:{content or ''}:{_summary}"
+    cache_key = f"CodeSystem:list:{name or ''}:{url or ''}:{status or ''}:{content or ''}:{source or ''}:{_summary}"
     cached = await state.cache.get(cache_key)
     if cached:
         return cached

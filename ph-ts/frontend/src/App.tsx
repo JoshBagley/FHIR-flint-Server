@@ -894,6 +894,7 @@ const ModernPHINVADS = () => {
   // CodeSystem table filters and pagination
   const [csStatusFilter, setCsStatusFilter] = useState('');
   const [csContentFilter, setCsContentFilter] = useState('');
+  const [csSourceFilter, setCsSourceFilter] = useState('');
   const [csPage, setCsPage] = useState(0);
   const CS_PAGE_SIZE = 25;
 
@@ -986,7 +987,7 @@ const ModernPHINVADS = () => {
       const status = tab === 'CodeSystem' ? csStatusFilter : (vsArchivedView ? '' : vsStatusFilter);
       const content = tab === 'CodeSystem' ? csContentFilter : undefined;
       const contextCode = tab === 'ValueSet' && !vsArchivedView ? vsViewFilter : undefined;
-      const source = tab === 'ValueSet' ? vsSourceFilter : undefined;
+      const source = tab === 'ValueSet' ? vsSourceFilter : (tab === 'CodeSystem' ? csSourceFilter : undefined);
       const archived = tab === 'ValueSet' ? vsArchivedView : false;
       setResources(await fetchResources(tab, debouncedSearch, status, content, contextCode, source, archived));
     } catch (e) {
@@ -994,7 +995,7 @@ const ModernPHINVADS = () => {
     } finally {
       setLoadingResources(false);
     }
-  }, [activeTab, debouncedSearch, csStatusFilter, csContentFilter, vsStatusFilter, vsViewFilter, vsSourceFilter, vsArchivedView]);
+  }, [activeTab, debouncedSearch, csStatusFilter, csContentFilter, csSourceFilter, vsStatusFilter, vsViewFilter, vsSourceFilter, vsArchivedView]);
 
   useEffect(() => { loadResources(); }, [loadResources]);
 
@@ -2060,9 +2061,24 @@ const ModernPHINVADS = () => {
                           <option value="supplement">Supplement</option>
                         </select>
                       </div>
-                      {(csStatusFilter || csContentFilter) && (
+                      <div className="flex items-center gap-1.5">
+                        <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Source</label>
+                        <select
+                          value={csSourceFilter}
+                          onChange={e => { setCsSourceFilter(e.target.value); setCsPage(0); }}
+                          className="text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                        >
+                          <option value="">All sources</option>
+                          <option value="phinvads">PHIN VADS</option>
+                          <option value="hl7">HL7</option>
+                          <option value="hl7v2">HL7 v2</option>
+                          <option value="icd9cm">ICD-9-CM</option>
+                          <option value="phts">PHTS (internal)</option>
+                        </select>
+                      </div>
+                      {(csStatusFilter || csContentFilter || csSourceFilter) && (
                         <button
-                          onClick={() => { setCsStatusFilter(''); setCsContentFilter(''); setCsPage(0); }}
+                          onClick={() => { setCsStatusFilter(''); setCsContentFilter(''); setCsSourceFilter(''); setCsPage(0); }}
                           className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md px-2 py-1.5 hover:bg-gray-50 transition-colors"
                         >
                           <X className="w-3 h-3" /> Clear filters
@@ -2079,7 +2095,7 @@ const ModernPHINVADS = () => {
                       <div className="text-center py-20 text-gray-400">
                         <Database className="w-12 h-12 mx-auto mb-3 opacity-30" />
                         <p className="text-sm">
-                          {debouncedSearch || csStatusFilter || csContentFilter
+                          {debouncedSearch || csStatusFilter || csContentFilter || csSourceFilter
                             ? 'No code systems match the current filters.'
                             : 'No code systems found. Import data using the migration tool.'}
                         </p>
