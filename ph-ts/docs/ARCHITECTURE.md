@@ -49,7 +49,7 @@ Config: `infrastructure/docker/nginx/nginx.conf`
 - Python 3.11, FastAPI 0.104, Uvicorn with `--reload`
 - Implements **FHIR R4** resource operations:
   - CRUD for `ValueSet`, `CodeSystem`, and `ConceptMap`
-  - `$expand` — expands a ValueSet to its full list of concepts; supports SNOMED CT ECL via `isa/{id}` and `refset/{id}` implicit ValueSet URLs
+  - `$expand` — expands a ValueSet to its full list of concepts; supports SNOMED CT implicit ValueSet URLs (`fhir_vs=isa/{id}`, `fhir_vs=refset/{id}`, `fhir_vs=ecl/{simple_expr}`) delegated to tx.fhir.org; complex ECL (attribute refinement, `AND`/`OR`/`MINUS`, post-coordination) is not yet supported (backlog item 17 — requires Snowstorm `$expand?ecl=` routing)
   - `$validate-code` — checks whether a code belongs to a ValueSet/CodeSystem
   - `$validate-batch` — validates up to 200 codes concurrently in one request (HL7 v2 message validation)
   - `$lookup` — looks up display name and properties for a code; supports LOINC hierarchy properties (`parent`, `child`, `COMPONENT`, etc.) via fhir.loinc.org when credentials are set

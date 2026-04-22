@@ -112,7 +112,18 @@ curl "http://localhost:8000/ValueSet/\$expand?url=https://phinvads.cdc.gov/vads/
 
 # With text filter
 curl "http://localhost:8000/ValueSet/\$expand?url={url}&filter=fever&count=20"
+
+# SNOMED CT — all descendants of a concept (implicit ValueSet, isa)
+curl "http://localhost:8000/ValueSet/\$expand?url=http://snomed.info/sct?fhir_vs=isa/73211009&count=50"
+
+# SNOMED CT — ECL subsumption shorthand (delegates to tx.fhir.org)
+curl "http://localhost:8000/ValueSet/\$expand?url=http://snomed.info/sct?fhir_vs=ecl/%3C%3C73211009&count=50"
+
+# SNOMED CT — refset membership
+curl "http://localhost:8000/ValueSet/\$expand?url=http://snomed.info/sct?fhir_vs=refset/723264001&count=50"
 ```
+
+> **SNOMED ECL scope:** Simple subsumption (`<`/`<<`) and refset (`^`) patterns are supported. Complex ECL (attribute refinement, `AND`/`OR`/`MINUS`, post-coordination) is not yet supported — a Snowstorm backend is required for those expressions.
 
 ### `$validate-code`
 
