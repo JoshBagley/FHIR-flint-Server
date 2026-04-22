@@ -2624,7 +2624,11 @@ const ModernPHINVADS = () => {
                               <StatusBadge status={entry.valueset.status} />
                             </div>
                             <button
-                              onClick={() => setSelectedResource(entry.valueset)}
+                              onClick={() =>
+                                apiFetch<FhirResource>(`/ValueSet/${entry.valueset.id}?_summary=true`)
+                                  .then(r => setSelectedResource(toUiResource(r)))
+                                  .catch(() => setSelectedResource(entry.valueset))
+                              }
                               className="text-xs text-blue-600 hover:underline flex-shrink-0"
                             >
                               Details →
