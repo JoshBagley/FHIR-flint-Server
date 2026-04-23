@@ -666,34 +666,14 @@ class DatabaseManager:
             param_idx += 1
 
         if 'source' in params:
-            # Filter by the phts.local/source extension (phinvads | hl7 | hl7v2 | vsac | icd9cm | phts)
+            # Filter by the source column (phinvads | hl7 | hl7v2 | vsac | icd9cm | internal)
+            # Uses the indexed source column rather than JSONB extension traversal — faster and
+            # works even when resources were imported before the source extension was added to data.
             source_val = params['source']
             if source_val == 'phts':
-                # 'phts' means internally created — no source extension, or extension value is 'internal'
-                conditions.append(f"""
-                    (
-                        NOT EXISTS (
-                            SELECT 1
-                            FROM jsonb_array_elements(COALESCE(data->'extension', '[]'::jsonb)) AS ext
-                            WHERE ext->>'url' = 'http://phts.local/StructureDefinition/source'
-                        )
-                        OR EXISTS (
-                            SELECT 1
-                            FROM jsonb_array_elements(COALESCE(data->'extension', '[]'::jsonb)) AS ext
-                            WHERE ext->>'url' = 'http://phts.local/StructureDefinition/source'
-                              AND ext->>'valueCode' = 'internal'
-                        )
-                    )
-                """)
+                conditions.append(f"source = 'internal'")
             else:
-                conditions.append(f"""
-                    EXISTS (
-                        SELECT 1
-                        FROM jsonb_array_elements(COALESCE(data->'extension', '[]'::jsonb)) AS ext
-                        WHERE ext->>'url' = 'http://phts.local/StructureDefinition/source'
-                          AND ext->>'valueCode' = ${param_idx}
-                    )
-                """)
+                conditions.append(f"source = ${param_idx}")
                 values.append(source_val)
                 param_idx += 1
 
