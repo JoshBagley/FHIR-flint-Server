@@ -981,7 +981,7 @@ const ModernPHINVADS = () => {
     if (activeTab === 'ConceptMap') return;
     setLoadingResources(true);
     setErrorResources(null);
-    if (!deepLinkPending.current) setSelectedResource(null);
+    if (!deepLinkPending.current && !deepLinkedRef.current) setSelectedResource(null);
     try {
       const tab = activeTab as 'ValueSet' | 'CodeSystem';
       const status = tab === 'CodeSystem' ? csStatusFilter : (vsArchivedView ? '' : vsStatusFilter);
@@ -1018,12 +1018,15 @@ const ModernPHINVADS = () => {
     }).catch(() => {});
   }, []);
 
-  // deepLinkPending is true from mount until the identifier fetch resolves.
-  // loadResources() checks this ref before clearing selectedResource so the
-  // drawer open doesn't race with the list load clearing it.
+  // deepLinkPending: true from mount until the identifier fetch resolves.
+  // deepLinkedRef: true while a deep-linked drawer is open (mirrors deepLinked state
+  //   but as a ref so loadResources always reads the current value, not a stale closure).
+  // Both guards prevent loadResources from calling setSelectedResource(null) and
+  // wiping out the drawer that the deep-link handler just opened.
   const deepLinkPending = useRef(
     new URLSearchParams(window.location.search).has('phts_oid')
   );
+  const deepLinkedRef = useRef(false);
 
   // Deep-link handler: fires immediately on mount — no waiting for the resource list.
   useEffect(() => {
@@ -1034,17 +1037,29 @@ const ModernPHINVADS = () => {
     window.history.replaceState({}, '', window.location.pathname);
     if (!oid) { deepLinkPending.current = false; return; }
 
-    apiFetch<{ entry?: Array<{ resource: FhirResource }> }>(
-      `/${type}?identifier=${encodeURIComponent(oid)}&_summary=true`
-    ).then(bundle => {
-      const first = bundle.entry?.[0]?.resource;
+    const tryFetch = (t: 'ValueSet' | 'CodeSystem') =>
+      apiFetch<{ entry?: Array<{ resource: FhirResource }> }>(
+        `/${t}?identifier=${encodeURIComponent(oid)}&_summary=true`
+      ).then(b => b.entry?.[0]?.resource ?? null).catch(() => null);
+
+    tryFetch(type).then(first => {
       if (first) {
+        deepLinkedRef.current = true;
         setActiveTab(type);
         setDeepLinked(true);
         setSelectedResource(toUiResource(first));
+        return;
       }
-    }).catch(() => {})
-      .finally(() => { deepLinkPending.current = false; });
+      const otherType = type === 'ValueSet' ? 'CodeSystem' : 'ValueSet';
+      return tryFetch(otherType).then(first2 => {
+        if (first2) {
+          deepLinkedRef.current = true;
+          setActiveTab(otherType);
+          setDeepLinked(true);
+          setSelectedResource(toUiResource(first2));
+        }
+      });
+    }).finally(() => { deepLinkPending.current = false; });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Concept/code search — fires when in concept mode with a debounced term
@@ -2761,7 +2776,7 @@ const ModernPHINVADS = () => {
         <DetailPanel
           resource={selectedResource}
           fullPage={deepLinked}
-          onClose={() => { setSelectedResource(null); setDeepLinked(false); }}
+          onClose={() => { deepLinkedRef.current = false; setSelectedResource(null); setDeepLinked(false); }}
         />
       )}
 

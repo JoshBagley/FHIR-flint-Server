@@ -49,7 +49,9 @@ Both `ValueSet` and `CodeSystem` path patterns are handled:
 | Legacy Path | Redirects To |
 |---|---|
 | `/vads/ViewValueSet.action?oid={oid}` | `/?phts_oid={oid}&phts_type=ValueSet` |
-| `/vads/ViewCodeSystem.action?oid={oid}` | `/?phts_oid={oid}&phts_type=CodeSystem` |
+| `/vads/ViewCodeSystem.action?id={oid}` | `/?phts_oid={oid}&phts_type=CodeSystem` |
+
+> **Note:** Real PHIN VADS uses `?oid=` for ValueSet URLs and `?id=` for CodeSystem URLs. Nginx handles both parameter names — `?oid=` is also accepted for local test URLs.
 
 The `.test` TLD is IANA-reserved (never publicly resolvable), which avoids browser HSTS preloading issues that would affect anything under `*.cdc.gov`.
 
@@ -75,15 +77,19 @@ The OID lookup is resilient: the identifier search strips `urn:oid:` prefixes au
 127.0.0.1   phinvads.test
 ```
 
-**Live demo URL:**
+**Live demo URLs:**
 ```
+# ValueSet (Condition — COVID-19)
 http://phinvads.test/vads/ViewValueSet.action?oid=2.16.840.1.114222.4.11.1038
+
+# CodeSystem (HL7 table 0323 — Action Code)
+http://phinvads.test/vads/ViewCodeSystem.action?id=2.16.840.1.113883.12.323
 ```
 
 **What the audience sees:**
 1. Browser navigates to a URL that looks exactly like a PHIN VADS link
 2. Without any user action, the page lands on the PH-TS home screen
-3. The matching value set detail drawer opens automatically — title, OID, concepts, metadata all visible
+3. The matching resource detail drawer opens automatically — title, OID, concepts, metadata all visible
 4. The URL bar is clean (`http://localhost/`) — no query parameters persisted
 
 ---
@@ -160,7 +166,8 @@ Every resource retains its original PHIN VADS OID, which is what the legacy URL 
 ## 7. Scope and Limitations
 
 **In scope (current):**
-- `ViewValueSet.action` and `ViewCodeSystem.action` URL patterns
+- `ViewValueSet.action?oid=` and `ViewCodeSystem.action?id=` URL patterns (real PHIN VADS parameter names)
+- `?oid=` also accepted for CodeSystem URLs (local test convenience)
 - OID-based lookup (the primary PHIN VADS identifier)
 - Local demo via `phinvads.test` and hosts file
 

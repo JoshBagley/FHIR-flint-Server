@@ -604,7 +604,15 @@ class DatabaseManager:
         param_idx = 2
 
         if 'name' in params:
-            conditions.append(f"name ILIKE ${param_idx}")
+            conditions.append(f"""(
+                name ILIKE ${param_idx}
+                OR data->>'title' ILIKE ${param_idx}
+                OR url ILIKE ${param_idx}
+                OR EXISTS (
+                    SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) AS ident
+                    WHERE ident->>'value' ILIKE ${param_idx}
+                )
+            )""")
             values.append(f"%{params['name']}%")
             param_idx += 1
 
@@ -621,17 +629,20 @@ class DatabaseManager:
         if 'identifier' in params:
             # Normalise to bare OID so we can match both storage forms:
             # some importers store "urn:oid:{oid}", others store the bare OID.
+            # Also match PHIN VADS CodeSystems where the OID is embedded in the url field
+            # (e.g. https://phinvads.cdc.gov/baseStu3/CodeSystem/2.16.840.1.114222.4.5.277).
             ident_val = params['identifier']
             if ident_val.startswith('urn:oid:'):
                 ident_val = ident_val[len('urn:oid:'):]
-            conditions.append(f"""
+            conditions.append(f"""(
                 EXISTS (
                     SELECT 1
                     FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) AS ident
                     WHERE ident->>'value' = ${param_idx}
                        OR ident->>'value' = 'urn:oid:' || ${param_idx}
                 )
-            """)
+                OR url LIKE '%/' || ${param_idx}
+            )""")
             values.append(ident_val)
             param_idx += 1
 
@@ -1348,6 +1359,7 @@ async def update_code_system(resource_id: str, code_system: CodeSystem):
 async def search_code_systems(
     name: Optional[str] = Query(None),
     url: Optional[str] = Query(None),
+    identifier: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     content: Optional[str] = Query(None),
     source: Optional[str] = Query(None),
@@ -1363,6 +1375,8 @@ async def search_code_systems(
         params['name'] = name
     if url:
         params['url'] = url
+    if identifier:
+        params['identifier'] = identifier
     if status:
         params['status'] = status
     if content:
@@ -1370,7 +1384,7 @@ async def search_code_systems(
     if source:
         params['source'] = source
 
-    cache_key = f"CodeSystem:list:{name or ''}:{url or ''}:{status or ''}:{content or ''}:{source or ''}:{_summary}"
+    cache_key = f"CodeSystem:list:{name or ''}:{url or ''}:{identifier or ''}:{status or ''}:{content or ''}:{source or ''}:{_summary}"
     cached = await state.cache.get(cache_key)
     if cached:
         return cached
