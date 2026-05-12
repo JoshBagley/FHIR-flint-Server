@@ -17,11 +17,11 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: |
-          cd backend
+          cd ph-ts/backend
           pip install -r requirements.txt -r requirements-dev.txt
       - name: Run tests
         run: |
-          cd backend
+          cd ph-ts/backend
           pytest tests/ -v --cov=app
 
   test-frontend:
@@ -34,11 +34,11 @@ jobs:
           node-version: '18'
       - name: Install dependencies
         run: |
-          cd frontend
+          cd ph-ts/frontend
           npm ci
       - name: Run tests
         run: |
-          cd frontend
+          cd ph-ts/frontend
           npm test
 
   lint:
@@ -47,12 +47,12 @@ jobs:
       - uses: actions/checkout@v3
       - name: Lint backend
         run: |
-          cd backend
+          cd ph-ts/backend
           pip install flake8
           flake8 app/
       - name: Lint frontend
         run: |
-          cd frontend
+          cd ph-ts/frontend
           npm ci
           npm run lint
 
