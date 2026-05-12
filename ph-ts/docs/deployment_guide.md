@@ -214,10 +214,10 @@ curl http://localhost:8000/auth/.well-known/smart-configuration
 - [ ] Retry `/admin/sync/status` with `Authorization: Bearer <token>` — confirm 200
 - [ ] Retry with expired/invalid token — confirm 401
 
-**Production (`phts.informatixlabs.com`):**
+**Production (`YOUR_DOMAIN_HERE`):**
 - [ ] Confirm `ENABLE_AUTH=false` in `.env.demo` before go-live
 - [ ] When ready: set `ENABLE_AUTH=true` + `AUTH_PASSWORD` in `.env.demo`, redeploy
-- [ ] Run same checklist against `https://phts.informatixlabs.com`
+- [ ] Run same checklist against `https://YOUR_DOMAIN_HERE`
 - [ ] Confirm frontend AI assistant still works (it sends X-API-Key in demo mode; will need Bearer token wiring when ENABLE_AUTH=true)
 
 > **Note — Keycloak (future):** For full SMART App Launch 2.0 compliance, SSO, and user management UI, consider replacing built-in JWT with a self-hosted Keycloak instance added as a Docker service. Set `OIDC_ISSUER_URL` to the Keycloak realm URL — no other backend changes required.
