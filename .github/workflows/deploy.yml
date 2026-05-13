@@ -57,7 +57,7 @@ jobs:
           command_timeout: 10m
           script: |
             set -e
-            cd ~/ph-ts/ph-ts
+            cd ~/FHIR-Terminology-Server/ph-ts
 
             echo "Pulling latest code..."
             git fetch origin main
