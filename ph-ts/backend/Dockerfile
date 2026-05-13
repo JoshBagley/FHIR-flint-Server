@@ -8,10 +8,11 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY backend/ .
+COPY migration/ /app/migration/
 
 RUN useradd -m -u 1000 phts && chown -R phts:phts /app
 USER phts
