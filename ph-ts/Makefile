@@ -1,4 +1,4 @@
-.PHONY: help start start-obs start-full stop restart logs test clean migrate
+.PHONY: help start start-obs start-full stop restart rebuild logs test clean migrate
 
 help:
 	@echo "Available commands:"
@@ -9,6 +9,7 @@ help:
 	@echo "  make restart        - Restart all services (all profiles)"
 	@echo "  make logs           - View logs (all services)"
 	@echo "  make test           - Run tests"
+	@echo "  make rebuild        - Rebuild and restart backend and frontend"
 	@echo "  make migrate        - Run migrations"
 	@echo "  make clean          - Stop and remove all data volumes"
 
@@ -20,6 +21,9 @@ start-obs:
 
 start-full:
 	docker compose --profile observability --profile tools --profile admin up -d
+
+rebuild:
+	docker compose up -d --build backend frontend
 
 stop:
 	docker compose --profile observability --profile tools --profile admin down
