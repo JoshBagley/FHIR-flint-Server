@@ -944,26 +944,6 @@ const ModernPHINVADS = () => {
 
   useEffect(() => { fetchSyncStatus(); }, [fetchSyncStatus]);
 
-  // Poll every 5 s while a sync is running; refresh resource list when it completes
-  const prevRunningRef = useRef(false);
-  useEffect(() => {
-    const running = syncRuns.some(r => r.status === 'running');
-    if (!running) {
-      if (prevRunningRef.current) {
-        loadResources();
-        loadStats();
-      }
-      prevRunningRef.current = false;
-      return;
-    }
-    prevRunningRef.current = true;
-    const id = setInterval(async () => {
-      await fetchSyncStatus();
-      await loadStats();
-    }, 5000);
-    return () => clearInterval(id);
-  }, [syncRuns, fetchSyncStatus, loadStats, loadResources]);
-
   const triggerSync = useCallback(async (preview = false) => {
     setSyncTriggering(true);
     setSyncError(null);
@@ -1007,6 +987,26 @@ const ModernPHINVADS = () => {
   }, [activeTab, debouncedSearch, csStatusFilter, csContentFilter, csSourceFilter, vsStatusFilter, vsViewFilter, vsSourceFilter, vsArchivedView]);
 
   useEffect(() => { loadResources(); }, [loadResources]);
+
+  // Poll every 5 s while a sync is running; refresh resource list when it completes
+  const prevRunningRef = useRef(false);
+  useEffect(() => {
+    const running = syncRuns.some(r => r.status === 'running');
+    if (!running) {
+      if (prevRunningRef.current) {
+        loadResources();
+        loadStats();
+      }
+      prevRunningRef.current = false;
+      return;
+    }
+    prevRunningRef.current = true;
+    const id = setInterval(async () => {
+      await fetchSyncStatus();
+      await loadStats();
+    }, 5000);
+    return () => clearInterval(id);
+  }, [syncRuns, fetchSyncStatus, loadStats, loadResources]);
 
   // Load ConceptMaps when tab is ConceptMap or search term changes
   useEffect(() => {
