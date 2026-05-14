@@ -70,6 +70,6 @@ jobs:
 
             echo "Verifying deployment..."
             sleep 10
-            curl -f https://${{ secrets.DEPLOY_DOMAIN }}/health
+            curl -f https://${{ secrets.DEPLOY_DOMAIN }}/ready
 
             echo "Deployment complete."

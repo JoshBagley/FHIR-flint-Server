@@ -169,15 +169,22 @@ function toUiResource(r: FhirResource): UiResource {
 
 const _API_KEY = import.meta.env.VITE_ADMIN_API_KEY as string | undefined;
 
-function _authHeaders(path: string): Record<string, string> {
+function _getHeaders(path: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Accept': 'application/fhir+json'
+  };
+  
+  // Only attach API Key for internal administrative or AI routes
   if (_API_KEY && (path.startsWith('/ai/') || path.startsWith('/admin/'))) {
-    return { 'X-API-Key': _API_KEY };
+    headers['X-API-Key'] = _API_KEY;
   }
-  return {};
+  return headers;
 }
 
 async function apiFetch<T>(path: string): Promise<T> {
-  const resp = await fetch(path, { headers: { Accept: 'application/fhir+json', ..._authHeaders(path) } });
+  // Ensure path starts with / to prevent open redirects or protocol injection
+  const safePath = path.startsWith('/') ? path : `/${path}`;
+  const resp = await fetch(safePath, { headers: _getHeaders(safePath) });
   if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText} — ${path}`);
   return resp.json() as Promise<T>;
 }
@@ -944,17 +951,6 @@ const ModernPHINVADS = () => {
 
   useEffect(() => { fetchSyncStatus(); }, [fetchSyncStatus]);
 
-  // Poll every 5 s while a sync is running
-  useEffect(() => {
-    const running = syncRuns.some(r => r.status === 'running');
-    if (!running) return;
-    const id = setInterval(async () => {
-      await fetchSyncStatus();
-      await loadStats();
-    }, 5000);
-    return () => clearInterval(id);
-  }, [syncRuns, fetchSyncStatus, loadStats]);
-
   const triggerSync = useCallback(async (preview = false) => {
     setSyncTriggering(true);
     setSyncError(null);
@@ -998,6 +994,26 @@ const ModernPHINVADS = () => {
   }, [activeTab, debouncedSearch, csStatusFilter, csContentFilter, csSourceFilter, vsStatusFilter, vsViewFilter, vsSourceFilter, vsArchivedView]);
 
   useEffect(() => { loadResources(); }, [loadResources]);
+
+  // Poll every 5 s while a sync is running; refresh resource list when it completes
+  const prevRunningRef = useRef(false);
+  useEffect(() => {
+    const running = syncRuns.some(r => r.status === 'running');
+    if (!running) {
+      if (prevRunningRef.current) {
+        loadResources();
+        loadStats();
+      }
+      prevRunningRef.current = false;
+      return;
+    }
+    prevRunningRef.current = true;
+    const id = setInterval(async () => {
+      await fetchSyncStatus();
+      await loadStats();
+    }, 5000);
+    return () => clearInterval(id);
+  }, [syncRuns, fetchSyncStatus, loadStats, loadResources]);
 
   // Load ConceptMaps when tab is ConceptMap or search term changes
   useEffect(() => {
