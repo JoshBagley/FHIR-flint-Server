@@ -1056,6 +1056,155 @@ async def health_check():
     return status
 
 
+@app.get("/ready")
+async def readiness_check():
+    """Deep readiness check — verifies Postgres, Elasticsearch, and Redis are all reachable.
+    Returns 200 if all healthy, 503 if any dependency is down. Use /health for a lightweight
+    nginx-level liveness probe; use /ready to confirm the backend and all services are up."""
+    services: dict[str, str] = {}
+    degraded = False
+
+    try:
+        if not state.db or not state.db.pool:
+            raise RuntimeError("Database not initialised")
+        async with state.db.pool.acquire() as conn:
+            await conn.fetchval("SELECT 1")
+        services["database"] = "healthy"
+    except Exception as e:
+        services["database"] = f"unhealthy: {e}"
+        degraded = True
+
+    try:
+        if not state.search_engine or not state.search_engine.es:
+            raise RuntimeError("Search engine not initialised")
+        await state.search_engine.es.cluster.health()
+        services["search"] = "healthy"
+    except Exception as e:
+        services["search"] = f"unhealthy: {e}"
+        degraded = True
+
+    try:
+        if not state.cache or not state.cache.redis_client:
+            raise RuntimeError("Cache not initialised")
+        await state.cache.redis_client.ping()
+        services["cache"] = "healthy"
+    except Exception as e:
+        services["cache"] = f"unhealthy: {e}"
+        degraded = True
+
+    body = {
+        "status": "degraded" if degraded else "ready",
+        "git_sha": os.environ.get("GIT_SHA", "unknown"),
+        "services": services,
+    }
+    return JSONResponse(content=body, status_code=503 if degraded else 200)
+
+
+@app.get("/stats")
+async def import_stats():
+    """Import completeness report — resource counts by type and source, concept coverage,
+    disease view tag totals, and first/last import timestamps. Use this to verify a fresh
+    data migration is complete."""
+    async with state.db.pool.acquire() as conn:
+        rows = await asyncio.gather(
+            conn.fetch(
+                """
+                SELECT resource_type, COUNT(*) AS cnt
+                FROM fhir_resources WHERE archived = FALSE
+                GROUP BY resource_type
+                """
+            ),
+            conn.fetch(
+                """
+                SELECT COALESCE(source, 'unknown') AS src, COUNT(*) AS cnt
+                FROM fhir_resources WHERE archived = FALSE
+                GROUP BY source
+                ORDER BY cnt DESC
+                """
+            ),
+            conn.fetchval("SELECT COUNT(*) FROM fhir_resources WHERE archived = TRUE"),
+            conn.fetch(
+                """
+                SELECT
+                    COUNT(*) FILTER (WHERE data->>'content' = 'complete')    AS complete,
+                    COUNT(*) FILTER (WHERE data->>'content' = 'not-present') AS not_present,
+                    COUNT(*) FILTER (WHERE data->>'content' = 'fragment')    AS fragment,
+                    COUNT(*) FILTER (WHERE (data->>'content') IS NULL)       AS unknown
+                FROM fhir_resources
+                WHERE resource_type = 'CodeSystem' AND archived = FALSE
+                """
+            ),
+            conn.fetchval(
+                """
+                SELECT COUNT(DISTINCT r.id)
+                FROM fhir_resources r,
+                     jsonb_array_elements(r.data->'useContext') AS uc
+                WHERE r.resource_type = 'ValueSet'
+                  AND r.archived = FALSE
+                  AND uc->'code'->>'code' = 'focus'
+                  AND uc->'valueCodeableConcept'->'coding' IS NOT NULL
+                """
+            ),
+            conn.fetchval(
+                """
+                SELECT COUNT(*)
+                FROM fhir_resources r,
+                     jsonb_array_elements(r.data->'useContext') AS uc
+                WHERE r.resource_type = 'ValueSet'
+                  AND r.archived = FALSE
+                  AND uc->'code'->>'code' = 'focus'
+                """
+            ),
+            conn.fetchrow(
+                """
+                SELECT
+                    MIN(created_at) AS first_import,
+                    MAX(created_at) AS last_import
+                FROM fhir_resources
+                """
+            ),
+            conn.fetchrow(
+                """
+                SELECT started_at, status, new_count, resource_type
+                FROM sync_log
+                ORDER BY started_at DESC
+                LIMIT 1
+                """
+            ),
+        )
+
+    by_type_rows, by_source_rows, archived, cs_content_rows, tagged_vs, total_tags, timestamps, last_sync = rows
+    cs_content = dict(cs_content_rows[0]) if cs_content_rows else {}
+
+    return {
+        "resources": {
+            "by_type": {r["resource_type"]: r["cnt"] for r in by_type_rows},
+            "by_source": {r["src"]: r["cnt"] for r in by_source_rows},
+            "archived": archived or 0,
+        },
+        "codesystems": {
+            "complete": cs_content.get("complete", 0),
+            "not_present": cs_content.get("not_present", 0),
+            "fragment": cs_content.get("fragment", 0),
+            "content_unknown": cs_content.get("unknown", 0),
+        },
+        "disease_views": {
+            "tagged_valuesets": tagged_vs or 0,
+            "total_tags": total_tags or 0,
+        },
+        "imports": {
+            "first_imported_at": timestamps["first_import"].isoformat() if timestamps and timestamps["first_import"] else None,
+            "last_imported_at": timestamps["last_import"].isoformat() if timestamps and timestamps["last_import"] else None,
+        },
+        "last_sync": {
+            "started_at": last_sync["started_at"].isoformat() if last_sync and last_sync["started_at"] else None,
+            "status": last_sync["status"] if last_sync else None,
+            "new_count": last_sync["new_count"] if last_sync else None,
+            "resource_type": last_sync["resource_type"] if last_sync else None,
+        } if last_sync else None,
+    }
+
+
 @app.get("/metrics")
 async def metrics():
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)

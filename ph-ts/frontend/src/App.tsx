@@ -169,15 +169,22 @@ function toUiResource(r: FhirResource): UiResource {
 
 const _API_KEY = import.meta.env.VITE_ADMIN_API_KEY as string | undefined;
 
-function _authHeaders(path: string): Record<string, string> {
+function _getHeaders(path: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Accept': 'application/fhir+json'
+  };
+  
+  // Only attach API Key for internal administrative or AI routes
   if (_API_KEY && (path.startsWith('/ai/') || path.startsWith('/admin/'))) {
-    return { 'X-API-Key': _API_KEY };
+    headers['X-API-Key'] = _API_KEY;
   }
-  return {};
+  return headers;
 }
 
 async function apiFetch<T>(path: string): Promise<T> {
-  const resp = await fetch(path, { headers: { Accept: 'application/fhir+json', ..._authHeaders(path) } });
+  // Ensure path starts with / to prevent open redirects or protocol injection
+  const safePath = path.startsWith('/') ? path : `/${path}`;
+  const resp = await fetch(safePath, { headers: _getHeaders(safePath) });
   if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText} — ${path}`);
   return resp.json() as Promise<T>;
 }
