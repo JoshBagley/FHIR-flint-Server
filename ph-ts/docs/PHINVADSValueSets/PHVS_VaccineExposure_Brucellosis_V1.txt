@@ -1,9 +1,0 @@
-Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
-Vaccine Exposure (Brucellosis)	PHVS_VaccineExposure_Brucellosis	2.16.840.1.114222.4.11.7982	1	Indicates the animal Brucella vaccine patient was exposed to	Published	12/02/2020	v1
-
-Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
-OTH	other	Other vaccine type (specify)		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
-UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL
-351581000009103	Vaccine product containing Brucella abortus strain 19 antigen (medicinal product)	S19		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
-351571000009100	Vaccine product containing Brucella abortus strain RB51 antigen (medicinal product)	RB51		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
-361791000009104	Vaccine product containing Brucella melitensis Rev 1 strain antigen (medicinal product)	Rev1		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT

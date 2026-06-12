@@ -1,7 +1,0 @@
-Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
-Mother Nucleic Acid Test Result (Perinatal Hep)	PHVS_MotNucAcidTestRes_Hep	2.16.840.1.114222.4.11.8046	1	Mother's nucleic acid test results for perinatal hepatitis B and C	Published	11/02/2021	Initial version
-
-Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
-260385009	Negative (qualifier value)	Not detected/Negative		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
-10828004	Positive (qualifier value)	Detected/Positive		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
-UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

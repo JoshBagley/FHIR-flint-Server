@@ -1,7 +1,0 @@
-Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
-Signs and Symptoms (Hepatitis)	PHVS_SignsSymptoms_Hepatitis	2.16.840.1.114222.4.11.8059	2	Signs and symptoms that may be associated with Hepatitis	Published	12/22/2021	Removed all values except Jaundice and peak bilirubin: added 'Acute symptoms onset'
-
-Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
-373933003	Acute onset (qualifier value)	Acute symptoms onset		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
-18165001	Jaundice (finding)	Jaundice		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20210322	SCT
-PHC2350	Peak total bilirubin level greater than or equal to 3.0 mg/dL	Peak total bilirubin level greater than or equal to 3.0 mg/dL		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20211027	CDCPHINVS

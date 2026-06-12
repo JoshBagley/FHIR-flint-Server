@@ -1,8 +1,0 @@
-Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
-Identifier Type (NNDSS)	PHVS_Identifier_type_NNDSS	2.16.840.1.114222.4.11.8101	1	Identifier Type associated with the case 	Published	08/22/2025	v1
-
-Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
-PHC946	CDC-assigned Case ID	CDC-assigned Case ID		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
-77997-5	Legacy Case Identifier	Legacy Case Identifier		2.16.840.1.113883.6.1	LOINC	PH_LOINC	2.8	LN
-PHC947	NORS ID	NORS ID		2.16.840.1.114222.4.5.274	PHIN VS (CDC Local Coding System)	PH_PHINVS_CDC	20250625	CDCPHINVS
-OTH	other	Other		2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

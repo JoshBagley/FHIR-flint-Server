@@ -1,8 +1,0 @@
-Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
-Smoking Status (Anthrax)	PHVS_SmokingStatus_Anthrax	2.16.840.1.114222.4.11.8003	1	What is the patient's current smoking status?	Published	12/07/2020	v1
-
-Concept Code	Concept Name	Preferred Concept Name	Preferred Alternate Code	Code System OID	Code System Name	Code System Code	Code System Version	HL7 Table 0396 Code
-8517006	Ex-smoker (finding)	Past		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
-266919005	Never smoked tobacco (finding)	Never		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
-77176002	Smoker (finding)	Current		2.16.840.1.113883.6.96	SNOMED-CT	PH_SNOMED-CT	20201118	SCT
-UNK	unknown	Unknown	ZZ	2.16.840.1.113883.5.1008	NullFlavor	PH_NullFlavor_HL7_V3	20090501	NULLFL

@@ -1,8 +1,0 @@
-View Name	View Description	View Version	Status Date
-CRA Substance Management	Vocabulary for the PHIN Countermeasure Administration Substance Management Message that is available in the PHIN Historical Archives.	1	11/10/2008 11:47:06
-
-Value Set Name	Value Set Code	Value Set OID	Value Set Version	Value Set Definition	Value Set Status	VS Last Updated Date	VS Release Comments
-Batch Deactivation Reason	PHVS_SubstanceBatchDeactivationReason_CRA	2.16.840.1.114222.4.11.1050	1	Reason the prepared substance batch was deactivated	Published	10/22/2008	Initial Load VADS 3.0
-Country	PHVS_Country_ISO_3166-1	2.16.840.1.114222.4.11.828	1	Codes representing country of origin, nationality, citizenship, address country	Published	12/31/2018	Initial Load VADS 3.0
-Expanded Yes No (HL7)	PHVS_ExpandedYesNo_HL7_2x	2.16.840.1.114222.4.11.820	1	HL7 Table 0532 that contains Yes, No, and some flavors of null	Published	10/22/2008	Initial Load VADS 3.0
-Substance Administered (CRA)	PHVS_SubstanceAdministered_CRA	2.16.840.1.114222.4.11.1049	1	Vaccine/substance administered as countermeasure response	Published	10/22/2008	Initial Load VADS 3.0
