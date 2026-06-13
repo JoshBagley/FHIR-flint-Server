@@ -9,7 +9,7 @@
     { "type": "panel", "id": "table", "name": "Table", "version": "" }
   ],
   "annotations": { "list": [] },
-  "description": "Flint-FHIR — request rates, latency, resource counts, and error tracking",
+  "description": "Flint — request rates, latency, resource counts, and error tracking",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -417,12 +417,12 @@
   "refresh": "30s",
   "schemaVersion": 36,
   "style": "dark",
-  "tags": ["fhir", "terminology", "flint-fhir"],
+  "tags": ["fhir", "terminology", "flint"],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Flint-FHIR Server Overview",
-  "uid": "flint-fhir-overview",
+  "title": "Flint Server Overview",
+  "uid": "flint-overview",
   "version": 1
 }

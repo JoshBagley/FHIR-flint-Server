@@ -1,5 +1,5 @@
 """
-Shared pytest fixtures for Flint-FHIR backend tests.
+Shared pytest fixtures for Flint backend tests.
 
 Uses httpx.AsyncClient with FastAPI's ASGI transport so every test runs
 against the real application routes without a live network connection.

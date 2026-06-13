@@ -95,7 +95,7 @@ Uvicorn runs with `--reload`. Saving any file under `backend/app/` restarts the 
 All backend config is driven by `pydantic-settings` reading from `.env`. Key vars:
 
 ```
-DATABASE_URL        postgresql://flint_fhir:<password>@postgres:5432/flint_fhir
+DATABASE_URL        postgresql://flint:<password>@postgres:5432/flint
 ELASTICSEARCH_HOSTS http://elasticsearch:9200
 REDIS_URL           redis://redis:6379
 ENABLE_AUTH         false
@@ -114,10 +114,10 @@ docker compose exec backend pytest tests/ --cov=app
 ### Database access (CLI)
 
 ```bash
-docker compose exec postgres psql -U flint_fhir -d flint_fhir
+docker compose exec postgres psql -U flint -d flint
 ```
 
-Or open **Adminer** at http://localhost:8181 (server: `postgres`, user: `flint_fhir`).
+Or open **Adminer** at http://localhost:8181 (server: `postgres`, user: `flint`).
 
 ---
 
@@ -229,7 +229,7 @@ docker compose exec backend bash
 docker compose exec frontend sh
 
 # Check DB schema
-docker compose exec postgres psql -U flint_fhir -d flint_fhir -c "\dt"
+docker compose exec postgres psql -U flint -d flint -c "\dt"
 
 # Flush Redis cache
 docker compose exec redis redis-cli FLUSHALL

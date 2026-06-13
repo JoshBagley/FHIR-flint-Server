@@ -1,7 +1,7 @@
 ﻿"""
 import_cvx.py
 ============
-Imports CDC CVX (Vaccine Administered) codes as a FHIR R4 CodeSystem into Flint-FHIR.
+Imports CDC CVX (Vaccine Administered) codes as a FHIR R4 CodeSystem into Flint.
 
 Primary source: local CDC Excel file (docs/cvx_codes/web_cvx.xlsx)
 Fallback source: NLM ClinicalTables API (less complete â€” no status, notes, or non-vaccine flag)
@@ -30,7 +30,7 @@ Usage
 
 Options
 -------
-    --target-url   Base URL of the running Flint-FHIR server (default: http://localhost)
+    --target-url   Base URL of the running Flint server (default: http://localhost)
     --dry-run      Build the resource without POSTing to the server
     --source       xlsx (default) | nlm
     --delete-first Delete existing CVX CodeSystem before importing
@@ -198,7 +198,7 @@ def build_codesystem(concepts: list[dict]) -> dict:
         "count": len(concepts),
         "publisher": "CDC / HL7",
         "extension": [
-            {"url": "http://flint-fhir.local/StructureDefinition/source", "valueCode": "internal"}
+            {"url": "http://flint.local/StructureDefinition/source", "valueCode": "internal"}
         ],
         "concept": sorted(concepts, key=lambda c: c["code"].zfill(4)),
     }

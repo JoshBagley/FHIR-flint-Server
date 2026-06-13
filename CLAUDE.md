@@ -64,7 +64,7 @@ make stop
 
 ## Stack at a Glance
 
-**Flint-FHIR** is a general-purpose FHIR R4 terminology server — custom-built in Python, not HAPI FHIR or any Java-based framework.
+**Flint** is a general-purpose FHIR R4 server — custom-built in Python, not HAPI FHIR or any Java-based framework.
 
 | Layer | Technology |
 |---|---|

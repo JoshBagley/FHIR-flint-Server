@@ -5,7 +5,7 @@ by $lookup, $validate-code, $expand, and $validate-batch.
 Seed data is driven by tests/fixtures/golden_codes.json — a file of
 authoritative code→display pairs verified once against live public APIs:
   - SNOMED CT : CSIRO Ontoserver / Snowstorm FHIR R4 (international edition)
-  - LOINC     : NLM ClinicalTables LONG_COMMON_NAME (the same API Flint-FHIR uses)
+  - LOINC     : NLM ClinicalTables LONG_COMMON_NAME (the same API Flint uses)
 
 Re-verify the golden file at any time:
     python tests/fixtures/verify_golden_codes.py
@@ -109,7 +109,7 @@ async def test_snomed_lookup_golden_code(client: AsyncClient, entry: dict):
 async def test_loinc_lookup_golden_code(client: AsyncClient, entry: dict):
     """
     Each LOINC code in the golden file must be found and its display must
-    exactly match the NLM LONG_COMMON_NAME (the same API Flint-FHIR uses).
+    exactly match the NLM LONG_COMMON_NAME (the same API Flint uses).
     """
     await _seed_loinc(client)
     resp = await client.get(

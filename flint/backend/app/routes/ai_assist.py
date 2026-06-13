@@ -638,7 +638,7 @@ async def _validate_suggested_code(entry: dict) -> dict:
         if result is None:
             return {
                 **entry,
-                "caveats": "Code not found in live terminology server — verify before use.",
+                "caveats": "Code not found in Flint FHIR server — verify before use.",
                 "validated": False,
             }
     except Exception:
@@ -837,7 +837,7 @@ async def chat_sme(req: ChatRequest):
         live_lookup_block = ""
 
     system_prompt = f"""You are an AI Assistant with deep expertise in FHIR R4 terminology and vocabulary, \
-embedded in a public health FHIR Terminology Server. You are assisting a public health informaticist \
+embedded in Flint, a public health FHIR R4 server. You are assisting a public health informaticist \
 who is building FHIR R4 ValueSets.
 
 Your expertise covers:

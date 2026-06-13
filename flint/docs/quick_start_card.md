@@ -1,4 +1,4 @@
-# Flint-FHIR - Quick Start Reference Card
+# Flint - Quick Start Reference Card
 
 ## ⚡ Ultra-Fast Setup (3 Commands)
 
@@ -180,7 +180,7 @@ docker compose restart frontend
 
 | Service | Username | Password |
 |---------|----------|----------|
-| PostgreSQL | flint_fhir | flint_dev_password |
+| PostgreSQL | flint | flint_dev_password |
 | Grafana | admin | admin |
 | pgAdmin | admin@example.com | admin |
 

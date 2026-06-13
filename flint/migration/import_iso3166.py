@@ -2,7 +2,7 @@
 import_iso3166.py
 ================
 Fetches ISO 3166-1 country codes from the NLM ClinicalTables API and
-imports them as a FHIR R4 CodeSystem into Flint-FHIR.
+imports them as a FHIR R4 CodeSystem into Flint.
 
 The canonical FHIR URI for ISO 3166-1 is urn:iso:std:iso:3166.
 Alpha-2 codes (e.g. US, CA, GB) are used as the concept codes.
@@ -13,7 +13,7 @@ Usage
 
 Options
 -------
-    --target-url  Base URL of the running Flint-FHIR server (default: http://localhost)
+    --target-url  Base URL of the running Flint server (default: http://localhost)
     --dry-run     Fetch and build the resource without POSTing to the server
 
 Requirements
@@ -69,7 +69,7 @@ def build_codesystem(concepts: list[dict]) -> dict:
         "publisher": "ISO",
         "concept": sorted(concepts, key=lambda c: c["code"]),
         "extension": [
-            {"url": "http://flint-fhir.local/StructureDefinition/source", "valueCode": "internal"}
+            {"url": "http://flint.local/StructureDefinition/source", "valueCode": "internal"}
         ],
     }
 

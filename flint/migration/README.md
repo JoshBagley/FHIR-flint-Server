@@ -1,13 +1,13 @@
-# Flint-FHIR Migration Scripts
+# Flint Migration Scripts
 
-Import standard terminology code systems into your local Flint-FHIR server.
+Import standard terminology code systems into your local Flint server.
 
 ---
 
 ## Prerequisites
 
 - Python 3.11+
-- Flint-FHIR Docker stack running (`docker compose up -d`)
+- Flint Docker stack running (`docker compose up -d`)
 - Internet access (most scripts fetch from public APIs)
 
 ---

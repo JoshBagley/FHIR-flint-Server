@@ -1,6 +1,6 @@
-# Flint-FHIR
+# Flint
 
-A general-purpose, production-ready FHIR R4 terminology server. Supports value set authoring, code validation, AI-assisted concept mapping, HL7 v2 message validation, and full observability via Prometheus, Grafana, and Loki.
+A general-purpose, production-ready FHIR R4 server. Supports value set authoring, code validation, AI-assisted concept mapping, HL7 v2 message validation, and full observability via Prometheus, Grafana, and Loki.
 
 ## Features
 
@@ -54,11 +54,11 @@ docker compose up -d
 ## Observability
 
 ### Metrics (Prometheus + Grafana)
-- Dashboard: **Flint-FHIR Server Overview** at [http://localhost:3001](http://localhost:3001)
+- Dashboard: **Flint Server Overview** at [http://localhost:3001](http://localhost:3001)
 - Tracks: request rates, latency (p50/p95/p99), error rates, resource counts
 
 ### Logs (Loki + Grafana)
-- Dashboard: **Flint-FHIR Logs** at [http://localhost:3001](http://localhost:3001)
+- Dashboard: **Flint Logs** at [http://localhost:3001](http://localhost:3001)
 - Every container's stdout/stderr is collected by Promtail and queryable in Grafana Explore
 - Use LogQL to filter: `{service="backend"} |= "POST /ValueSet"`
 

@@ -6,7 +6,7 @@
     "snomed_note": "Display names reflect SNOMED International Edition US English preferred terms. Three terms were corrected from the CSIRO Australian English refset: 73211009 Diabetes->Diabetes mellitus, 44054006 Type 2 diabetes->Diabetes mellitus type 2, 271737000 Anaemia->Anemia.",
     "loinc_version": "LOINC 2.77",
     "loinc_verification_server": "https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search (NLM ClinicalTables — LONG_COMMON_NAME field)",
-    "loinc_note": "NLM ClinicalTables is the SDO connector used by Flint-FHIR external_cs.py. Display values are exact LONG_COMMON_NAME as returned by the API.",
+    "loinc_note": "NLM ClinicalTables is the SDO connector used by Flint external_cs.py. Display values are exact LONG_COMMON_NAME as returned by the API.",
     "verified_date": "2026-04-10",
     "update_instructions": "To refresh this file run: python tests/fixtures/verify_golden_codes.py and review any changed display values before committing."
   },

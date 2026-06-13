@@ -79,8 +79,8 @@ describe('App', () => {
 
   it('renders the page header', () => {
     render(<App />);
-    expect(screen.getByText('Flint-FHIR')).toBeInTheDocument();
-    expect(screen.getByText('FHIR R4 Terminology Server')).toBeInTheDocument();
+    expect(screen.getByText('Flint')).toBeInTheDocument();
+    expect(screen.getByText('FHIR R4 Server')).toBeInTheDocument();
   });
 
   it('shows loading state initially', () => {

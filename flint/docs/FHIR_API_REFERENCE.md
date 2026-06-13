@@ -1,6 +1,6 @@
-# Flint-FHIR FHIR API Reference
+# Flint FHIR API Reference
 
-Flint-FHIR is a general-purpose FHIR R4 terminology server built on FastAPI. Base URL: `http://localhost:8000`  
+Flint is a general-purpose FHIR R4 FHIR server built on FastAPI. Base URL: `http://localhost:8000`  
 All responses use `Content-Type: application/fhir+json`.
 
 ---
@@ -10,7 +10,7 @@ All responses use `Content-Type: application/fhir+json`.
 1. [Metadata & Health](#1-metadata--health)
 2. [ValueSet — Search & Read](#2-valueset--search--read)
 3. [ValueSet — FHIR Operations](#3-valueset--fhir-operations)
-4. [ValueSet — Flint-FHIR Extensions](#4-valueset--flint-fhir-extensions)
+4. [ValueSet — Flint Extensions](#4-valueset--flint-extensions)
 5. [CodeSystem — Search & Read](#5-codesystem--search--read)
 6. [CodeSystem — FHIR Operations](#6-codesystem--fhir-operations)
 7. [ConceptMap](#7-conceptmap)
@@ -185,9 +185,9 @@ GET /ValueSet/{id}/$diff?v1={version}&v2={version}
 
 ---
 
-## 4. ValueSet — Flint-FHIR Extensions
+## 4. ValueSet — Flint Extensions
 
-These endpoints are Flint-FHIR-specific and not part of the FHIR spec.
+These endpoints are Flint-specific and not part of the FHIR spec.
 
 ### Disease / Condition Views
 
@@ -298,8 +298,8 @@ ConceptMaps enable cross-system code translation. Can be created manually or gen
 
 | Name | URL | Mappings |
 |---|---|---|
-| HL7 v2 Sex → FHIR Administrative Gender | `http://flint-fhir.local/ConceptMap/v2-sex-to-fhir-gender` | M/F/U/A/N/O → male/female/unknown/other |
-| SNOMED CT → ICD-10-CM Notifiable Conditions | `http://flint-fhir.local/ConceptMap/snomed-to-icd10cm-notifiable` | COVID-19, Influenza, Measles, Mumps, Pertussis, Tetanus, Yellow Fever, Brucellosis, West Nile, Gastroenteritis |
+| HL7 v2 Sex → FHIR Administrative Gender | `http://flint.local/ConceptMap/v2-sex-to-fhir-gender` | M/F/U/A/N/O → male/female/unknown/other |
+| SNOMED CT → ICD-10-CM Notifiable Conditions | `http://flint.local/ConceptMap/snomed-to-icd10cm-notifiable` | COVID-19, Influenza, Measles, Mumps, Pertussis, Tetanus, Yellow Fever, Brucellosis, West Nile, Gastroenteritis |
 
 ```bash
 # List all ConceptMaps
@@ -309,10 +309,10 @@ curl "http://localhost:8000/ConceptMap"
 curl "http://localhost:8000/ConceptMap/{id}"
 
 # Translate v2 sex code to FHIR gender
-curl "http://localhost:8000/ConceptMap/\$translate?url=http://flint-fhir.local/ConceptMap/v2-sex-to-fhir-gender&system=http://terminology.hl7.org/CodeSystem/v2-0001&code=F"
+curl "http://localhost:8000/ConceptMap/\$translate?url=http://flint.local/ConceptMap/v2-sex-to-fhir-gender&system=http://terminology.hl7.org/CodeSystem/v2-0001&code=F"
 
 # Translate SNOMED condition code to ICD-10-CM
-curl "http://localhost:8000/ConceptMap/\$translate?url=http://flint-fhir.local/ConceptMap/snomed-to-icd10cm-notifiable&system=http://snomed.info/sct&code=840539006"
+curl "http://localhost:8000/ConceptMap/\$translate?url=http://flint.local/ConceptMap/snomed-to-icd10cm-notifiable&system=http://snomed.info/sct&code=840539006"
 
 # Translate without specifying a map (searches all ConceptMaps for a match)
 curl "http://localhost:8000/ConceptMap/\$translate?code=840539006&system=http://snomed.info/sct&target=http://hl7.org/fhir/sid/icd-10-cm"
@@ -322,7 +322,7 @@ curl "http://localhost:8000/ConceptMap/\$translate?code=840539006&system=http://
 
 ## 8. SDO / External Vocabulary Search
 
-Live search against external code systems via Flint-FHIR connectors.
+Live search against external code systems via Flint connectors.
 
 ```bash
 # List available systems and their availability
@@ -606,7 +606,7 @@ curl -X DELETE "http://localhost:8000/ValueSet/{id}"
 
 ## 13. MCP Integration (Claude Code / Claude Desktop)
 
-Flint-FHIR can be connected to Claude Code or Claude Desktop via the [xSoVx/fhir-mcp](https://github.com/xSoVx/fhir-mcp) MCP server, giving Claude direct access to all FHIR operations via natural language.
+Flint can be connected to Claude Code or Claude Desktop via the [xSoVx/fhir-mcp](https://github.com/xSoVx/fhir-mcp) MCP server, giving Claude direct access to all FHIR operations via natural language.
 
 ### Configuration
 
@@ -629,13 +629,13 @@ The following is already written to `~/.claude/settings.json`:
 }
 ```
 
-Flint-FHIR must be running (`docker compose up -d`) before Claude Code will be able to connect.
+Flint must be running (`docker compose up -d`) before Claude Code will be able to connect.
 
 ### What Claude Can Do via MCP
 
 Once connected, Claude Code can answer questions like:
 
-- *"How many active ValueSets are on Flint-FHIR?"*
+- *"How many active ValueSets are on Flint?"*
 - *"Find ValueSets tagged to the COVID-19 case notification view"*
 - *"Expand the race and ethnicity ValueSet"*
 - *"Look up LOINC code 94500-6"*
@@ -654,7 +654,7 @@ Once connected, Claude Code can answer questions like:
 
 ### In-App MCP Chat
 
-The **MCP Chat** tab in the Flint-FHIR web UI (`http://localhost`) provides a browser-based test interface for the same tool set — no external tooling required. Each AI response shows which tools were called, with full input/output JSON visible in a collapsible trace panel.
+The **MCP Chat** tab in the Flint web UI (`http://localhost`) provides a browser-based test interface for the same tool set — no external tooling required. Each AI response shows which tools were called, with full input/output JSON visible in a collapsible trace panel.
 
 ---
 

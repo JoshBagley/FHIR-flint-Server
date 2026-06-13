@@ -1,7 +1,7 @@
 """
 fix_system_urls.py
 ==================
-Patches ValueSet resources in the Flint-FHIR database that contain non-canonical
+Patches ValueSet resources in the Flint database that contain non-canonical
 CodeSystem system URLs (e.g. web page URLs used instead of proper FHIR canonical URIs).
 
 For each mapping, the script:
@@ -18,7 +18,7 @@ Usage
 
 Options
 -------
-    --target-dsn  PostgreSQL DSN (default: postgresql://flint_fhir:flint_dev_password@localhost:5432/flint_fhir)
+    --target-dsn  PostgreSQL DSN (default: postgresql://flint:flint_dev_password@localhost:5432/flint)
     --dry-run     Report affected rows without applying changes
 
 Requirements
@@ -32,7 +32,7 @@ import json
 
 import asyncpg
 
-DEFAULT_DSN = "postgresql://flint_fhir:flint_dev_password@localhost:5432/flint_fhir"
+DEFAULT_DSN = "postgresql://flint:flint_dev_password@localhost:5432/flint"
 
 # ---------------------------------------------------------------------------
 # URL remapping table

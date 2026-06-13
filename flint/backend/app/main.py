@@ -1,7 +1,7 @@
 """
-Custom FHIR R4 Terminology Server
+Custom FHIR R4 Server
 ==================================
-A high-performance terminology server built from scratch to mimic Ontoserver
+A high-performance FHIR server built from scratch to mimic Ontoserver
 capabilities with enhanced features for public health vocabulary management.
 
 Key Features:
@@ -463,7 +463,7 @@ class DatabaseManager:
 
     def _extract_source(self, data: Dict[str, Any]) -> str:
         for ext in data.get('extension', []):
-            if ext.get('url') == 'http://flint-fhir.local/StructureDefinition/source':
+            if ext.get('url') == 'http://flint.local/StructureDefinition/source':
                 return ext.get('valueCode', 'internal')
         return 'internal'
 
@@ -879,11 +879,11 @@ class CacheManager:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    database_url = os.getenv("DATABASE_URL", "postgresql://flint_fhir:flint_dev_password@postgres:5432/flint_fhir")
+    database_url = os.getenv("DATABASE_URL", "postgresql://flint:flint_dev_password@postgres:5432/flint")
     elasticsearch_hosts = os.getenv("ELASTICSEARCH_HOSTS", "http://elasticsearch:9200").split(",")
     redis_url = os.getenv("REDIS_URL", "redis://redis:6379")
 
-    logger.info("Starting Flint-FHIR Terminology Server...")
+    logger.info("Starting Flint FHIR Server...")
 
     state.db = DatabaseManager(database_url)
     await state.db.connect()
@@ -910,8 +910,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Flint-FHIR",
-    description="High-performance FHIR R4 terminology server",
+    title="Flint",
+    description="High-performance FHIR R4 server",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs",
@@ -1012,7 +1012,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 @app.get("/")
 async def root():
     return {
-        "name": "Flint-FHIR",
+        "name": "Flint",
         "version": "1.0.0",
         "status": "operational",
         "fhirVersion": "4.0.1",
@@ -1224,17 +1224,17 @@ async def analytics_summary():
 async def capability_statement():
     return JSONResponse(content={
         "resourceType": "CapabilityStatement",
-        "id": "flint-fhir-capability",
-        "name": "FlintFHIRCapabilityStatement",
-        "title": "Flint-FHIR Capability Statement",
+        "id": "flint-capability",
+        "name": "FlintCapabilityStatement",
+        "title": "Flint Capability Statement",
         "status": "active",
         "experimental": False,
         "date": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-        "publisher": "Flint-FHIR",
-        "description": "FHIR R4 terminology server supporting ValueSet, CodeSystem, and ConceptMap resources with full terminology operations.",
+        "publisher": "Flint",
+        "description": "FHIR R4 server supporting ValueSet, CodeSystem, ConceptMap resources and FHIR operations.",
         "kind": "instance",
         "software": {
-            "name": "Flint-FHIR",
+            "name": "Flint",
             "version": os.environ.get("GIT_SHA", "unknown")
         },
         "fhirVersion": "4.0.1",
@@ -1266,9 +1266,9 @@ async def capability_statement():
                     "operation": [
                         {"name": "expand", "definition": "http://hl7.org/fhir/OperationDefinition/ValueSet-expand"},
                         {"name": "validate-code", "definition": "http://hl7.org/fhir/OperationDefinition/ValueSet-validate-code"},
-                        {"name": "validate-batch", "definition": "http://flint-fhir.local/OperationDefinition/ValueSet-validate-batch"},
-                        {"name": "diff", "definition": "http://flint-fhir.local/OperationDefinition/ValueSet-diff"},
-                        {"name": "audit", "definition": "http://flint-fhir.local/OperationDefinition/resource-audit"}
+                        {"name": "validate-batch", "definition": "http://flint.local/OperationDefinition/ValueSet-validate-batch"},
+                        {"name": "diff", "definition": "http://flint.local/OperationDefinition/ValueSet-diff"},
+                        {"name": "audit", "definition": "http://flint.local/OperationDefinition/resource-audit"}
                     ]
                 },
                 {
@@ -1288,7 +1288,7 @@ async def capability_statement():
                         {"name": "lookup", "definition": "http://hl7.org/fhir/OperationDefinition/CodeSystem-lookup"},
                         {"name": "validate-code", "definition": "http://hl7.org/fhir/OperationDefinition/CodeSystem-validate-code"},
                         {"name": "subsumes", "definition": "http://hl7.org/fhir/OperationDefinition/CodeSystem-subsumes"},
-                        {"name": "audit", "definition": "http://flint-fhir.local/OperationDefinition/resource-audit"}
+                        {"name": "audit", "definition": "http://flint.local/OperationDefinition/resource-audit"}
                     ]
                 },
                 {
@@ -1306,7 +1306,7 @@ async def capability_statement():
                     ],
                     "operation": [
                         {"name": "translate", "definition": "http://hl7.org/fhir/OperationDefinition/ConceptMap-translate"},
-                        {"name": "audit", "definition": "http://flint-fhir.local/OperationDefinition/resource-audit"}
+                        {"name": "audit", "definition": "http://flint.local/OperationDefinition/resource-audit"}
                     ]
                 }
             ]

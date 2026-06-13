@@ -1,4 +1,4 @@
-# Custom FHIR Terminology Server - Complete Setup Guide
+# Custom FHIR FHIR Server - Complete Setup Guide
 
 ## Quick Start (5 Minutes)
 
@@ -66,7 +66,7 @@ python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-export DATABASE_URL="postgresql://flint_fhir:flint_dev_password@localhost:5432/flint_fhir"
+export DATABASE_URL="postgresql://flint:flint_dev_password@localhost:5432/flint"
 export ELASTICSEARCH_HOSTS="http://localhost:9200"
 export REDIS_URL="redis://localhost:6379"
 
@@ -155,7 +155,7 @@ curl http://localhost:8000/\$stats
 
 ### Authentication
 
-Flint-FHIR supports three auth modes controlled by environment variables. The default (`ENABLE_AUTH=false`) is safe for demos — no changes break until you flip the flag.
+Flint supports three auth modes controlled by environment variables. The default (`ENABLE_AUTH=false`) is safe for demos — no changes break until you flip the flag.
 
 #### Mode 1 — No auth (demo default)
 
@@ -195,7 +195,7 @@ curl -X POST http://localhost:8000/ai/suggest \
 
 ```bash
 ENABLE_AUTH=true
-OIDC_ISSUER_URL=https://keycloak.example.com/realms/flint-fhir
+OIDC_ISSUER_URL=https://keycloak.example.com/realms/flint
 # AUTH_USERNAME / AUTH_PASSWORD are ignored in this mode
 # /auth/token endpoint is disabled — clients obtain tokens from the OIDC provider
 ```
@@ -265,10 +265,10 @@ rate(fhir_requests_total{status=~"5.."}[5m])
 
 ```bash
 # Backup
-docker compose exec postgres pg_dump -U flint_fhir flint_fhir > backup_$(date +%Y%m%d).sql
+docker compose exec postgres pg_dump -U flint flint > backup_$(date +%Y%m%d).sql
 
 # Restore
-docker compose exec -T postgres psql -U flint_fhir flint_fhir < backup_20260101.sql
+docker compose exec -T postgres psql -U flint flint < backup_20260101.sql
 ```
 
 ### Elasticsearch

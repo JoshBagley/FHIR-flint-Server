@@ -2,7 +2,7 @@
 import_hl7_core.py
 ==================
 Downloads the hl7.fhir.r4.core FHIR package from packages.fhir.org and
-imports every CodeSystem resource into the local Flint-FHIR server.
+imports every CodeSystem resource into the local Flint server.
 
 The package is a gzipped tar archive (~40 MB). All files named
 CodeSystem-*.json inside it are valid FHIR R4 CodeSystem resources with
@@ -15,7 +15,7 @@ Usage
 
 Options
 -------
-    --target-url  Base URL of the running Flint-FHIR server (default: http://localhost)
+    --target-url  Base URL of the running Flint server (default: http://localhost)
     --dry-run     Parse and report without POSTing to the server
 
 Requirements
@@ -98,8 +98,8 @@ def post_resource(client: httpx.Client, base_url: str, resource: dict) -> str:
     # Remove the id so the server assigns a fresh one â€” avoids duplicate key on re-run
     resource_copy = {k: v for k, v in resource.items() if k != "id"}
     resource_copy["extension"] = [
-        *[e for e in resource_copy.get("extension", []) if e.get("url") != "http://flint-fhir.local/StructureDefinition/source"],
-        {"url": "http://flint-fhir.local/StructureDefinition/source", "valueCode": "hl7"},
+        *[e for e in resource_copy.get("extension", []) if e.get("url") != "http://flint.local/StructureDefinition/source"],
+        {"url": "http://flint.local/StructureDefinition/source", "valueCode": "hl7"},
     ]
     try:
         resp = client.post(
@@ -119,7 +119,7 @@ def post_resource(client: httpx.Client, base_url: str, resource: dict) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="Import HL7 FHIR R4 core CodeSystems")
-    parser.add_argument("--target-url", default="http://localhost", help="Flint-FHIR server base URL")
+    parser.add_argument("--target-url", default="http://localhost", help="Flint server base URL")
     parser.add_argument("--dry-run", action="store_true", help="Parse only, do not POST")
     args = parser.parse_args()
 

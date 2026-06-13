@@ -72,7 +72,7 @@ The sidecar essentially becomes the non-FHIR half of the current `main.py` + all
 
 ## Verdict
 
-For a **vanilla terminology server** (search CodeSystems, expand ValueSets, validate codes against SDO content), HAPI is a strong default — certification-grade FHIR conformance for free.
+For a **vanilla FHIR server** (search CodeSystems, expand ValueSets, validate codes against SDO content), HAPI is a strong default — certification-grade FHIR conformance for free.
 
 For **PH-TS specifically**, the custom operations, AI layer, live SDO connectors, and disease views system mean maintaining a Python sidecar that does most of the interesting work anyway. HAPI would handle CRUD and standard operations, which the custom stack already handles correctly.
 

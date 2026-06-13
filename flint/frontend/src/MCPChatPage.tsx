@@ -436,7 +436,7 @@ export default function MCPChatPage({ onBack }: MCPChatPageProps) {
                     FHIR MCP Chat
                   </h2>
                   <p className="text-sm text-gray-500 max-w-sm">
-                    Ask anything about the Flint-FHIR terminology server.
+                    Ask anything about the Flint FHIR server.
                     The AI will call FHIR tools to find real answers.
                   </p>
                 </div>

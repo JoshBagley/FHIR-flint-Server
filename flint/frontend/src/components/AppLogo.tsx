@@ -11,7 +11,7 @@ export default function AppLogo({ size = 36, className = '' }: AppLogoProps) {
       width={size}
       height={size}
       className={className}
-      aria-label="Flint-FHIR logo"
+      aria-label="Flint logo"
     >
       <defs>
         <linearGradient id="flint-bg" x1="0" y1="0" x2="1" y2="1">

@@ -1,4 +1,4 @@
-# Flint-FHIR Local Development Setup Guide
+# Flint Local Development Setup Guide
 
 ## Prerequisites
 
@@ -90,9 +90,9 @@ Open http://localhost:8181 and log in:
 |-------|-------|
 | System | PostgreSQL |
 | Server | `postgres` |
-| Username | `flint_fhir` |
+| Username | `flint` |
 | Password | _(value of `POSTGRES_PASSWORD` in `.env`)_ |
-| Database | `flint_fhir` |
+| Database | `flint` |
 
 ---
 

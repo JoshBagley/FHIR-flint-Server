@@ -66,7 +66,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ---
 
-# CLAUDE.md — Flint-FHIR FHIR Terminology Server
+# CLAUDE.md — Flint FHIR Server
 
 This file provides context and working conventions for Claude Code when operating in this repository.
 
@@ -74,7 +74,7 @@ This file provides context and working conventions for Claude Code when operatin
 
 ## Project Overview
 
-**Flint-FHIR** is a FHIR R4 Terminology Server built for vocabulary management. It allows vocabulary SMEs to search, browse, create, and manage value sets backed by standard development organization (SDO) code systems.
+**Flint** is a general-purpose FHIR R4 server. Current capabilities include terminology and vocabulary management (ValueSet authoring, code validation, SDO search), with a roadmap to support core FHIR resources and a full agentic UI.
 
 **Stack:** FastAPI · PostgreSQL · Elasticsearch · Redis · React/Vite · Nginx · Prometheus · Grafana · Loki · Promtail · Docker Compose
 
@@ -82,7 +82,7 @@ This file provides context and working conventions for Claude Code when operatin
 
 ## FHIR Server Architecture
 
-**Flint-FHIR is a fully custom-built FHIR R4 server — not HAPI FHIR, not Ontoserver, not any Java-based framework.** It is modeled conceptually after Ontoserver but implemented from scratch in Python.
+**Flint is a fully custom-built FHIR R4 server — not HAPI FHIR, not Ontoserver, not any Java-based framework.** It is modeled conceptually after Ontoserver but implemented from scratch in Python.
 
 ### What it is NOT
 - Not HAPI FHIR (Java)
@@ -110,7 +110,7 @@ This file provides context and working conventions for Claude Code when operatin
 - `asyncpg` pool (min 10 / max 50 connections)
 - Schema self-initializes on startup (`_initialize_schema()`) — idempotent DDL
 - Every write atomically goes to `fhir_resources` + `resource_versions` (snapshot) + `audit_log`
-- `_extract_source()` reads `http://flint-fhir.local/StructureDefinition/source` extension for provenance
+- `_extract_source()` reads `http://flint.local/StructureDefinition/source` extension for provenance
 
 **Route modules — three routers:**
 
@@ -152,7 +152,7 @@ This file provides context and working conventions for Claude Code when operatin
 | Frontend (Vite dev) | http://localhost:5173 | Direct Vite HMR server |
 | Backend API | http://localhost:8000 | FastAPI; also at `/` via Nginx |
 | API Docs (Swagger) | http://localhost:8000/docs | Auto-generated OpenAPI |
-| PostgreSQL | localhost:5432 | DB: `flint_fhir`, User: `flint_fhir` |
+| PostgreSQL | localhost:5432 | DB: `flint`, User: `flint` |
 | Elasticsearch | http://localhost:9200 | |
 | Redis | localhost:6379 | |
 | Grafana | http://localhost:3001 | Metrics + log dashboards (admin/admin) |
@@ -221,7 +221,7 @@ flint/
 - **AI fan-out pattern:** `POST /ai/suggest` searches SDOs in parallel with `asyncio.gather()` + `asyncio.wait_for(timeout=8.0)` per system, then passes candidates to the AI for ranking.
 - **Summary mode:** `search_resources(summary=True)` uses `jsonb_build_object()` to return metadata only (no `concept`/`compose` arrays). Always includes a precomputed `_conceptCount` field so the UI can display accurate counts without fetching full resources. Also includes `extension` and `useContext` fields for provenance and view tags.
 - **Redis list caching:** List endpoints (`GET /ValueSet`, `GET /CodeSystem`) cache results for 120 s. Cache key includes all filter params. Invalidated on any write via `invalidate_pattern("ValueSet:*")`.
-- **Custom extension pattern:** `http://flint-fhir.local/StructureDefinition/source` tracks import provenance (e.g. `hl7`, `internal`). Same mechanism used for reading context tags from `useContext`.
+- **Custom extension pattern:** `http://flint.local/StructureDefinition/source` tracks import provenance (e.g. `hl7`, `internal`). Same mechanism used for reading context tags from `useContext`.
 
 ---
 
@@ -248,7 +248,7 @@ flint/
 
 ## Code System Storage and Access Strategy
 
-FHIR R4 defines a `CodeSystem.content` field that controls how concepts are stored and how operations behave. Flint-FHIR uses this to handle both small locally-stored code systems and large externally-delegated ones within a single unified API.
+FHIR R4 defines a `CodeSystem.content` field that controls how concepts are stored and how operations behave. Flint uses this to handle both small locally-stored code systems and large externally-delegated ones within a single unified API.
 
 ### Storage Tiers
 
@@ -360,7 +360,7 @@ python migration/import_cvx.py --source nlm --target-url http://localhost
 
 ## Multi-Environment Deployment
 
-Flint-FHIR uses Docker Compose file layering + profiles + `.env` files to support dev, demo, and production from a single codebase.
+Flint uses Docker Compose file layering + profiles + `.env` files to support dev, demo, and production from a single codebase.
 
 ### File structure
 
@@ -414,10 +414,10 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml \
 7. Backup local Postgres and restore on VM:
    ```bash
    # Local
-   docker compose exec postgres pg_dump flint_fhir -U flint_fhir > flint_fhir-backup.sql
+   docker compose exec postgres pg_dump flint -U flint > flint-backup.sql
    # VM
    docker compose up -d postgres
-   docker compose exec -T postgres psql flint_fhir -U flint_fhir < flint_fhir-backup.sql
+   docker compose exec -T postgres psql flint -U flint < flint-backup.sql
    ```
 8. `docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.demo up -d --build`
 
@@ -475,13 +475,13 @@ docker compose exec backend pytest
 ## Observability
 
 ### Metrics — Prometheus + Grafana
-- Prometheus scrapes `/metrics` every 15 s; Grafana dashboard **Flint-FHIR Server Overview** shows request rates, latency, error rates, resource counts.
+- Prometheus scrapes `/metrics` every 15 s; Grafana dashboard **Flint Server Overview** shows request rates, latency, error rates, resource counts.
 - Dashboard JSON: `grafana/dashboards/fhir_overview.json`
 - Datasource UIDs are provisioned and auto-assigned by Grafana; the dashboard JSON must reference the actual UID. If panels show "No data" after a fresh volume, the UID may have changed — check `GET http://localhost:3001/api/datasources` and update the JSON.
 
 ### Logs — Loki + Promtail
 - **Promtail** (`flint-promtail`) mounts `/var/run/docker.sock` and `/var/lib/docker/containers`, discovers all containers via Docker SD, ships logs to Loki.
-- **Loki** (`flint-loki`) stores log streams; queryable via Grafana Explore (Loki datasource) or **Flint-FHIR Logs** dashboard.
+- **Loki** (`flint-loki`) stores log streams; queryable via Grafana Explore (Loki datasource) or **Flint Logs** dashboard.
 - Config files: `loki/loki-config.yml`, `promtail/promtail-config.yml`
 
 **Useful LogQL queries:**
@@ -489,14 +489,14 @@ docker compose exec backend pytest
 {service="backend"} |= "HTTP/1"                          # all API requests
 {service="backend"} |~ " [45][0-9]{2} "                  # 4xx/5xx errors
 {service="backend"} |= "/ValueSet/$expand"               # expand calls only
-{compose_project="flint-fhir"} |~ "(?i)error|exception"      # errors, all containers
+{compose_project="flint"} |~ "(?i)error|exception"      # errors, all containers
 ```
 
 ---
 
 ## Terminology Validation
 
-Flint-FHIR supports code validation for FHIR resources, HL7 v2 messages, and any
+Flint supports code validation for FHIR resources, HL7 v2 messages, and any
 system that needs to confirm a code is valid in a given code system or ValueSet.
 
 **Key endpoints:**

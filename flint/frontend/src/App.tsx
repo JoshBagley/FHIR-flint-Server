@@ -147,7 +147,7 @@ function countConcepts(resource: FhirResource): number {
   return resource.concept?.length ?? 0;
 }
 
-const SOURCE_EXT_URL = 'http://flint-fhir.local/StructureDefinition/source';
+const SOURCE_EXT_URL = 'http://flint.local/StructureDefinition/source';
 
 function toUiResource(r: FhirResource): UiResource {
   const sourceExt = r.extension?.find(e => e.url === SOURCE_EXT_URL);
@@ -830,7 +830,7 @@ const CodeSystemConceptsPage = ({ resource, onBack }: { resource: UiResource; on
 // Main component
 // ---------------------------------------------------------------------------
 
-const FlintFHIR = () => {
+const Flint = () => {
   const [activeTab, setActiveTab] = useState<'ValueSet' | 'CodeSystem' | 'ConceptMap'>('ValueSet');
   const [activeView, setActiveView] = useState('browse');
   const [mcpChatOpen, setMcpChatOpen] = useState(false);
@@ -1061,9 +1061,9 @@ const FlintFHIR = () => {
         <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {fullPage && (
-              <a href="/" className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium" title="Back to Flint-FHIR">
+              <a href="/" className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium" title="Back to Flint">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                Flint-FHIR
+                Flint
               </a>
             )}
             <h2 className="font-semibold text-gray-900">{fullPage ? (resource.title || resource.name || 'Resource Details') : 'Resource Details'}</h2>
@@ -1567,8 +1567,8 @@ const FlintFHIR = () => {
             <div className="flex items-center gap-3">
               <AppLogo size={40} className="rounded-xl shadow-sm flex-shrink-0" />
               <div>
-                <h1 className="text-xl font-bold tracking-tight text-gray-900">Flint-FHIR</h1>
-                <p className="text-gray-400 text-xs font-medium tracking-wide uppercase">FHIR R4 Terminology Server</p>
+                <h1 className="text-xl font-bold tracking-tight text-gray-900">Flint</h1>
+                <p className="text-gray-400 text-xs font-medium tracking-wide uppercase">FHIR R4 Server</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -2555,4 +2555,4 @@ const FlintFHIR = () => {
   );
 };
 
-export default FlintFHIR;
+export default Flint;

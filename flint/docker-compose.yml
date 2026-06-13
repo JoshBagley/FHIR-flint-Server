@@ -6,8 +6,8 @@ services:
     image: postgres:15-alpine
     container_name: flint-postgres
     environment:
-      POSTGRES_DB: flint_fhir
-      POSTGRES_USER: flint_fhir
+      POSTGRES_DB: flint
+      POSTGRES_USER: flint
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-flint_dev_password}
       POSTGRES_INITDB_ARGS: "-E UTF8"
     volumes:
@@ -15,7 +15,7 @@ services:
     networks:
       - flint-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U flint_fhir"]
+      test: ["CMD-SHELL", "pg_isready -U flint"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -77,7 +77,7 @@ services:
       redis:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://flint_fhir:${POSTGRES_PASSWORD:-flint_dev_password}@postgres:5432/flint_fhir
+      DATABASE_URL: postgresql://flint:${POSTGRES_PASSWORD:-flint_dev_password}@postgres:5432/flint
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
       REDIS_URL: redis://redis:6379
       LOG_LEVEL: ${LOG_LEVEL:-info}

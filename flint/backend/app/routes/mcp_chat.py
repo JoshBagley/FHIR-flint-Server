@@ -1,5 +1,5 @@
 """
-MCP-style FHIR chat — AI with tool-calling backed by Flint-FHIR endpoints.
+MCP-style FHIR chat — AI with tool-calling backed by Flint endpoints.
 
 Exposes the same six operations defined in xSoVx/fhir-mcp (Option 1):
   fhir_capabilities, fhir_search, fhir_read,
@@ -164,8 +164,8 @@ MCP_TOOLS: list[dict] = [
 ]
 
 _SYSTEM_PROMPT = """\
-You are a FHIR R4 terminology assistant connected to Flint-FHIR — a general-purpose
-FHIR R4 terminology server containing value sets, code systems, and concept maps.
+You are a FHIR R4 terminology assistant connected to Flint — a general-purpose
+FHIR R4 FHIR server containing value sets, code systems, and concept maps.
 
 You have access to six tools that mirror the operations exposed by the
 xSoVx/fhir-mcp MCP server:
@@ -182,11 +182,11 @@ show the code and its display name.  Keep responses concise and well-structured.
 
 
 # ---------------------------------------------------------------------------
-# Tool execution — self-HTTP calls back into the running Flint-FHIR API
+# Tool execution — self-HTTP calls back into the running Flint API
 # ---------------------------------------------------------------------------
 
 async def _execute_tool(name: str, args: dict) -> Any:
-    """Call a Flint-FHIR endpoint and return a JSON-serialisable result."""
+    """Call a Flint endpoint and return a JSON-serialisable result."""
     headers = {"Accept": "application/fhir+json"}
     try:
         async with httpx.AsyncClient(timeout=_TOOL_TIMEOUT) as client:
@@ -605,7 +605,7 @@ def list_tools():
 @router.post("/chat", response_model=McpChatResponse)
 async def mcp_chat(req: McpChatRequest):
     """
-    Chat endpoint with AI tool-calling backed by Flint-FHIR FHIR endpoints.
+    Chat endpoint with AI tool-calling backed by Flint FHIR endpoints.
     The AI autonomously decides which tools to invoke to answer the question.
     """
     provider = os.getenv("AI_PROVIDER", "anthropic").lower()

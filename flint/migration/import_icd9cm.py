@@ -3,7 +3,7 @@ import_icd9cm.py
 ================
 Fetches the complete ICD-9-CM diagnosis code set from the NLM ClinicalTables
 API (no credentials required) and imports it as a single FHIR R4 CodeSystem
-resource into the local Flint-FHIR server.
+resource into the local Flint server.
 
 ICD-9-CM was retired on 10/1/2015 but remains essential for historical
 encounter data and legacy public health records.
@@ -21,7 +21,7 @@ Usage
 
 Options
 -------
-    --target-url  Base URL of the running Flint-FHIR server (default: http://localhost)
+    --target-url  Base URL of the running Flint server (default: http://localhost)
     --dry-run     Fetch and build the resource without POSTing to the server
 
 Requirements
@@ -119,8 +119,8 @@ def post_codesystem(client: httpx.Client, base_url: str, resource: dict) -> None
     url = f"{base_url.rstrip('/')}/CodeSystem"
     print(f"\nPOSTing CodeSystem to {url} â€¦", flush=True)
     resource = {**resource, "extension": [
-        *[e for e in resource.get("extension", []) if e.get("url") != "http://flint-fhir.local/StructureDefinition/source"],
-        {"url": "http://flint-fhir.local/StructureDefinition/source", "valueCode": "icd9cm"},
+        *[e for e in resource.get("extension", []) if e.get("url") != "http://flint.local/StructureDefinition/source"],
+        {"url": "http://flint.local/StructureDefinition/source", "valueCode": "icd9cm"},
     ]}
     resp = client.post(
         url,
@@ -138,7 +138,7 @@ def post_codesystem(client: httpx.Client, base_url: str, resource: dict) -> None
 
 def main():
     parser = argparse.ArgumentParser(description="Import ICD-9-CM as a FHIR R4 CodeSystem")
-    parser.add_argument("--target-url", default="http://localhost", help="Flint-FHIR server base URL")
+    parser.add_argument("--target-url", default="http://localhost", help="Flint server base URL")
     parser.add_argument("--dry-run", action="store_true", help="Build resource without POSTing")
     args = parser.parse_args()
 

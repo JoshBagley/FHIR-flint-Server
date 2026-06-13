@@ -4,7 +4,7 @@
 
 ## System Overview
 
-Flint-FHIR is a containerised FHIR R4 terminology server. All components run via Docker Compose and communicate over an internal bridge network (`flint-network`). External traffic enters through Nginx on port 80.
+Flint is a containerised FHIR R4 FHIR server. All components run via Docker Compose and communicate over an internal bridge network (`flint-network`). External traffic enters through Nginx on port 80.
 
 ```
 Browser / API Client
@@ -116,18 +116,18 @@ Source: `backend/app/`
 - Prometheus scrapes the backend `/metrics` endpoint every 15 s
 - Grafana dashboards provisioned from `grafana/dashboards/` and `grafana/datasources/`
 - Grafana at **http://localhost:3001** (default: admin / admin)
-- Dashboard **Flint-FHIR Server Overview**: request rates, latency (p50/p95/p99), error rates, resource counts
+- Dashboard **Flint Server Overview**: request rates, latency (p50/p95/p99), error rates, resource counts
 
 ### Loki + Promtail (Log Aggregation)
 
 - **Promtail** runs as a sidecar container, mounts the Docker socket, and ships every container's stdout/stderr to Loki
 - **Loki** stores log streams indexed by labels: `service`, `container`, `stream`, `compose_project`
-- Loki at **http://localhost:3100**; queryable via Grafana Explore (Loki datasource) or the **Flint-FHIR Logs** dashboard
+- Loki at **http://localhost:3100**; queryable via Grafana Explore (Loki datasource) or the **Flint Logs** dashboard
 - Use LogQL in Grafana Explore to filter logs:
   - All API calls: `{service="backend"} |= "HTTP/1"`
   - Errors only: `{service="backend"} |~ " [45][0-9]{2} "`
   - Specific path: `{service="backend"} |= "/ValueSet/$expand"`
-  - All containers, errors: `{compose_project="flint-fhir"} |~ "(?i)error|exception"`
+  - All containers, errors: `{compose_project="flint"} |~ "(?i)error|exception"`
 
 Config: `loki/loki-config.yml`, `promtail/promtail-config.yml`
 

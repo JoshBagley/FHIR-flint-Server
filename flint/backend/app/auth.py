@@ -93,7 +93,7 @@ async def _get_jwks() -> Dict[str, Any]:
 def create_access_token(subject: str, roles: List[str]) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=AUTH_TOKEN_EXPIRE_MINUTES)
     return jwt.encode(
-        {"sub": subject, "roles": roles, "exp": expire, "iss": "flint-fhir"},
+        {"sub": subject, "roles": roles, "exp": expire, "iss": "flint"},
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
@@ -145,7 +145,7 @@ async def require_auth(
             )
         else:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            if payload.get("iss") != "flint-fhir":
+            if payload.get("iss") != "flint":
                 raise JWTError("Invalid issuer")
     except JWTError as exc:
         raise HTTPException(

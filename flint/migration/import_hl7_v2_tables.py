@@ -2,7 +2,7 @@
 import_hl7_v2_tables.py
 =======================
 Downloads the hl7.terminology.r4 FHIR package from packages.fhir.org and
-imports every HL7 v2 table CodeSystem resource into the local Flint-FHIR server.
+imports every HL7 v2 table CodeSystem resource into the local Flint server.
 
 HL7 v2 tables (e.g., Table 0001 Administrative Sex, Table 0076 Message Type)
 are stored as content="complete" CodeSystems in the hl7.terminology.r4 package.
@@ -15,7 +15,7 @@ Usage
 
 Options
 -------
-    --target-url  Base URL of the running Flint-FHIR server (default: http://localhost)
+    --target-url  Base URL of the running Flint server (default: http://localhost)
     --dry-run     Parse and list resources without POSTing to the server
     --version     hl7.terminology.r4 package version (default: 5.5.0)
 
@@ -121,8 +121,8 @@ def post_resource(client: httpx.Client, base_url: str, resource: dict) -> str:
     api_url = f"{base_url.rstrip('/')}/CodeSystem"
     resource_copy = {k: v for k, v in resource.items() if k != "id"}
     resource_copy["extension"] = [
-        *[e for e in resource_copy.get("extension", []) if e.get("url") != "http://flint-fhir.local/StructureDefinition/source"],
-        {"url": "http://flint-fhir.local/StructureDefinition/source", "valueCode": "hl7v2"},
+        *[e for e in resource_copy.get("extension", []) if e.get("url") != "http://flint.local/StructureDefinition/source"],
+        {"url": "http://flint.local/StructureDefinition/source", "valueCode": "hl7v2"},
     ]
     try:
         resp = client.post(
@@ -141,8 +141,8 @@ def post_resource(client: httpx.Client, base_url: str, resource: dict) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Import HL7 v2 table CodeSystems into Flint-FHIR")
-    parser.add_argument("--target-url", default="http://localhost", help="Flint-FHIR server base URL")
+    parser = argparse.ArgumentParser(description="Import HL7 v2 table CodeSystems into Flint")
+    parser.add_argument("--target-url", default="http://localhost", help="Flint server base URL")
     parser.add_argument("--dry-run", action="store_true", help="Parse only, do not POST")
     parser.add_argument("--version", default=DEFAULT_VERSION, help=f"Package version (default: {DEFAULT_VERSION})")
     args = parser.parse_args()

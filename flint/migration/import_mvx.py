@@ -2,7 +2,7 @@
 import_mvx.py
 ============
 Fetches the CDC MVX (Vaccine Manufacturer) code list from the NLM
-ClinicalTables API and imports it as a FHIR R4 CodeSystem into Flint-FHIR.
+ClinicalTables API and imports it as a FHIR R4 CodeSystem into Flint.
 
 MVX codes identify the manufacturer of a vaccine and are used alongside
 CVX codes in immunization records. The canonical FHIR URI is
@@ -14,7 +14,7 @@ Usage
 
 Options
 -------
-    --target-url  Base URL of the running Flint-FHIR server (default: http://localhost)
+    --target-url  Base URL of the running Flint server (default: http://localhost)
     --dry-run     Fetch and build the resource without POSTing to the server
 
 Requirements
@@ -69,7 +69,7 @@ def build_codesystem(concepts: list[dict]) -> dict:
         "publisher": "CDC / HL7",
         "concept": sorted(concepts, key=lambda c: c["code"]),
         "extension": [
-            {"url": "http://flint-fhir.local/StructureDefinition/source", "valueCode": "internal"}
+            {"url": "http://flint.local/StructureDefinition/source", "valueCode": "internal"}
         ],
     }
 

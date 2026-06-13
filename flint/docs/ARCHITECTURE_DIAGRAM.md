@@ -1,4 +1,4 @@
-# Flint-FHIR Technical Architecture
+# Flint Technical Architecture
 
 ```mermaid
 graph TB
@@ -41,7 +41,7 @@ graph TB
 
     %% ── Storage ──────────────────────────────────────────────────────
     subgraph storage_layer["Storage"]
-        PG[("PostgreSQL  :5432\nDB: flint_fhir\n\nfhir_resources\nresource_versions\nidx_unique_resource_url_version\n\n2,017 ValueSets\n1,176 CodeSystems\n1 ConceptMap")]
+        PG[("PostgreSQL  :5432\nDB: flint\n\nfhir_resources\nresource_versions\nidx_unique_resource_url_version\n\n2,017 ValueSets\n1,176 CodeSystems\n1 ConceptMap")]
         ES[("Elasticsearch  :9200\nIndex: fhir_resources\nnested objects limit: 50,000\nFull-text + concept search")]
         REDIS[("Redis  :6379\nSession / cache")]
     end
@@ -51,7 +51,7 @@ graph TB
         PROM["Prometheus  :9090\nscrapes /metrics every 15 s"]
         LOKI["Loki  :3100\nLog aggregation"]
         PROMTAIL["Promtail\nDocker SD → Loki\nmounts docker.sock"]
-        GRAFANA["Grafana  :3001\nFlint-FHIR Server Overview (metrics)\nFlint-FHIR Logs (LogQL)"]
+        GRAFANA["Grafana  :3001\nFlint Server Overview (metrics)\nFlint Logs (LogQL)"]
     end
 
     %% ── Dev / Admin UIs ──────────────────────────────────────────────
