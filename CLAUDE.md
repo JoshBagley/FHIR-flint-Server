@@ -82,9 +82,16 @@ Services run on: Nginx `localhost:80`, API `localhost:8000`, Vite `localhost:517
 
 ## Key Architecture Notes
 
-- **FHIR models** are hand-rolled Pydantic classes in `flint/backend/app/main.py` — no fhir.resources library.
-- **Route split:** CRUD in `main.py`, FHIR operations (`$expand`, `$validate-code`, etc.) in `routes/fhir_operations.py`, SDO search in `routes/sdo_search.py`, AI endpoints in `routes/ai_assist.py`.
+- **FHIR models** are hand-rolled Pydantic classes — no fhir.resources library. Terminology models (`ValueSet`, `CodeSystem`, `ConceptMap`) live in `main.py`; clinical/admin models are in `app/models/` (`clinical.py`, `administrative.py`, `medications.py`).
+- **Route split:**
+  - `main.py` — CRUD + search for `ValueSet` / `CodeSystem` / `ConceptMap`; `DatabaseManager`; app startup
+  - `routes/fhir_operations.py` — All FHIR operations: `$expand`, `$validate-code`, `$lookup`, `$translate`, `$subsumes`, `$validate-batch`, `$diff`
+  - `routes/resource_factory.py` — Generic factory that generates 9 standard FHIR handlers per resource type
+  - `routes/clinical.py` / `administrative.py` / `medications.py` — Search hooks + CapabilityStatement registration for 13 clinical/admin resource types
+  - `routes/bundle.py` — `POST /` Bundle processor (batch + transaction with atomic rollback)
+  - `routes/sdo_search.py` — SDO connector search; `routes/ai_assist.py` — AI endpoints
+- **Shared utilities:** `app/fhir_utils.py` — Prometheus metrics, `_fhir_response`, `_check_etag`, `_bundle_links`; `app/capability.py` — `RESOURCE_REGISTRY` populated at import time, consumed by `/metadata`.
 - **Code system storage tiers:** `content = "complete"` → serve from Postgres; `content = "not-present"` or `"fragment"` → delegate to external SDO connectors in `services/external_cs.py`.
 - **Dev vs prod:** `docker-compose.override.yml` auto-loads in dev (hot-reload, src mounts). For prod/demo, explicitly pass `-f docker-compose.prod.yml --env-file .env.prod`.
 - **vite.config.ts** is baked into the Docker image, not volume-mounted — changes require `--build frontend`.
-- **Nginx route order matters:** `/ai/` block must appear before the FHIR resource regex block.
+- **Nginx route order matters:** `/ai/` block before FHIR regex block; `location = /` (exact) before `location /` (prefix) to route `POST /` to the Bundle endpoint while `GET /` goes to the frontend.

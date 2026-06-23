@@ -1,0 +1,641 @@
+{
+  "info": {
+    "name": "Flint FHIR Server",
+    "description": "Complete API collection for the Flint FHIR R4 server. Set the `base_url` variable to your server (default: http://localhost).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost", "type": "string" },
+    { "key": "patient_id", "value": "", "type": "string" },
+    { "key": "observation_id", "value": "", "type": "string" },
+    { "key": "condition_id", "value": "", "type": "string" },
+    { "key": "encounter_id", "value": "", "type": "string" },
+    { "key": "organization_id", "value": "", "type": "string" },
+    { "key": "valueset_id", "value": "", "type": "string" },
+    { "key": "codesystem_id", "value": "", "type": "string" },
+    { "key": "conceptmap_id", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health & Metadata",
+      "item": [
+        {
+          "name": "GET /ready — health check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/ready"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ]}}]
+        },
+        {
+          "name": "GET /metadata — CapabilityStatement",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/metadata"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const b = pm.response.json();",
+            "pm.test('CapabilityStatement', () => pm.expect(b.resourceType).to.equal('CapabilityStatement'));",
+            "pm.test('FHIR 4.0.1', () => pm.expect(b.fhirVersion).to.equal('4.0.1'));"
+          ]}}]
+        },
+        {
+          "name": "GET /stats — server stats",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/$stats"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "Patient",
+      "item": [
+        {
+          "name": "POST /Patient — create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/Patient",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Patient\",\n  \"name\": [{\"family\": \"Smith\", \"given\": [\"John\"]}],\n  \"gender\": \"male\",\n  \"birthDate\": \"1990-01-15\",\n  \"identifier\": [{\"system\": \"http://example.org/mrn\", \"value\": \"MRN001\"}]\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201', () => pm.response.to.have.status(201));",
+            "const b = pm.response.json();",
+            "pm.test('Has id', () => pm.expect(b.id).to.be.a('string'));",
+            "pm.test('Has ETag', () => pm.expect(pm.response.headers.get('ETag')).to.include('W/\"'));",
+            "pm.environment.set('patient_id', b.id);"
+          ]}}]
+        },
+        {
+          "name": "GET /Patient/{id} — read",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/Patient/{{patient_id}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Correct id', () => pm.expect(pm.response.json().id).to.equal(pm.environment.get('patient_id')));"
+          ]}}]
+        },
+        {
+          "name": "PUT /Patient/{id} — update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/Patient/{{patient_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Patient\",\n  \"name\": [{\"family\": \"Smith\", \"given\": [\"John\"]}],\n  \"gender\": \"male\",\n  \"birthDate\": \"1990-01-15\",\n  \"active\": true\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Active flag set', () => pm.expect(pm.response.json().active).to.equal(true));"
+          ]}}]
+        },
+        {
+          "name": "GET /Patient — search by family",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/Patient?family=Smith&_count=20",
+              "query": [
+                { "key": "family", "value": "Smith" },
+                { "key": "_count", "value": "20" }
+              ]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const b = pm.response.json();",
+            "pm.test('Bundle searchset', () => pm.expect(b.type).to.equal('searchset'));",
+            "pm.test('Has results', () => pm.expect(b.total).to.be.above(0));"
+          ]}}]
+        },
+        {
+          "name": "GET /Patient/{id}/_history — history",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/Patient/{{patient_id}}/_history"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('History bundle', () => pm.expect(pm.response.json().type).to.equal('history'));"
+          ]}}]
+        },
+        {
+          "name": "GET /Patient/{id}/_history/1 — versioned read",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/Patient/{{patient_id}}/_history/1"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ]}}]
+        },
+        {
+          "name": "GET /Patient/{id}/$audit — audit log",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/Patient/{{patient_id}}/$audit"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ]}}]
+        },
+        {
+          "name": "DELETE /Patient/{id} — delete",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/Patient/{{patient_id}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 204', () => pm.response.to.have.status(204));"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "Observation",
+      "item": [
+        {
+          "name": "POST /Observation — create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/Observation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Observation\",\n  \"status\": \"final\",\n  \"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"85354-9\", \"display\": \"Blood pressure panel\"}]},\n  \"subject\": {\"reference\": \"Patient/{{patient_id}}\"},\n  \"valueQuantity\": {\"value\": 120, \"unit\": \"mmHg\", \"system\": \"http://unitsofmeasure.org\", \"code\": \"mm[Hg]\"}\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201', () => pm.response.to.have.status(201));",
+            "pm.environment.set('observation_id', pm.response.json().id);"
+          ]}}]
+        },
+        {
+          "name": "GET /Observation — search by patient",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/Observation?patient=Patient/{{patient_id}}",
+              "query": [{ "key": "patient", "value": "Patient/{{patient_id}}" }]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ]}}]
+        },
+        {
+          "name": "DELETE /Observation/{id}",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/Observation/{{observation_id}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 204', () => pm.response.to.have.status(204));"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "Condition",
+      "item": [
+        {
+          "name": "POST /Condition — create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/Condition",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Condition\",\n  \"subject\": {\"reference\": \"Patient/{{patient_id}}\"},\n  \"code\": {\"coding\": [{\"system\": \"http://snomed.info/sct\", \"code\": \"44054006\", \"display\": \"Type 2 diabetes mellitus\"}]},\n  \"clinicalStatus\": {\"coding\": [{\"system\": \"http://terminology.hl7.org/CodeSystem/condition-clinical\", \"code\": \"active\"}]}\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201', () => pm.response.to.have.status(201));",
+            "pm.environment.set('condition_id', pm.response.json().id);"
+          ]}}]
+        },
+        {
+          "name": "GET /Condition — search by patient",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/Condition?patient=Patient/{{patient_id}}",
+              "query": [{ "key": "patient", "value": "Patient/{{patient_id}}" }]
+            }
+          }
+        },
+        {
+          "name": "DELETE /Condition/{id}",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/Condition/{{condition_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Encounter",
+      "item": [
+        {
+          "name": "POST /Encounter — create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/Encounter",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Encounter\",\n  \"status\": \"finished\",\n  \"class\": {\"system\": \"http://terminology.hl7.org/CodeSystem/v3-ActCode\", \"code\": \"AMB\", \"display\": \"ambulatory\"},\n  \"subject\": {\"reference\": \"Patient/{{patient_id}}\"}\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201', () => pm.response.to.have.status(201));",
+            "pm.environment.set('encounter_id', pm.response.json().id);"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "Organization",
+      "item": [
+        {
+          "name": "POST /Organization — create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/Organization",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Organization\",\n  \"name\": \"General Hospital\",\n  \"type\": [{\"coding\": [{\"system\": \"http://terminology.hl7.org/CodeSystem/organization-type\", \"code\": \"prov\", \"display\": \"Healthcare Provider\"}]}],\n  \"telecom\": [{\"system\": \"phone\", \"value\": \"555-1234\"}]\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201', () => pm.response.to.have.status(201));",
+            "pm.environment.set('organization_id', pm.response.json().id);"
+          ]}}]
+        },
+        {
+          "name": "GET /Organization/{id}",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/Organization/{{organization_id}}"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "Bundle",
+      "item": [
+        {
+          "name": "POST / — batch (create 2 patients)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"batch\",\n  \"entry\": [\n    {\n      \"resource\": {\"resourceType\": \"Patient\", \"name\": [{\"family\": \"Batch\", \"given\": [\"One\"]}], \"gender\": \"male\"},\n      \"request\": {\"method\": \"POST\", \"url\": \"Patient\"}\n    },\n    {\n      \"resource\": {\"resourceType\": \"Patient\", \"name\": [{\"family\": \"Batch\", \"given\": [\"Two\"]}], \"gender\": \"female\"},\n      \"request\": {\"method\": \"POST\", \"url\": \"Patient\"}\n    }\n  ]\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const b = pm.response.json();",
+            "pm.test('batch-response type', () => pm.expect(b.type).to.equal('batch-response'));",
+            "pm.test('2 entries', () => pm.expect(b.total).to.equal(2));",
+            "pm.test('All created', () => b.entry.forEach(e => pm.expect(e.response.status).to.equal('201 Created')));"
+          ]}}]
+        },
+        {
+          "name": "POST / — transaction with urn:uuid reference",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"fullUrl\": \"urn:uuid:patient-tx\",\n      \"resource\": {\"resourceType\": \"Patient\", \"name\": [{\"family\": \"Transaction\"}]},\n      \"request\": {\"method\": \"POST\", \"url\": \"Patient\"}\n    },\n    {\n      \"resource\": {\n        \"resourceType\": \"Observation\",\n        \"status\": \"final\",\n        \"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"85354-9\"}]},\n        \"subject\": {\"reference\": \"urn:uuid:patient-tx\"}\n      },\n      \"request\": {\"method\": \"POST\", \"url\": \"Observation\"}\n    }\n  ]\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const b = pm.response.json();",
+            "pm.test('transaction-response', () => pm.expect(b.type).to.equal('transaction-response'));",
+            "pm.test('2 entries', () => pm.expect(b.total).to.equal(2));",
+            "const patientRef = b.entry[0].response.location.split('/_history')[0];",
+            "pm.test('Reference resolved', () => pm.expect(b.entry[1].resource.subject.reference).to.equal(patientRef));"
+          ]}}]
+        },
+        {
+          "name": "POST / — transaction rollback (intentional failure)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"Bundle\",\n  \"type\": \"transaction\",\n  \"entry\": [\n    {\n      \"resource\": {\"resourceType\": \"Patient\", \"name\": [{\"family\": \"Phantom\"}]},\n      \"request\": {\"method\": \"POST\", \"url\": \"Patient\"}\n    },\n    {\n      \"resource\": {\"resourceType\": \"Patient\"},\n      \"request\": {\"method\": \"PUT\", \"url\": \"Patient/this-id-does-not-exist\"}\n    }\n  ]\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 400 (rollback)', () => pm.response.to.have.status(400));",
+            "pm.test('OperationOutcome', () => pm.expect(pm.response.json().resourceType).to.equal('OperationOutcome'));"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "Terminology — ValueSet",
+      "item": [
+        {
+          "name": "POST /ValueSet — create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/ValueSet",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"ValueSet\",\n  \"url\": \"http://example.com/vs/test\",\n  \"name\": \"TestValueSet\",\n  \"title\": \"Test Value Set\",\n  \"status\": \"active\",\n  \"version\": \"1.0\",\n  \"compose\": {\n    \"include\": [{\n      \"system\": \"http://hl7.org/fhir/administrative-gender\",\n      \"concept\": [\n        {\"code\": \"male\", \"display\": \"Male\"},\n        {\"code\": \"female\", \"display\": \"Female\"}\n      ]\n    }]\n  }\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201', () => pm.response.to.have.status(201));",
+            "pm.environment.set('valueset_id', pm.response.json().id);"
+          ]}}]
+        },
+        {
+          "name": "GET /ValueSet/$expand",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/ValueSet/$expand?url=http://example.com/vs/test",
+              "query": [{ "key": "url", "value": "http://example.com/vs/test" }]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const b = pm.response.json();",
+            "pm.test('Has expansion', () => pm.expect(b.expansion).to.exist);",
+            "pm.test('Has codes', () => pm.expect(b.expansion.total).to.be.above(0));"
+          ]}}]
+        },
+        {
+          "name": "GET /ValueSet/$validate-code (valid)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/ValueSet/$validate-code?url=http://example.com/vs/test&code=male",
+              "query": [
+                { "key": "url", "value": "http://example.com/vs/test" },
+                { "key": "code", "value": "male" }
+              ]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const params = {};",
+            "pm.response.json().parameter.forEach(p => params[p.name] = p);",
+            "pm.test('Result true', () => pm.expect(params.result.valueBoolean).to.be.true);"
+          ]}}]
+        },
+        {
+          "name": "GET /ValueSet/$validate-code (invalid)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/ValueSet/$validate-code?url=http://example.com/vs/test&code=notacode",
+              "query": [
+                { "key": "url", "value": "http://example.com/vs/test" },
+                { "key": "code", "value": "notacode" }
+              ]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const params = {};",
+            "pm.response.json().parameter.forEach(p => params[p.name] = p);",
+            "pm.test('Result false', () => pm.expect(params.result.valueBoolean).to.be.false);"
+          ]}}]
+        },
+        {
+          "name": "POST /ValueSet/$validate-batch",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/ValueSet/$validate-batch",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\"code\": \"M\", \"system\": \"http://terminology.hl7.org/CodeSystem/v2-0001\"},\n    {\"code\": \"94500-6\", \"system\": \"http://loinc.org\"},\n    {\"code\": \"J12.82\", \"system\": \"http://hl7.org/fhir/sid/icd-10-cm\"}\n  ]\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has results', () => pm.expect(pm.response.json().results).to.be.an('array'));"
+          ]}}]
+        },
+        {
+          "name": "DELETE /ValueSet/{id}",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/ValueSet/{{valueset_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Terminology — CodeSystem",
+      "item": [
+        {
+          "name": "POST /CodeSystem — create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/CodeSystem",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"CodeSystem\",\n  \"url\": \"http://example.com/cs/test\",\n  \"name\": \"TestCS\",\n  \"title\": \"Test Code System\",\n  \"status\": \"active\",\n  \"version\": \"1.0\",\n  \"content\": \"complete\",\n  \"concept\": [\n    {\"code\": \"A\", \"display\": \"Alpha\"},\n    {\"code\": \"B\", \"display\": \"Beta\"}\n  ]\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201', () => pm.response.to.have.status(201));",
+            "pm.environment.set('codesystem_id', pm.response.json().id);"
+          ]}}]
+        },
+        {
+          "name": "GET /CodeSystem/$lookup — local",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/CodeSystem/$lookup?system=http://example.com/cs/test&code=A",
+              "query": [
+                { "key": "system", "value": "http://example.com/cs/test" },
+                { "key": "code", "value": "A" }
+              ]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ]}}]
+        },
+        {
+          "name": "GET /CodeSystem/$lookup — LOINC (live)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/CodeSystem/$lookup?system=http://loinc.org&code=94500-6",
+              "query": [
+                { "key": "system", "value": "http://loinc.org" },
+                { "key": "code", "value": "94500-6" }
+              ]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200 or 404', () => pm.expect([200,404]).to.include(pm.response.code));"
+          ]}}]
+        },
+        {
+          "name": "GET /CodeSystem/$validate-code",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/CodeSystem/$validate-code?system=http://example.com/cs/test&code=A",
+              "query": [
+                { "key": "system", "value": "http://example.com/cs/test" },
+                { "key": "code", "value": "A" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /CodeSystem/$subsumes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/CodeSystem/$subsumes?system=http://snomed.info/sct&codeA=73211009&codeB=44054006",
+              "query": [
+                { "key": "system", "value": "http://snomed.info/sct" },
+                { "key": "codeA", "value": "73211009" },
+                { "key": "codeB", "value": "44054006" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Terminology — ConceptMap",
+      "item": [
+        {
+          "name": "POST /ConceptMap — create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/fhir+json" }],
+            "url": "{{base_url}}/ConceptMap",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceType\": \"ConceptMap\",\n  \"url\": \"http://example.com/map/sex\",\n  \"name\": \"V2SexToFHIR\",\n  \"title\": \"HL7 v2 Sex to FHIR Gender\",\n  \"status\": \"active\",\n  \"version\": \"1.0\",\n  \"group\": [{\n    \"source\": \"http://terminology.hl7.org/CodeSystem/v2-0001\",\n    \"target\": \"http://hl7.org/fhir/administrative-gender\",\n    \"element\": [\n      {\"code\": \"M\", \"display\": \"Male\", \"target\": [{\"code\": \"male\", \"equivalence\": \"equivalent\"}]},\n      {\"code\": \"F\", \"display\": \"Female\", \"target\": [{\"code\": \"female\", \"equivalence\": \"equivalent\"}]}\n    ]\n  }]\n}"
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201', () => pm.response.to.have.status(201));",
+            "pm.environment.set('conceptmap_id', pm.response.json().id);"
+          ]}}]
+        },
+        {
+          "name": "GET /ConceptMap/$translate",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/ConceptMap/$translate?url=http://example.com/map/sex&system=http://terminology.hl7.org/CodeSystem/v2-0001&code=M",
+              "query": [
+                { "key": "url", "value": "http://example.com/map/sex" },
+                { "key": "system", "value": "http://terminology.hl7.org/CodeSystem/v2-0001" },
+                { "key": "code", "value": "M" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /ConceptMap/{id}",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/ConceptMap/{{conceptmap_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "SDO Search",
+      "item": [
+        {
+          "name": "GET /sdo/systems — list connectors",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/sdo/systems"
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has systems', () => pm.expect(pm.response.json().systems).to.be.an('array'));"
+          ]}}]
+        },
+        {
+          "name": "GET /sdo/search — SNOMED (live)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/sdo/search?system=snomed&q=diabetes&limit=5",
+              "query": [
+                { "key": "system", "value": "snomed" },
+                { "key": "q", "value": "diabetes" },
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200 or 502', () => pm.expect([200,502]).to.include(pm.response.code));"
+          ]}}]
+        },
+        {
+          "name": "GET /sdo/search — LOINC (live)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/sdo/search?system=loinc&q=blood+pressure&limit=5",
+              "query": [
+                { "key": "system", "value": "loinc" },
+                { "key": "q", "value": "blood pressure" },
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /sdo/snomed/children/{id} — hierarchy",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/sdo/snomed/children/73211009?edition=international",
+              "query": [{ "key": "edition", "value": "international" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

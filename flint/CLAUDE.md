@@ -74,7 +74,7 @@ This file provides context and working conventions for Claude Code when operatin
 
 ## Project Overview
 
-**Flint** is a general-purpose FHIR R4 server. Current capabilities include terminology and vocabulary management (ValueSet authoring, code validation, SDO search), with a roadmap to support core FHIR resources and a full agentic UI.
+**Flint** is a general-purpose FHIR R4 server supporting 16 resource types. Capabilities include clinical CRUD (Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization, Organization, Practitioner, PractitionerRole, Location, MedicationRequest, Procedure, DiagnosticReport), full terminology and vocabulary management (ValueSet, CodeSystem, ConceptMap), batch/transaction Bundle processing, and AI-assisted concept mapping.
 
 **Stack:** FastAPI · PostgreSQL · Elasticsearch · Redis · React/Vite · Nginx · Prometheus · Grafana · Loki · Promtail · Docker Compose
 
@@ -93,9 +93,11 @@ This file provides context and working conventions for Claude Code when operatin
 
 **Framework:** FastAPI (uvicorn ASGI). GZip + CORS middleware. Prometheus metrics middleware on every request. All error responses return `OperationOutcome` JSON (never raw HTTP errors).
 
-**FHIR models** — hand-rolled Pydantic, defined in `main.py`:
-- `ValueSet`, `CodeSystem`, `ConceptMap` — full R4 shapes
-- `Coding`, `CodeableConcept`, `Identifier`, `Meta`, `Narrative`, `ContactDetail`
+**FHIR models** — hand-rolled Pydantic, no fhir.resources library:
+- Terminology models (`ValueSet`, `CodeSystem`, `ConceptMap`, `Coding`, `CodeableConcept`, etc.) defined in `main.py`
+- Clinical models in `app/models/clinical.py` — `Patient`, `Observation`, `Condition`, `Encounter`, `AllergyIntolerance`, `Immunization`
+- Administrative models in `app/models/administrative.py` — `Organization`, `Practitioner`, `PractitionerRole`, `Location`
+- Medication/report models in `app/models/medications.py` — `MedicationRequest`, `Procedure`, `DiagnosticReport`
 - `Literal[]` types enforce enums (`content`, `equivalence`, `status`, etc.)
 
 **Storage — three tiers:**
@@ -112,27 +114,36 @@ This file provides context and working conventions for Claude Code when operatin
 - Every write atomically goes to `fhir_resources` + `resource_versions` (snapshot) + `audit_log`
 - `_extract_source()` reads `http://flint.local/StructureDefinition/source` extension for provenance
 
-**Route modules — three routers:**
+**Route modules:**
 
 | Module | Handles |
 |---|---|
-| `main.py` (inline) | CRUD + search + history + archive + audit for ValueSet / CodeSystem / ConceptMap |
+| `main.py` (inline) | CRUD + search + history + archive + audit for `ValueSet` / `CodeSystem` / `ConceptMap`; `DatabaseManager`; app startup |
 | `routes/fhir_operations.py` | All FHIR operations: `$expand`, `$validate-code`, `$lookup`, `$translate`, `$subsumes`, `$validate-batch`, `$diff`, `$stats` |
+| `routes/resource_factory.py` | Generic factory: `create_resource_router(rt, model, search_hook)` generates 9 standard handlers per type |
+| `routes/clinical.py` | Search hooks + CapabilityStatement registration for Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization |
+| `routes/administrative.py` | Search hooks + registration for Organization, Practitioner, PractitionerRole, Location |
+| `routes/medications.py` | Search hooks + registration for MedicationRequest, Procedure, DiagnosticReport |
+| `routes/bundle.py` | `POST /` — Bundle batch/transaction processor with atomic rollback and `urn:uuid:` reference resolution |
 | `routes/sdo_search.py` | Live SDO connector search (`/sdo/*`), SNOMED hierarchy tree |
 | `routes/ai_assist.py` | AI endpoints (`/ai/*`): suggest, describe, map, map-save, provider |
+| `app/fhir_utils.py` | Shared: Prometheus metrics, `_fhir_response`, `_check_etag`, `_bundle_links` |
+| `app/capability.py` | `RESOURCE_REGISTRY` list populated at import time; consumed by `GET /metadata` |
 
 **FHIR Operations implemented:**
 
 | Operation | Endpoint |
 |---|---|
 | Expand | `GET/POST /ValueSet/$expand` |
-| Validate code | `GET/POST /ValueSet/$validate-code` |
+| Validate code (ValueSet) | `GET/POST /ValueSet/$validate-code` |
+| Validate code (CodeSystem) | `GET /CodeSystem/$validate-code`, `GET /CodeSystem/{id}/$validate-code` |
 | Batch validate | `POST /ValueSet/$validate-batch` (up to 200 codes, concurrent) |
 | Lookup | `GET/POST /CodeSystem/$lookup` |
 | Translate | `GET/POST /ConceptMap/$translate` |
 | Subsumes | `GET /CodeSystem/$subsumes` |
 | Version diff | `GET /ValueSet/{id}/$diff` |
-| Capability statement | `GET /metadata` |
+| Capability statement | `GET /metadata` (dynamic — reflects auth config + all registered resource types) |
+| Bundle (batch/transaction) | `POST /` |
 
 **Storage tier decision logic** (in `fhir_operations.py`):
 `$expand` and `$lookup` check `CodeSystem.content` before sourcing concepts:
@@ -188,9 +199,20 @@ After changing `.env`, restart the backend: `docker compose up -d backend`
 flint/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py                  # FastAPI app, router registration, search_resources()
+│   │   ├── main.py                  # FastAPI app, DatabaseManager, ValueSet/CodeSystem/ConceptMap CRUD
+│   │   ├── fhir_utils.py            # Shared: Prometheus metrics, _fhir_response, _check_etag, _bundle_links
+│   │   ├── capability.py            # RESOURCE_REGISTRY — populated at import, consumed by /metadata
+│   │   ├── models/
+│   │   │   ├── clinical.py          # Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization
+│   │   │   ├── administrative.py    # Organization, Practitioner, PractitionerRole, Location
+│   │   │   └── medications.py       # MedicationRequest, Procedure, DiagnosticReport
 │   │   ├── routes/
-│   │   │   ├── fhir_operations.py   # FHIR R4 ops: $expand, $validate-code, $lookup, $translate, etc.
+│   │   │   ├── fhir_operations.py   # $expand, $validate-code, $lookup, $translate, $subsumes, $validate-batch
+│   │   │   ├── resource_factory.py  # create_resource_router() — generates CRUD+history+audit per resource type
+│   │   │   ├── clinical.py          # Search hooks + router instances for 6 clinical types
+│   │   │   ├── administrative.py    # Search hooks + router instances for 4 administrative types
+│   │   │   ├── medications.py       # Search hooks + router instances for 3 medication/report types
+│   │   │   ├── bundle.py            # POST / — batch/transaction Bundle processor
 │   │   │   ├── sdo_search.py        # GET /sdo/systems, /sdo/search, /sdo/lookup, /sdo/snomed/children/{id}
 │   │   │   └── ai_assist.py         # POST /ai/suggest, /ai/describe, /ai/map, /ai/map-save, GET /ai/provider
 │   │   └── services/
@@ -203,7 +225,7 @@ flint/
 │   │   └── ValueSetBuilder.tsx      # 3-panel value set creation page
 │   └── vite.config.ts               # Contains usePolling:true for Windows Docker HMR
 ├── infrastructure/
-│   └── docker/nginx/nginx.conf      # Reverse proxy; /ai/ block must come before FHIR regex
+│   └── docker/nginx/nginx.conf      # Reverse proxy; /ai/ before FHIR regex; location = / before location /
 ├── migration/                       # DB migration tooling
 ├── docs/                            # ARCHITECTURE.md, DEVELOPMENT.md, local_setup_guide.md, etc.
 ├── docker-compose.yml
@@ -214,6 +236,8 @@ flint/
 
 ## Backend Conventions
 
+- **Resource factory pattern:** `create_resource_router(resource_type, model_class, search_hook)` in `routes/resource_factory.py` generates POST, GET/{id}, PUT/{id}, DELETE/{id}, GET (search), GET/{id}/_history, GET/{id}/_history/{vid}, GET/{id}/$audit. Each handler's `__name__` is set to `{verb}_{rt_lower}` to keep OpenAPI operation IDs unique. Search hooks have signature `(query_params_dict) -> (base_params_dict, extra_condition_pairs)` where extra_condition_pairs is `List[Tuple[sql_template_with_??, value]]`.
+- **`search_resources_ex`** in `DatabaseManager`: accepts `base_params` dict (keys: `name`, `status`, `url`, `identifier`) and `extra_condition_pairs` (list of `(sql_fragment, value)` where `??` is replaced with `$N`). Returns `(total: int, results: List[Dict])`.
 - **Router pattern:** All routes use `APIRouter` with a prefix, registered in `main.py` via `app.include_router()`.
 - **FHIR error responses:** Return `{"resourceType": "OperationOutcome", ...}` not plain HTTP errors.
 - **SDO connectors** in `external_cs.py` use per-request `aiohttp.ClientSession` with `ClientTimeout(total=15)`.
@@ -590,3 +614,5 @@ The ValueSet Builder includes a lazy-loaded hierarchy tree for SNOMED CT concept
 - **`nul` file created in `backend/` directory (fixed 2026-04-15)** — Windows reserved device name (`nul` ≡ `/dev/null`) was created as a literal file when a migration script redirected output. Git refuses to commit files named after reserved device names. Deleted with `rm backend/nul`. If it reappears, check migration scripts for Windows-incompatible output redirection.
 - **Empty ValueSet ghost records from import race conditions (fixed 2026-04-15)** — 13 completely empty ValueSet records (no URL, title, name, identifier, or concepts) existed in the DB from concurrent-POST race conditions during bulk import. Deleted via SQL. The frontend now handles missing-URL resources gracefully: expansion shows an error message instead of calling `$expand?url=`, and the "Raw $expand JSON" link is hidden.
 - **AI chat code hallucinations (fixed 2026-04-15)** — The `/ai/chat` endpoint was answering questions about specific code numbers from training memory, producing wrong or invented displays (e.g. SNOMED 119297000 described as "COVID-19 vaccination" instead of "Blood specimen"). Fixed with two layers: (1) Pre-lookup injection — before each AI call, code patterns (SNOMED 6–12 digit, LOINC `##-#`, ICD-10-CM `A##.x`) are detected in the user's latest message and looked up against the live terminology server; authoritative results are injected into the system prompt. (2) Hard rules in the system prompt forbid the AI from stating code meanings from training memory and instruct it to say "I cannot confirm" when no live lookup result was provided. `/ai/suggest` also received a tightened prompt requiring exact candidate display names to be preserved verbatim.
+- **Elasticsearch `name` field type mismatch on clinical resources (fixed 2026-06-15)** — `SearchEngine.index_resource()` was passing `data.get('name')` directly to the ES `name` field, which is mapped as `text`. Clinical resources (Patient, Practitioner) have `name` as a `List[HumanName]` (a JSON object), not a string. Fixed in `index_resource` by coercing: `name_str = raw_name if isinstance(raw_name, str) else None`.
+- **Bundle transaction `_get_raw` missing meta (fixed 2026-06-15)** — `_get_raw(conn, resource_id)` in `routes/bundle.py` initially read only `fhir_resources.data`, which does not contain `meta.versionId` (it is computed on-read from `resource_versions`). This caused `ifMatch` checks inside transactions to always see an empty versionId. Fixed by joining with a subquery for `MAX(version_number)` and computing `meta` before returning, mirroring `DatabaseManager.get_resource()`.

@@ -1,6 +1,6 @@
 # Flint FHIR API Reference
 
-Flint is a general-purpose FHIR R4 FHIR server built on FastAPI. Base URL: `http://localhost:8000`  
+Flint is a general-purpose FHIR R4 server built on FastAPI. Base URL: `http://localhost:8000`  
 All responses use `Content-Type: application/fhir+json`.
 
 ---
@@ -14,6 +14,8 @@ All responses use `Content-Type: application/fhir+json`.
 5. [CodeSystem — Search & Read](#5-codesystem--search--read)
 6. [CodeSystem — FHIR Operations](#6-codesystem--fhir-operations)
 7. [ConceptMap](#7-conceptmap)
+7b. [Clinical & Administrative Resources](#7b-clinical--administrative-resources)
+7c. [Bundle — Batch & Transaction](#7c-bundle--batch--transaction)
 8. [SDO / External Vocabulary Search](#8-sdo--external-vocabulary-search)
 9. [AI Assist](#9-ai-assist)
 10. [MCP Chat](#10-mcp-chat)
@@ -316,6 +318,140 @@ curl "http://localhost:8000/ConceptMap/\$translate?url=http://flint.local/Concep
 
 # Translate without specifying a map (searches all ConceptMaps for a match)
 curl "http://localhost:8000/ConceptMap/\$translate?code=840539006&system=http://snomed.info/sct&target=http://hl7.org/fhir/sid/icd-10-cm"
+```
+
+---
+
+## 7b. Clinical & Administrative Resources
+
+All 13 clinical/admin resource types share the same FHIR-standard HTTP interface. Every resource supports:
+
+| Operation | HTTP |
+|---|---|
+| Create | `POST /{Type}` → 201 + `Location` + `ETag` |
+| Read | `GET /{Type}/{id}` → 200 + `ETag` + `Last-Modified` |
+| Update | `PUT /{Type}/{id}` → 200 (use `If-Match: W/"N"` for optimistic locking; 412 on conflict) |
+| Delete | `DELETE /{Type}/{id}` → 204 |
+| Search | `GET /{Type}?{params}&_count=20&_offset=0&_sort=date` → Bundle searchset |
+| History | `GET /{Type}/{id}/_history` → Bundle history |
+| Versioned read | `GET /{Type}/{id}/_history/{vid}` → specific version |
+| Audit log | `GET /{Type}/{id}/$audit` → Flint audit entries |
+
+### Supported types and search parameters
+
+| Resource | Key search parameters |
+|---|---|
+| `Patient` | `family`, `given`, `name`, `birthdate`, `gender`, `identifier` |
+| `Observation` | `patient`, `code`, `category`, `status` |
+| `Condition` | `patient`, `code`, `clinical-status`, `category` |
+| `Encounter` | `patient`, `status`, `class` |
+| `AllergyIntolerance` | `patient`, `code`, `clinical-status`, `criticality` |
+| `Immunization` | `patient`, `vaccine-code`, `date`, `status` |
+| `Organization` | `name`, `type` |
+| `Practitioner` | `name`, `family`, `given`, `gender` |
+| `PractitionerRole` | `practitioner`, `organization`, `role`, `specialty` |
+| `Location` | `name`, `status` |
+| `MedicationRequest` | `patient`, `status`, `intent`, `medication-code` |
+| `Procedure` | `patient`, `code`, `status` |
+| `DiagnosticReport` | `patient`, `code`, `category`, `status` |
+
+All search endpoints support `_count`, `_offset`, and `_sort` (values: `name`, `-name`, `date`, `-date`, `status`, `-status`). Results are wrapped in a `Bundle` with `link[rel=next/prev/first]` for pagination.
+
+```bash
+# Create a Patient
+curl -X POST http://localhost/Patient \
+  -H "Content-Type: application/fhir+json" \
+  -d '{"resourceType":"Patient","name":[{"family":"Smith","given":["John"]}],"gender":"male","birthDate":"1990-01-15"}'
+
+# Search by family name (paginated)
+curl "http://localhost/Patient?family=Smith&_count=10&_offset=0"
+
+# Create an Observation referencing a Patient
+curl -X POST http://localhost/Observation \
+  -H "Content-Type: application/fhir+json" \
+  -d '{"resourceType":"Observation","status":"final","code":{"coding":[{"system":"http://loinc.org","code":"85354-9","display":"Blood pressure panel"}]},"subject":{"reference":"Patient/{id}"},"valueQuantity":{"value":120,"unit":"mmHg"}}'
+
+# Get all Observations for a patient
+curl "http://localhost/Observation?patient=Patient/{id}"
+
+# Update with optimistic locking
+curl -X PUT http://localhost/Patient/{id} \
+  -H "Content-Type: application/fhir+json" \
+  -H "If-Match: W/\"1\"" \
+  -d '{"resourceType":"Patient","id":"{id}","name":[{"family":"Smith"}],"active":true}'
+
+# Read version history
+curl "http://localhost/Patient/{id}/_history"
+
+# Read a specific version
+curl "http://localhost/Patient/{id}/_history/1"
+```
+
+---
+
+## 7c. Bundle — Batch & Transaction
+
+`POST /` accepts a FHIR R4 Bundle with `type: "batch"` or `type: "transaction"`.
+
+- **batch** — entries are processed independently; one failure does not affect others; response is a `batch-response` Bundle with one entry per input entry, each containing `response.status`
+- **transaction** — all entries execute under a single PostgreSQL transaction; any entry failure rolls back the entire bundle and returns a top-level `OperationOutcome`
+
+### `urn:uuid:` reference resolution
+
+Assign a temporary `fullUrl` of `urn:uuid:{temp-id}` to POST entries. Later entries can reference `urn:uuid:{temp-id}` in any string field (e.g. `subject.reference`) and Flint will replace it with the actual `ResourceType/{assigned-id}` before saving.
+
+### Per-entry conditional behavior
+
+| Header in `entry.request` | Effect |
+|---|---|
+| `ifNoneExist: {search-params}` | On POST: search first; return existing if exactly 1 match; 412 if multiple |
+| `ifMatch: W/"N"` | On PUT: 412 if server version does not match |
+
+```bash
+# Batch: create two independent resources
+curl -X POST http://localhost/ \
+  -H "Content-Type: application/fhir+json" \
+  -d '{
+    "resourceType": "Bundle", "type": "batch",
+    "entry": [
+      {"resource":{"resourceType":"Organization","name":"Acme Clinic"},"request":{"method":"POST","url":"Organization"}},
+      {"resource":{"resourceType":"Location","name":"Main Clinic","status":"active"},"request":{"method":"POST","url":"Location"}}
+    ]
+  }'
+
+# Transaction: Patient + linked Observation with urn:uuid: reference
+curl -X POST http://localhost/ \
+  -H "Content-Type: application/fhir+json" \
+  -d '{
+    "resourceType": "Bundle", "type": "transaction",
+    "entry": [
+      {
+        "fullUrl": "urn:uuid:pt-1",
+        "resource": {"resourceType":"Patient","name":[{"family":"Jones","given":["Sarah"]}],"gender":"female"},
+        "request": {"method":"POST","url":"Patient"}
+      },
+      {
+        "resource": {
+          "resourceType":"Observation","status":"final",
+          "code":{"coding":[{"system":"http://loinc.org","code":"8302-2","display":"Body height"}]},
+          "subject":{"reference":"urn:uuid:pt-1"},
+          "valueQuantity":{"value":165,"unit":"cm"}
+        },
+        "request": {"method":"POST","url":"Observation"}
+      }
+    ]
+  }'
+
+# Idempotent create: only creates if no match found
+curl -X POST http://localhost/ \
+  -H "Content-Type: application/fhir+json" \
+  -d '{
+    "resourceType":"Bundle","type":"batch",
+    "entry":[{
+      "resource":{"resourceType":"Organization","name":"Regional Lab"},
+      "request":{"method":"POST","url":"Organization","ifNoneExist":"name=Regional Lab"}
+    }]
+  }'
 ```
 
 ---

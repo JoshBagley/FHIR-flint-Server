@@ -1,0 +1,123 @@
+from typing import Dict, List, Any, Tuple
+
+from app.capability import register_resource
+from app.models.medications import MedicationRequest, Procedure, DiagnosticReport
+from app.routes.resource_factory import create_resource_router
+
+
+def _medication_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
+    base: Dict[str, Any] = {}
+    extra: List[Tuple[str, Any]] = []
+    if 'status' in qp:
+        base['status'] = qp['status']
+    if 'patient' in qp:
+        extra.append(("data->'subject'->>'reference' = ??", qp['patient']))
+    if 'medication' in qp:
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'medicationCodeableConcept'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+            qp['medication']
+        ))
+    if 'intent' in qp:
+        extra.append(("data->>'intent' = ??", qp['intent']))
+    return base, extra
+
+
+def _procedure_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
+    base: Dict[str, Any] = {}
+    extra: List[Tuple[str, Any]] = []
+    if 'status' in qp:
+        base['status'] = qp['status']
+    if 'patient' in qp:
+        extra.append(("data->'subject'->>'reference' = ??", qp['patient']))
+    if 'code' in qp:
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+            qp['code']
+        ))
+    if 'date' in qp:
+        extra.append(("data->>'performedDateTime' = ??", qp['date']))
+    return base, extra
+
+
+def _diagnostic_report_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
+    base: Dict[str, Any] = {}
+    extra: List[Tuple[str, Any]] = []
+    if 'status' in qp:
+        base['status'] = qp['status']
+    if 'patient' in qp:
+        extra.append(("data->'subject'->>'reference' = ??", qp['patient']))
+    if 'code' in qp:
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+            qp['code']
+        ))
+    if 'category' in qp:
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) cat, jsonb_array_elements(COALESCE(cat->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+            qp['category']
+        ))
+    return base, extra
+
+
+medication_request_router = create_resource_router("MedicationRequest", MedicationRequest, _medication_request_search_hook)
+procedure_router = create_resource_router("Procedure", Procedure, _procedure_search_hook)
+diagnostic_report_router = create_resource_router("DiagnosticReport", DiagnosticReport, _diagnostic_report_search_hook)
+
+register_resource({
+    "type": "MedicationRequest",
+    "interaction": [
+        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+    ],
+    "versioning": "versioned",
+    "readHistory": True,
+    "searchParam": [
+        {"name": "patient", "type": "reference"},
+        {"name": "status", "type": "token"},
+        {"name": "medication", "type": "token"},
+        {"name": "intent", "type": "token"},
+        {"name": "_count", "type": "number"},
+        {"name": "_offset", "type": "number"},
+        {"name": "_sort", "type": "string"},
+    ],
+})
+
+register_resource({
+    "type": "Procedure",
+    "interaction": [
+        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+    ],
+    "versioning": "versioned",
+    "readHistory": True,
+    "searchParam": [
+        {"name": "patient", "type": "reference"},
+        {"name": "status", "type": "token"},
+        {"name": "code", "type": "token"},
+        {"name": "date", "type": "date"},
+        {"name": "_count", "type": "number"},
+        {"name": "_offset", "type": "number"},
+        {"name": "_sort", "type": "string"},
+    ],
+})
+
+register_resource({
+    "type": "DiagnosticReport",
+    "interaction": [
+        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+    ],
+    "versioning": "versioned",
+    "readHistory": True,
+    "searchParam": [
+        {"name": "patient", "type": "reference"},
+        {"name": "status", "type": "token"},
+        {"name": "code", "type": "token"},
+        {"name": "category", "type": "token"},
+        {"name": "_count", "type": "number"},
+        {"name": "_offset", "type": "number"},
+        {"name": "_sort", "type": "string"},
+    ],
+})
+
+routers = [medication_request_router, procedure_router, diagnostic_report_router]

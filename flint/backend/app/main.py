@@ -22,7 +22,7 @@ from typing import Optional, List, Dict, Any, Literal
 from datetime import datetime, timezone
 from enum import Enum
 from contextlib import asynccontextmanager
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 import uuid
 import hashlib
 from collections import defaultdict
@@ -37,6 +37,11 @@ import logging
 import sys
 from email.utils import formatdate
 from app import state
+from app.fhir_utils import (
+    REQUEST_COUNT, REQUEST_DURATION, RESOURCE_COUNT,
+    _fhir_issue_code, _fhir_response, _check_etag, _bundle_links
+)
+from app.capability import RESOURCE_REGISTRY
 from app.routes.fhir_operations import router as fhir_operations_router
 from app.routes.sdo_search import router as sdo_router
 from app.routes.ai_assist import router as ai_router
@@ -48,20 +53,6 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger(__name__)
-
-# Prometheus metrics
-REQUEST_COUNT = Counter(
-    'fhir_requests_total', 'Total FHIR requests',
-    ['method', 'endpoint', 'status']
-)
-REQUEST_DURATION = Histogram(
-    'fhir_request_duration_seconds', 'FHIR request duration',
-    ['method', 'endpoint']
-)
-RESOURCE_COUNT = Counter(
-    'fhir_resources_total', 'Total FHIR resources created/updated',
-    ['resource_type', 'operation']
-)
 
 
 # ============================================================================
@@ -477,7 +468,7 @@ class DatabaseManager:
                 INSERT INTO fhir_resources (id, resource_type, url, version, status, name, title, data, source, created_by, updated_by)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             """, resource_id, resource_type, data.get('url'), data.get('version'),
-                data.get('status'), data.get('name'), data.get('title'),
+                data.get('status'), (data['name'] if isinstance(data.get('name'), str) else None), data.get('title'),
                 json.dumps(data), source, user, user)
 
             await conn.execute("""
@@ -507,7 +498,7 @@ class DatabaseManager:
                     title = $6, source = $7, updated_at = NOW(), updated_by = $8
                 WHERE id = $9
             """, json.dumps(data), data.get('url'), data.get('version'),
-                data.get('status'), data.get('name'), data.get('title'),
+                data.get('status'), (data['name'] if isinstance(data.get('name'), str) else None), data.get('title'),
                 source, user, resource_id)
 
             await conn.execute("""
@@ -597,7 +588,7 @@ class DatabaseManager:
             meta['lastUpdated'] = row['updated_at'].strftime('%Y-%m-%dT%H:%M:%SZ')
             return data
 
-    async def search_resources(self, resource_type: str, params: Dict[str, Any], summary: bool = False, archived_only: bool = False) -> List[Dict]:
+    async def search_resources(self, resource_type: str, params: Dict[str, Any], summary: bool = False, archived_only: bool = False, limit: int = 20, offset: int = 0, sort: Optional[str] = None) -> tuple[int, List[Dict]]:
         archived_condition = "archived = TRUE" if archived_only else "archived = FALSE"
         conditions = ["resource_type = $1", archived_condition]
         values = [resource_type]
@@ -716,11 +707,81 @@ class DatabaseManager:
         else:
             select_expr = "data"
 
-        query = f"SELECT {select_expr} AS data FROM fhir_resources WHERE {' AND '.join(conditions)} ORDER BY updated_at DESC LIMIT 5000"
+        _SORT_COLUMNS = {
+            'name': 'name', '-name': 'name DESC',
+            'url': 'url', '-url': 'url DESC',
+            'status': 'status', '-status': 'status DESC',
+            'date': 'updated_at', '-date': 'updated_at DESC',
+        }
+        order_clause = _SORT_COLUMNS.get(sort or '', 'updated_at DESC')
+        if not order_clause.endswith('DESC'):
+            order_clause += ' ASC'
+
+        where_clause = ' AND '.join(conditions)
+        count_query = f"SELECT COUNT(*) FROM fhir_resources WHERE {where_clause}"
+        data_query = f"SELECT {select_expr} AS data FROM fhir_resources WHERE {where_clause} ORDER BY {order_clause} LIMIT ${param_idx} OFFSET ${param_idx + 1}"
 
         async with self.pool.acquire() as conn:
-            rows = await conn.fetch(query, *values)
-            return [json.loads(row['data']) for row in rows]
+            total = await conn.fetchval(count_query, *values)
+            rows = await conn.fetch(data_query, *values, limit, offset)
+            return int(total), [json.loads(row['data']) for row in rows]
+
+    async def search_resources_ex(
+        self,
+        resource_type: str,
+        base_params: Dict[str, Any],
+        extra_condition_pairs: List[tuple],
+        summary: bool = False,
+        archived_only: bool = False,
+        limit: int = 20,
+        offset: int = 0,
+        sort: Optional[str] = None,
+    ) -> tuple[int, List[Dict]]:
+        archived_condition = "archived = TRUE" if archived_only else "archived = FALSE"
+        conditions = ["resource_type = $1", archived_condition]
+        values = [resource_type]
+        param_idx = 2
+
+        if 'name' in base_params:
+            conditions.append(f"(name ILIKE ${param_idx} OR data->>'title' ILIKE ${param_idx} OR url ILIKE ${param_idx})")
+            values.append(f"%{base_params['name']}%")
+            param_idx += 1
+        if 'status' in base_params:
+            conditions.append(f"status = ${param_idx}")
+            values.append(base_params['status'])
+            param_idx += 1
+        if 'url' in base_params:
+            conditions.append(f"url = ${param_idx}")
+            values.append(base_params['url'])
+            param_idx += 1
+        if 'identifier' in base_params:
+            ident_val = base_params['identifier']
+            if ident_val.startswith('urn:oid:'):
+                ident_val = ident_val[len('urn:oid:'):]
+            conditions.append(f"EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) AS ident WHERE ident->>'value' = ${param_idx} OR ident->>'value' = 'urn:oid:' || ${param_idx})")
+            values.append(ident_val)
+            param_idx += 1
+
+        for condition_template, value in extra_condition_pairs:
+            conditions.append(condition_template.replace('??', f'${param_idx}'))
+            values.append(value)
+            param_idx += 1
+
+        _SORT_COLS = {
+            'name': 'name ASC', '-name': 'name DESC',
+            'url': 'url ASC', '-url': 'url DESC',
+            'status': 'status ASC', '-status': 'status DESC',
+            'date': 'updated_at ASC', '-date': 'updated_at DESC',
+        }
+        order_clause = _SORT_COLS.get(sort or '', 'updated_at DESC')
+        where_clause = ' AND '.join(conditions)
+        count_query = f"SELECT COUNT(*) FROM fhir_resources WHERE {where_clause}"
+        data_query = f"SELECT data FROM fhir_resources WHERE {where_clause} ORDER BY {order_clause} LIMIT ${param_idx} OFFSET ${param_idx + 1}"
+
+        async with self.pool.acquire() as conn:
+            total = await conn.fetchval(count_query, *values)
+            rows = await conn.fetch(data_query, *values, limit, offset)
+            return int(total), [json.loads(row['data']) for row in rows]
 
     async def get_version_history(self, resource_id: str) -> List[Dict]:
         async with self.pool.acquire() as conn:
@@ -793,10 +854,12 @@ class SearchEngine:
             await self.es.indices.create(index="fhir_resources", body=index_settings)
 
     async def index_resource(self, resource: Dict[str, Any]):
+        raw_name = resource.get("name")
+        name_str = raw_name if isinstance(raw_name, str) else None
         doc = {
             "resourceType": resource.get("resourceType"),
             "id": resource.get("id"),
-            "name": resource.get("name"),
+            "name": name_str,
             "title": resource.get("title"),
             "description": resource.get("description"),
             "status": resource.get("status"),
@@ -948,33 +1011,29 @@ app.include_router(mcp_chat_router)
 from app.routes.auth_routes import router as auth_router  # noqa: E402
 app.include_router(auth_router)
 
+from app.routes.clinical import routers as clinical_routers  # noqa: E402
+from app.routes.administrative import routers as administrative_routers  # noqa: E402
+from app.routes.medications import routers as medication_routers  # noqa: E402
 
-def _fhir_issue_code(status_code: int) -> str:
-    return {
-        400: "invalid", 401: "security", 403: "forbidden",
-        404: "not-found", 405: "not-supported", 409: "conflict",
-        410: "deleted", 422: "processing",
-    }.get(status_code, "processing")
+for _router in clinical_routers + administrative_routers + medication_routers:
+    app.include_router(_router)
 
-
-def _fhir_response(resource: Dict, status_code: int = 200, extra_headers: Optional[Dict] = None) -> JSONResponse:
-    headers: Dict[str, str] = {}
-    meta = resource.get('meta', {})
-    if vid := meta.get('versionId'):
-        headers['ETag'] = f'W/"{vid}"'
-    if lu := meta.get('lastUpdated'):
-        try:
-            dt = datetime.strptime(lu, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
-            headers['Last-Modified'] = formatdate(dt.timestamp(), usegmt=True)
-        except ValueError:
-            pass
-    if extra_headers:
-        headers.update(extra_headers)
-    return JSONResponse(content=resource, status_code=status_code, headers=headers)
+from app.routes.bundle import router as bundle_router  # noqa: E402
+app.include_router(bundle_router)
 
 
 @app.middleware("http")
-async def metrics_middleware(request: Request, call_next):
+async def fhir_middleware(request: Request, call_next):
+    # Reject unsupported formats early
+    _format = request.query_params.get('_format', '')
+    accept = request.headers.get('Accept', '')
+    unsupported = _format and _format not in ('json', 'application/json', 'application/fhir+json')
+    if unsupported:
+        return JSONResponse(status_code=415, content={
+            "resourceType": "OperationOutcome",
+            "issue": [{"severity": "error", "code": "not-supported", "diagnostics": f"Unsupported format: {_format}. Only application/fhir+json is supported."}]
+        })
+
     start_time = time.time()
     response = await call_next(request)
     duration = time.time() - start_time
@@ -1222,6 +1281,30 @@ async def analytics_summary():
 
 @app.get("/metadata")
 async def capability_statement():
+    enable_auth = os.environ.get("ENABLE_AUTH", "false").lower() == "true"
+    oidc_issuer = os.environ.get("OIDC_ISSUER_URL", "")
+
+    if not enable_auth:
+        security_block = {"cors": True, "description": "No authentication required (ENABLE_AUTH=false)."}
+    elif oidc_issuer:
+        security_block = {
+            "cors": True,
+            "service": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/restful-security-service", "code": "SMART-on-FHIR"}]}],
+            "description": f"JWT bearer tokens required. OIDC issuer: {oidc_issuer}. SMART on FHIR planned.",
+        }
+    else:
+        security_block = {
+            "cors": True,
+            "service": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/restful-security-service", "code": "Basic"}]}],
+            "description": "JWT bearer tokens required. Use POST /auth/token to obtain a token.",
+        }
+
+    _PAGINATION_PARAMS = [
+        {"name": "_count", "type": "number", "documentation": "Maximum results per page (default 20, max 1000)"},
+        {"name": "_offset", "type": "number", "documentation": "Zero-based offset for pagination"},
+        {"name": "_sort", "type": "string", "documentation": "Sort field: name, -name, url, -url, status, -status, date, -date"},
+    ]
+
     return JSONResponse(content={
         "resourceType": "CapabilityStatement",
         "id": "flint-capability",
@@ -1231,7 +1314,7 @@ async def capability_statement():
         "experimental": False,
         "date": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
         "publisher": "Flint",
-        "description": "FHIR R4 server supporting ValueSet, CodeSystem, ConceptMap resources and FHIR operations.",
+        "description": "FHIR R4 server supporting ValueSet, CodeSystem, ConceptMap resources and FHIR terminology operations.",
         "kind": "instance",
         "software": {
             "name": "Flint",
@@ -1241,11 +1324,13 @@ async def capability_statement():
         "format": ["application/fhir+json", "json"],
         "rest": [{
             "mode": "server",
-            "security": {
-                "cors": True,
-                "description": "No authentication required (ENABLE_AUTH=false). SMART on FHIR planned."
-            },
+            "security": security_block,
+            "interaction": [
+                {"code": "transaction"},
+                {"code": "batch"},
+            ],
             "resource": [
+                *RESOURCE_REGISTRY,
                 {
                     "type": "ValueSet",
                     "interaction": [
@@ -1260,15 +1345,19 @@ async def capability_statement():
                         {"name": "status", "type": "token"},
                         {"name": "identifier", "type": "token"},
                         {"name": "context-value-code", "type": "token"},
+                        {"name": "context-type", "type": "token"},
                         {"name": "_summary", "type": "token"},
-                        {"name": "_archived", "type": "token"}
+                        {"name": "_archived", "type": "token"},
+                        *_PAGINATION_PARAMS,
                     ],
                     "operation": [
                         {"name": "expand", "definition": "http://hl7.org/fhir/OperationDefinition/ValueSet-expand"},
                         {"name": "validate-code", "definition": "http://hl7.org/fhir/OperationDefinition/ValueSet-validate-code"},
                         {"name": "validate-batch", "definition": "http://flint.local/OperationDefinition/ValueSet-validate-batch"},
                         {"name": "diff", "definition": "http://flint.local/OperationDefinition/ValueSet-diff"},
-                        {"name": "audit", "definition": "http://flint.local/OperationDefinition/resource-audit"}
+                        {"name": "concept-search", "definition": "http://flint.local/OperationDefinition/ValueSet-concept-search"},
+                        {"name": "audit", "definition": "http://flint.local/OperationDefinition/resource-audit"},
+                        {"name": "archive", "definition": "http://flint.local/OperationDefinition/resource-archive"},
                     ]
                 },
                 {
@@ -1282,13 +1371,18 @@ async def capability_statement():
                     "searchParam": [
                         {"name": "name", "type": "string"},
                         {"name": "url", "type": "uri"},
-                        {"name": "status", "type": "token"}
+                        {"name": "status", "type": "token"},
+                        {"name": "identifier", "type": "token"},
+                        {"name": "content", "type": "token"},
+                        {"name": "source", "type": "token"},
+                        *_PAGINATION_PARAMS,
                     ],
                     "operation": [
                         {"name": "lookup", "definition": "http://hl7.org/fhir/OperationDefinition/CodeSystem-lookup"},
                         {"name": "validate-code", "definition": "http://hl7.org/fhir/OperationDefinition/CodeSystem-validate-code"},
                         {"name": "subsumes", "definition": "http://hl7.org/fhir/OperationDefinition/CodeSystem-subsumes"},
-                        {"name": "audit", "definition": "http://flint.local/OperationDefinition/resource-audit"}
+                        {"name": "find-matches", "definition": "http://flint.local/OperationDefinition/CodeSystem-search-concepts"},
+                        {"name": "audit", "definition": "http://flint.local/OperationDefinition/resource-audit"},
                     ]
                 },
                 {
@@ -1302,11 +1396,12 @@ async def capability_statement():
                     "searchParam": [
                         {"name": "name", "type": "string"},
                         {"name": "url", "type": "uri"},
-                        {"name": "status", "type": "token"}
+                        {"name": "status", "type": "token"},
+                        *_PAGINATION_PARAMS,
                     ],
                     "operation": [
                         {"name": "translate", "definition": "http://hl7.org/fhir/OperationDefinition/ConceptMap-translate"},
-                        {"name": "audit", "definition": "http://flint.local/OperationDefinition/resource-audit"}
+                        {"name": "audit", "definition": "http://flint.local/OperationDefinition/resource-audit"},
                     ]
                 }
             ]
@@ -1345,10 +1440,11 @@ async def get_value_set(resource_id: str, version: Optional[int] = None):
 
 
 @app.put("/ValueSet/{resource_id}")
-async def update_value_set(resource_id: str, value_set: ValueSet):
+async def update_value_set(request: Request, resource_id: str, value_set: ValueSet):
     existing = await state.db.get_resource(resource_id)
     if not existing:
         raise HTTPException(status_code=404, detail=f"ValueSet/{resource_id} not found")
+    _check_etag(request, existing)
 
     data = value_set.model_dump(exclude_none=True)
     data['id'] = resource_id
@@ -1356,7 +1452,7 @@ async def update_value_set(resource_id: str, value_set: ValueSet):
     await state.search_engine.index_resource(data)
     await state.cache.invalidate_pattern(f"ValueSet:{resource_id}:*")
     RESOURCE_COUNT.labels(resource_type="ValueSet", operation="update").inc()
-    return await state.db.get_resource(resource_id)
+    return _fhir_response(await state.db.get_resource(resource_id))
 
 
 @app.delete("/ValueSet/{resource_id}", status_code=204)
@@ -1372,6 +1468,7 @@ async def delete_value_set(resource_id: str):
 
 @app.get("/ValueSet")
 async def search_value_sets(
+    request: Request,
     name: Optional[str] = Query(None),
     url: Optional[str] = Query(None),
     identifier: Optional[str] = Query(None),
@@ -1382,6 +1479,9 @@ async def search_value_sets(
     source: Optional[str] = Query(None, description="Filter by import source: hl7 | hl7v2 | vsac | icd9cm | internal | external"),
     _archived: bool = Query(False, alias="_archived", description="Return archived resources instead of active ones"),
     _summary: bool = Query(False, alias="_summary"),
+    _count: int = Query(20, alias="_count", ge=1, le=1000),
+    _offset: int = Query(0, alias="_offset", ge=0),
+    _sort: Optional[str] = Query(None, alias="_sort"),
 ):
     if q:
         results = await state.search_engine.search(q, "ValueSet")
@@ -1403,20 +1503,17 @@ async def search_value_sets(
     if source:
         params['source'] = source
 
-    # Archived queries are not cached (small volume, infrequent access)
     if _archived:
-        results = await state.db.search_resources("ValueSet", params, summary=_summary, archived_only=True)
-        return {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}
+        total, results = await state.db.search_resources("ValueSet", params, summary=_summary, archived_only=True, limit=_count, offset=_offset, sort=_sort)
+        return {"resourceType": "Bundle", "type": "searchset", "total": total, "link": _bundle_links(request, total, _count, _offset), "entry": [{"resource": r} for r in results]}
 
-    # Cache list results — key includes all filter params so different searches cache independently.
-    # Invalidated automatically by invalidate_pattern("ValueSet:*") on create/update/delete/archive.
-    cache_key = f"ValueSet:list:{name or ''}:{url or ''}:{identifier or ''}:{status or ''}:{context_value_code or ''}:{source or ''}:{_summary}"
+    cache_key = f"ValueSet:list:{name or ''}:{url or ''}:{identifier or ''}:{status or ''}:{context_value_code or ''}:{source or ''}:{_summary}:{_count}:{_offset}:{_sort or ''}"
     cached = await state.cache.get(cache_key)
     if cached:
         return cached
 
-    results = await state.db.search_resources("ValueSet", params, summary=_summary)
-    bundle = {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}
+    total, results = await state.db.search_resources("ValueSet", params, summary=_summary, limit=_count, offset=_offset, sort=_sort)
+    bundle = {"resourceType": "Bundle", "type": "searchset", "total": total, "link": _bundle_links(request, total, _count, _offset), "entry": [{"resource": r} for r in results]}
     await state.cache.set(cache_key, bundle, ttl=120)
     return bundle
 
@@ -1427,6 +1524,14 @@ async def get_value_set_history(resource_id: str):
     if not history:
         raise HTTPException(status_code=404, detail=f"ValueSet/{resource_id} not found")
     return {"resourceType": "Bundle", "type": "history", "total": len(history), "entry": history}
+
+
+@app.get("/ValueSet/{resource_id}/_history/{vid}")
+async def get_value_set_version(resource_id: str, vid: int):
+    resource = await state.db.get_resource(resource_id, version=vid)
+    if not resource:
+        raise HTTPException(status_code=404, detail=f"ValueSet/{resource_id}/_history/{vid} not found")
+    return _fhir_response(resource)
 
 
 @app.patch("/ValueSet/{resource_id}/$archive", status_code=200)
@@ -1483,10 +1588,11 @@ async def get_code_system(resource_id: str, version: Optional[int] = None):
 
 
 @app.put("/CodeSystem/{resource_id}")
-async def update_code_system(resource_id: str, code_system: CodeSystem):
+async def update_code_system(request: Request, resource_id: str, code_system: CodeSystem):
     existing = await state.db.get_resource(resource_id)
     if not existing:
         raise HTTPException(status_code=404, detail=f"CodeSystem/{resource_id} not found")
+    _check_etag(request, existing)
 
     data = code_system.model_dump(exclude_none=True)
     data['id'] = resource_id
@@ -1494,11 +1600,12 @@ async def update_code_system(resource_id: str, code_system: CodeSystem):
     await state.search_engine.index_resource(data)
     await state.cache.invalidate_pattern(f"CodeSystem:{resource_id}:*")
     RESOURCE_COUNT.labels(resource_type="CodeSystem", operation="update").inc()
-    return await state.db.get_resource(resource_id)
+    return _fhir_response(await state.db.get_resource(resource_id))
 
 
 @app.get("/CodeSystem")
 async def search_code_systems(
+    request: Request,
     name: Optional[str] = Query(None),
     url: Optional[str] = Query(None),
     identifier: Optional[str] = Query(None),
@@ -1507,6 +1614,9 @@ async def search_code_systems(
     source: Optional[str] = Query(None),
     q: Optional[str] = Query(None),
     _summary: bool = Query(False, alias="_summary"),
+    _count: int = Query(20, alias="_count", ge=1, le=1000),
+    _offset: int = Query(0, alias="_offset", ge=0),
+    _sort: Optional[str] = Query(None, alias="_sort"),
 ):
     if q:
         results = await state.search_engine.search(q, "CodeSystem")
@@ -1526,13 +1636,13 @@ async def search_code_systems(
     if source:
         params['source'] = source
 
-    cache_key = f"CodeSystem:list:{name or ''}:{url or ''}:{identifier or ''}:{status or ''}:{content or ''}:{source or ''}:{_summary}"
+    cache_key = f"CodeSystem:list:{name or ''}:{url or ''}:{identifier or ''}:{status or ''}:{content or ''}:{source or ''}:{_summary}:{_count}:{_offset}:{_sort or ''}"
     cached = await state.cache.get(cache_key)
     if cached:
         return cached
 
-    results = await state.db.search_resources("CodeSystem", params, summary=_summary)
-    bundle = {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}
+    total, results = await state.db.search_resources("CodeSystem", params, summary=_summary, limit=_count, offset=_offset, sort=_sort)
+    bundle = {"resourceType": "Bundle", "type": "searchset", "total": total, "link": _bundle_links(request, total, _count, _offset), "entry": [{"resource": r} for r in results]}
     await state.cache.set(cache_key, bundle, ttl=120)
     return bundle
 
@@ -1543,6 +1653,14 @@ async def get_code_system_history(resource_id: str):
     if not history:
         raise HTTPException(status_code=404, detail=f"CodeSystem/{resource_id} not found")
     return {"resourceType": "Bundle", "type": "history", "total": len(history), "entry": history}
+
+
+@app.get("/CodeSystem/{resource_id}/_history/{vid}")
+async def get_code_system_version(resource_id: str, vid: int):
+    resource = await state.db.get_resource(resource_id, version=vid)
+    if not resource:
+        raise HTTPException(status_code=404, detail=f"CodeSystem/{resource_id}/_history/{vid} not found")
+    return _fhir_response(resource)
 
 
 @app.get("/CodeSystem/{resource_id}/$audit")
@@ -1585,10 +1703,11 @@ async def get_concept_map(resource_id: str, version: Optional[int] = None):
 
 
 @app.put("/ConceptMap/{resource_id}")
-async def update_concept_map(resource_id: str, concept_map: ConceptMap):
+async def update_concept_map(request: Request, resource_id: str, concept_map: ConceptMap):
     existing = await state.db.get_resource(resource_id)
     if not existing:
         raise HTTPException(status_code=404, detail=f"ConceptMap/{resource_id} not found")
+    _check_etag(request, existing)
 
     data = concept_map.model_dump(exclude_none=True)
     data['id'] = resource_id
@@ -1596,7 +1715,7 @@ async def update_concept_map(resource_id: str, concept_map: ConceptMap):
     await state.search_engine.index_resource(data)
     await state.cache.invalidate_pattern(f"ConceptMap:{resource_id}:*")
     RESOURCE_COUNT.labels(resource_type="ConceptMap", operation="update").inc()
-    return await state.db.get_resource(resource_id)
+    return _fhir_response(await state.db.get_resource(resource_id))
 
 
 @app.delete("/ConceptMap/{resource_id}", status_code=204)
@@ -1612,10 +1731,14 @@ async def delete_concept_map(resource_id: str):
 
 @app.get("/ConceptMap")
 async def search_concept_maps(
+    request: Request,
     name: Optional[str] = Query(None),
     url: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
-    q: Optional[str] = Query(None)
+    q: Optional[str] = Query(None),
+    _count: int = Query(20, alias="_count", ge=1, le=1000),
+    _offset: int = Query(0, alias="_offset", ge=0),
+    _sort: Optional[str] = Query(None, alias="_sort"),
 ):
     if q:
         results = await state.search_engine.search(q, "ConceptMap")
@@ -1629,8 +1752,8 @@ async def search_concept_maps(
     if status:
         params['status'] = status
 
-    results = await state.db.search_resources("ConceptMap", params)
-    return {"resourceType": "Bundle", "type": "searchset", "total": len(results), "entry": [{"resource": r} for r in results]}
+    total, results = await state.db.search_resources("ConceptMap", params, limit=_count, offset=_offset, sort=_sort)
+    return {"resourceType": "Bundle", "type": "searchset", "total": total, "link": _bundle_links(request, total, _count, _offset), "entry": [{"resource": r} for r in results]}
 
 
 @app.get("/ConceptMap/{resource_id}/_history")
@@ -1639,6 +1762,14 @@ async def get_concept_map_history(resource_id: str):
     if not history:
         raise HTTPException(status_code=404, detail=f"ConceptMap/{resource_id} not found")
     return {"resourceType": "Bundle", "type": "history", "total": len(history), "entry": history}
+
+
+@app.get("/ConceptMap/{resource_id}/_history/{vid}")
+async def get_concept_map_version(resource_id: str, vid: int):
+    resource = await state.db.get_resource(resource_id, version=vid)
+    if not resource:
+        raise HTTPException(status_code=404, detail=f"ConceptMap/{resource_id}/_history/{vid} not found")
+    return _fhir_response(resource)
 
 
 @app.get("/ConceptMap/{resource_id}/$audit")

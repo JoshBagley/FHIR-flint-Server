@@ -1,21 +1,39 @@
 # Flint
 
-A general-purpose, production-ready FHIR R4 server. Supports value set authoring, code validation, AI-assisted concept mapping, HL7 v2 message validation, and full observability via Prometheus, Grafana, and Loki.
+A general-purpose, production-ready FHIR R4 server. Supports 16 resource types, full CRUD + version history, batch/transaction bundles, terminology operations, AI-assisted concept mapping, and full observability via Prometheus, Grafana, and Loki.
 
 ## Features
 
-- Fast full-text search with Elasticsearch
-- AI-powered concept search and mapping (Anthropic, OpenAI, or Gemini)
+### Clinical & Administrative Resources
+- 16 FHIR R4 resource types with full CRUD, versioning, ETag enforcement, and paginated search
+- `POST /` Bundle endpoint — batch (per-entry error isolation) and transaction (atomic rollback)
+- `urn:uuid:` reference resolution within transaction bundles
+- Version history (`/_history`) and named version read (`/_history/{vid}`) on every resource
+- Optimistic locking via `If-Match: W/"N"` — 412 on conflict
+
+### Terminology & Vocabulary
 - FHIR R4 operations: `$expand`, `$validate-code`, `$validate-batch`, `$lookup`, `$translate`, `$subsumes`, `$diff`
 - SNOMED CT ECL expansion via implicit ValueSet URLs (`fhir_vs=isa/{id}`, `fhir_vs=refset/{id}`)
-- LOINC hierarchy properties via `$lookup?property=parent&property=child` (requires LOINC credentials)
 - ConceptMap CRUD + `$translate` for cross-system code mapping (local + tx.fhir.org fallback)
-- `$subsumes` hierarchy checks for SNOMED CT (tx.fhir.org), LOINC (fhir.loinc.org), and local CodeSystems
+- `$subsumes` hierarchy checks for SNOMED CT, LOINC, and local CodeSystems
 - HL7 v2 table validation — offline (imported) or delegated to `tx.fhir.org`
 - SDO connectors: SNOMED CT, ICD-10-CM, ICD-9-CM, LOINC, RxNorm, VSAC
-- Version history with git-style diffs for every resource
-- Observability: Prometheus metrics + Grafana dashboards + Loki log aggregation
+
+### Platform
+- Fast full-text search with Elasticsearch
+- AI-powered concept search and mapping (Anthropic, OpenAI, or Gemini)
+- Dynamic CapabilityStatement (`GET /metadata`) reflecting runtime auth config
+- Prometheus metrics + Grafana dashboards + Loki log aggregation
 - Modern React/TypeScript UI with Value Set Builder
+
+## Supported Resource Types
+
+| Category | Resources |
+|---|---|
+| Terminology | `ValueSet`, `CodeSystem`, `ConceptMap` |
+| Clinical | `Patient`, `Observation`, `Condition`, `Encounter`, `AllergyIntolerance`, `Immunization` |
+| Administrative | `Organization`, `Practitioner`, `PractitionerRole`, `Location` |
+| Medications & Reports | `MedicationRequest`, `Procedure`, `DiagnosticReport` |
 
 ## Quick Start
 
@@ -68,6 +86,30 @@ docker compose logs backend -f
 docker compose logs backend --tail=200 | grep "POST\|PUT\|DELETE"
 ```
 
+## Clinical Resources
+
+```bash
+# Create a Patient
+curl -X POST http://localhost/Patient -H "Content-Type: application/fhir+json" \
+  -d '{"resourceType":"Patient","name":[{"family":"Smith","given":["John"]}],"gender":"male","birthDate":"1990-01-15"}'
+
+# Search by name
+curl "http://localhost/Patient?family=Smith&_count=20"
+
+# Create an Observation linked to a Patient
+curl -X POST http://localhost/Observation -H "Content-Type: application/fhir+json" \
+  -d '{"resourceType":"Observation","status":"final","code":{"coding":[{"system":"http://loinc.org","code":"85354-9"}]},"subject":{"reference":"Patient/{id}"},"valueQuantity":{"value":120,"unit":"mmHg"}}'
+
+# Atomic transaction: Patient + Observation with urn:uuid reference
+curl -X POST http://localhost/ -H "Content-Type: application/fhir+json" -d '{
+  "resourceType": "Bundle", "type": "transaction",
+  "entry": [
+    {"fullUrl":"urn:uuid:pt","resource":{"resourceType":"Patient","name":[{"family":"Jones"}]},"request":{"method":"POST","url":"Patient"}},
+    {"resource":{"resourceType":"Observation","status":"final","code":{"text":"BP"},"subject":{"reference":"urn:uuid:pt"}},"request":{"method":"POST","url":"Observation"}}
+  ]
+}'
+```
+
 ## Terminology Validation
 
 ```bash
@@ -110,6 +152,7 @@ python migration/import_cvx.py --target-url http://localhost
 
 ## Documentation
 
+- [Product Roadmap & Gap Tracker](docs/PRODUCT_ROADMAP.md) — capability gaps vs major FHIR servers, phased implementation plan, ONC certification pathway
 - [FHIR API Reference](docs/FHIR_API_REFERENCE.md) — all endpoints, operations, MCP integration, and sample calls
 - [Architecture](docs/ARCHITECTURE.md)
 - [Development Setup](docs/DEVELOPMENT.md)

@@ -221,7 +221,7 @@ async def _get_system_name(
         name = cs.get('title') or cs.get('name') or _url_to_display_name(system)
         cache[system] = name
         return name
-    cs_results = await state.db.search_resources('CodeSystem', {'url': system})
+    _, cs_results = await state.db.search_resources('CodeSystem', {'url': system})
     if cs_results:
         name = cs_results[0].get('title') or cs_results[0].get('name') or _url_to_display_name(system)
         cache[system] = name
@@ -231,7 +231,7 @@ async def _get_system_name(
     if system.startswith("urn:oid:"):
         bare_oid = system[len("urn:oid:"):]
         phinvads_url = f"https://phinvads.cdc.gov/baseStu3/CodeSystem/{bare_oid}"
-        cs_results2 = await state.db.search_resources('CodeSystem', {'url': phinvads_url})
+        _, cs_results2 = await state.db.search_resources('CodeSystem', {'url': phinvads_url})
         if cs_results2:
             name = cs_results2[0].get('title') or cs_results2[0].get('name') or _url_to_display_name(system)
             cache[system] = name
@@ -347,7 +347,7 @@ async def _perform_expansion(
             raise HTTPException(status_code=502, detail=f"SNOMED expansion failed: {e}")
         return _wrap_ecl_expansion(url, concepts, offset, count)
 
-    search_results = await state.db.search_resources('ValueSet', {'url': url})
+    _, search_results = await state.db.search_resources('ValueSet', {'url': url})
     if not search_results:
         raise HTTPException(status_code=404, detail=f"ValueSet with url {url} not found")
 
@@ -401,7 +401,7 @@ async def _perform_expansion(
                     except Exception as e:
                         logger.warning("ECL expansion failed [%s]: %s", ecl, e)
         elif system:
-            cs_results = await state.db.search_resources('CodeSystem', {'url': system})
+            _, cs_results = await state.db.search_resources('CodeSystem', {'url': system})
             if cs_results:
                 cs = cs_results[0]
                 cs_content = cs.get('content', 'complete')
@@ -667,6 +667,83 @@ async def _perform_validation(
 
 
 # ============================================================================
+# CodeSystem $validate-code Operation
+# ============================================================================
+
+@router.get("/CodeSystem/$validate-code")
+async def cs_validate_code_get(
+    url: Optional[str] = Query(None),
+    code: Optional[str] = Query(None),
+    display: Optional[str] = Query(None),
+    version: Optional[str] = Query(None),
+):
+    return await _perform_cs_validation(url, None, code, display, version)
+
+
+@router.get("/CodeSystem/{resource_id}/$validate-code")
+async def cs_validate_code_instance_get(
+    resource_id: str,
+    code: Optional[str] = Query(None),
+    display: Optional[str] = Query(None),
+):
+    cs = await state.db.get_resource(resource_id)
+    if not cs:
+        raise HTTPException(status_code=404, detail=f"CodeSystem/{resource_id} not found")
+    return await _perform_cs_validation(cs.get('url'), resource_id, code, display, None)
+
+
+@router.post("/CodeSystem/$validate-code")
+async def cs_validate_code_post(body: Dict[str, Any] = Body(...)):
+    params = body.get('parameter', [])
+    url = next((p.get('valueUri') or p.get('valueString') for p in params if p.get('name') == 'url'), None)
+    code = next((p.get('valueCode') or p.get('valueString') for p in params if p.get('name') == 'code'), None)
+    display = next((p.get('valueString') for p in params if p.get('name') == 'display'), None)
+    version = next((p.get('valueString') for p in params if p.get('name') == 'version'), None)
+    return await _perform_cs_validation(url, None, code, display, version)
+
+
+async def _perform_cs_validation(
+    url: Optional[str],
+    resource_id: Optional[str],
+    code: Optional[str],
+    display: Optional[str],
+    version: Optional[str],
+) -> Dict[str, Any]:
+    if not code:
+        raise HTTPException(status_code=400, detail="code parameter is required")
+    if not url and not resource_id:
+        raise HTTPException(status_code=400, detail="url or resource id is required")
+
+    try:
+        result = await _perform_lookup(url or '', code, version)
+    except HTTPException:
+        return {
+            'resourceType': 'Parameters',
+            'parameter': [
+                {'name': 'result', 'valueBoolean': False},
+                {'name': 'message', 'valueString': f"Code '{code}' not found in CodeSystem"},
+            ]
+        }
+
+    found_display = next(
+        (p.get('valueString') for p in result.get('parameter', []) if p.get('name') == 'display'),
+        None
+    )
+
+    parameters: List[Dict] = [
+        {'name': 'result', 'valueBoolean': True},
+    ]
+    if found_display:
+        parameters.append({'name': 'display', 'valueString': found_display})
+    if display and found_display and display != found_display:
+        parameters.append({'name': 'message', 'valueString': f"Display '{display}' does not match expected '{found_display}'"})
+    else:
+        parameters.append({'name': 'message', 'valueString': 'Code is valid'})
+
+    return {'resourceType': 'Parameters', 'parameter': parameters}
+
+
+# ============================================================================
 # CodeSystem $lookup Operation
 # ============================================================================
 
@@ -699,7 +776,7 @@ async def _perform_lookup(
     if not system or not code:
         raise HTTPException(status_code=400, detail="system and code parameters are required")
 
-    cs_results = await state.db.search_resources('CodeSystem', {'url': system})
+    _, cs_results = await state.db.search_resources('CodeSystem', {'url': system})
 
     def find_concept(concepts, target_code):
         for concept in concepts:
@@ -952,7 +1029,7 @@ async def _perform_translate(
     if url:
         search_params['url'] = url
 
-    maps = await state.db.search_resources('ConceptMap', search_params)
+    _, maps = await state.db.search_resources('ConceptMap', search_params)
 
     for cm in maps:
         for group in cm.get('group', []):
@@ -1034,7 +1111,7 @@ async def subsumes_get(
 
 async def _subsumes_local(system: str, codeA: str, codeB: str) -> str:
     """Walk local CodeSystem concept tree to check if codeA is an ancestor of codeB."""
-    cs_results = await state.db.search_resources('CodeSystem', {'url': system})
+    _, cs_results = await state.db.search_resources('CodeSystem', {'url': system})
     if not cs_results:
         return 'not-subsumed'
 
@@ -1149,7 +1226,7 @@ async def search_codesystem_concepts(
     Returns results in the same {code, display, system, systemName} shape as
     /sdo/search so the ValueSet Builder can use a unified result format.
     """
-    cs_results = await state.db.search_resources('CodeSystem', {'url': url})
+    _, cs_results = await state.db.search_resources('CodeSystem', {'url': url})
     if not cs_results:
         raise HTTPException(status_code=404, detail=f"CodeSystem with url '{url}' not found")
 
