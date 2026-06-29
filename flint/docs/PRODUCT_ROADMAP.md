@@ -2,7 +2,7 @@
 
 This document tracks the gaps between Flint's current capabilities and a commercially viable, conformant FHIR R4 server. It is the authoritative source for implementation priorities. Update checkboxes as work is completed.
 
-**Last updated:** 2026-06-15
+**Last updated:** 2026-06-28
 **Analysis basis:** Gap analysis vs HAPI FHIR, Azure Health Data Services, Google Cloud Healthcare API, Medplum, and Smile CDR.
 
 ---
@@ -59,7 +59,7 @@ Conformance fixes and low-hanging spec gaps. No architectural changes required.
 - [x] On `PUT /{type}/{id}`, read the `If-Match` request header
 - [x] Parse the ETag value (format: `W/"N"`) and compare to `current_version` in the DB
 - [x] Return `412 Precondition Failed` with OperationOutcome if mismatch
-- [ ] Return `428 Precondition Required` if `If-Match` header is absent and server is configured to require it
+- [x] Return `428 Precondition Required` if `If-Match` header is absent and server is configured to require it (`REQUIRE_IF_MATCH=true`)
 - [x] Add `Last-Modified` response header on all reads (currently only `ETag` is returned)
 
 **Why it matters:** Prevents silent overwrite of concurrent edits. Required for conformant optimistic locking.
@@ -71,7 +71,7 @@ Conformance fixes and low-hanging spec gaps. No architectural changes required.
 - [x] Implement `GET /CodeSystem/$validate-code?url={url}&code={code}&display={display}`
 - [x] Implement `GET /CodeSystem/{id}/$validate-code?code={code}&display={display}`
 - [x] Return a `Parameters` resource with `result` (boolean), `display` (string), `message` (string)
-- [ ] Delegate to external SDO connector when `content=not-present`
+- [x] Delegate to external SDO connector when `content=not-present` (via shared `_perform_lookup` path)
 - [x] Register in CapabilityStatement under CodeSystem operations
 
 **Why it matters:** The largest gap in the CodeSystem operation surface. Many clients use this explicitly rather than `$lookup`. It is a SHALL operation for servers that claim CodeSystem support in their CapabilityStatement.
@@ -84,9 +84,9 @@ Conformance fixes and low-hanging spec gaps. No architectural changes required.
 - [x] Reflect actual runtime auth mode (`ENABLE_AUTH`, `OIDC_ISSUER_URL`) in the `security` block
 - [x] Add all implemented non-standard operations: `$validate-batch`, `$diff`, `$concept-search`, `$archive`, `$audit`
 - [x] Add missing search parameters: `identifier` and `content` on CodeSystem; `identifier` on ValueSet and ConceptMap
-- [ ] Correct `interaction` lists: remove `delete` from CodeSystem (not implemented); add `patch` only when implemented
-- [ ] Add `TerminologyCapabilities` resource to `rest.resource` list
-- [ ] Add `GET /metadata?mode=terminology` endpoint returning `TerminologyCapabilities` resource
+- [x] Correct `interaction` lists: `DELETE /CodeSystem/{id}` implemented; added `delete` to CodeSystem interactions
+- [x] Add `GET /metadata?mode=terminology` endpoint returning `TerminologyCapabilities` resource
+- [x] Add `TerminologyCapabilities` to `rest.resource` list in the main CapabilityStatement
 - [ ] Pass ONC / FHIR conformance test tool checks (Inferno, TouchStone)
 
 **Why it matters:** The CapabilityStatement is the first thing every FHIR conformance testing tool checks. Inaccuracies cause false test failures and erode client trust.
@@ -96,10 +96,10 @@ Conformance fixes and low-hanging spec gaps. No architectural changes required.
 ### P0.6 — `_format` Parameter and Content Negotiation
 
 - [x] Support `_format=json`, `_format=application/fhir+json`, `_format=xml` query parameter
-- [ ] Support `Accept: application/fhir+json` and `Accept: application/fhir+xml` headers
+- [x] Return `406 Not Acceptable` when `Accept` header requires XML only (no JSON fallback)
 - [x] Return `415 Unsupported Media Type` for unsupported format requests (XML can return a "not supported" OperationOutcome)
 - [x] Support `Prefer: return=minimal` (return 200 with no body) and `Prefer: return=representation` (default, return full resource)
-- [ ] Support `Prefer: return=OperationOutcome` on create/update
+- [x] Support `Prefer: return=OperationOutcome` on create/update (returns informational OperationOutcome)
 
 **Why it matters:** Required by the FHIR spec. Many clients set these headers by default.
 
@@ -483,7 +483,6 @@ To qualify for ONC Health IT Certification (§170.315), Flint would need to comp
 
 ## Known Technical Debt (Non-Feature Gaps)
 
-- [ ] `DELETE /CodeSystem/{id}` route is missing but claimed in internal docs
 - [ ] CapabilityStatement `security` block is hardcoded; does not reflect runtime `ENABLE_AUTH` setting
 - [ ] `GET /ConceptMap/{id}/_history` not implemented (ValueSet and CodeSystem have it; ConceptMap does not)
 - [ ] `versionId` in resource Meta is the DB integer version, not a FHIR-compliant UUID or string — spec requires that this is opaque and stable

@@ -27,7 +27,7 @@ def create_resource_router(
     router = APIRouter(tags=[resource_type])
     rt = resource_type
 
-    async def _create(resource: model_class):
+    async def _create(request: Request, resource: model_class):
         data = resource.model_dump(exclude_none=True, by_alias=True)
         data['resourceType'] = rt
         resource_id = await state.db.create_resource(rt, data)
@@ -35,7 +35,7 @@ def create_resource_router(
         await state.cache.invalidate_pattern(f"{rt}:*")
         RESOURCE_COUNT.labels(resource_type=rt, operation="create").inc()
         created = await state.db.get_resource(resource_id)
-        return _fhir_response(created, status_code=201, extra_headers={"Location": f"/{rt}/{resource_id}/_history/1"})
+        return _fhir_response(created, status_code=201, extra_headers={"Location": f"/{rt}/{resource_id}/_history/1"}, request=request)
 
     async def _read(resource_id: str):
         cache_key = f"{rt}:{resource_id}:latest"
@@ -60,7 +60,7 @@ def create_resource_router(
         await state.search_engine.index_resource(data)
         await state.cache.invalidate_pattern(f"{rt}:{resource_id}:*")
         RESOURCE_COUNT.labels(resource_type=rt, operation="update").inc()
-        return _fhir_response(await state.db.get_resource(resource_id))
+        return _fhir_response(await state.db.get_resource(resource_id), request=request)
 
     async def _delete(resource_id: str):
         existing = await state.db.get_resource(resource_id)

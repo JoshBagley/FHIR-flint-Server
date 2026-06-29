@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Optional
 from datetime import datetime, timezone
 from email.utils import formatdate
@@ -30,6 +31,8 @@ def _fhir_issue_code(status_code: int) -> str:
 def _check_etag(request: Request, existing: Dict) -> None:
     if_match = request.headers.get('If-Match')
     if not if_match:
+        if os.environ.get("REQUIRE_IF_MATCH", "false").lower() == "true":
+            raise HTTPException(status_code=428, detail="If-Match header is required by this server")
         return
     current_vid = existing.get('meta', {}).get('versionId', '')
     client_vid = if_match.strip().strip('"').lstrip('W/').strip('"')
@@ -74,5 +77,11 @@ def _fhir_response(resource: Dict, status_code: int = 200, extra_headers: Option
         prefer = request.headers.get('Prefer', '')
         if 'return=minimal' in prefer:
             return JSONResponse(content=None, status_code=status_code, headers=headers)
+        if 'return=OperationOutcome' in prefer and status_code < 300:
+            return JSONResponse(content={
+                "resourceType": "OperationOutcome",
+                "issue": [{"severity": "information", "code": "informational",
+                           "diagnostics": "Operation completed successfully"}]
+            }, status_code=status_code, headers=headers)
 
     return JSONResponse(content=resource, status_code=status_code, headers=headers)

@@ -1034,6 +1034,18 @@ async def fhir_middleware(request: Request, call_next):
             "issue": [{"severity": "error", "code": "not-supported", "diagnostics": f"Unsupported format: {_format}. Only application/fhir+json is supported."}]
         })
 
+    # 406 when client explicitly requires XML and has no JSON fallback
+    if accept:
+        wants_xml = 'application/fhir+xml' in accept or 'application/xml' in accept or 'text/xml' in accept
+        allows_json = ('application/fhir+json' in accept or 'application/json' in accept
+                       or '*/*' in accept or 'json' in accept)
+        if wants_xml and not allows_json:
+            return JSONResponse(status_code=406, content={
+                "resourceType": "OperationOutcome",
+                "issue": [{"severity": "error", "code": "not-supported",
+                           "diagnostics": "XML format not supported. Use Accept: application/fhir+json"}]
+            })
+
     start_time = time.time()
     response = await call_next(request)
     duration = time.time() - start_time
@@ -1280,7 +1292,38 @@ async def analytics_summary():
 
 
 @app.get("/metadata")
-async def capability_statement():
+async def capability_statement(mode: Optional[str] = Query(None)):
+    if mode == "terminology":
+        return JSONResponse(content={
+            "resourceType": "TerminologyCapabilities",
+            "id": "flint-terminology",
+            "status": "active",
+            "kind": "instance",
+            "date": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            "description": "Flint FHIR R4 Server — Terminology Capabilities",
+            "software": {"name": "Flint", "version": os.environ.get("GIT_SHA", "unknown")},
+            "implementation": {"description": "Flint FHIR R4 Terminology Server"},
+            "lockedDate": False,
+            "codeSystem": [
+                {"uri": "http://snomed.info/sct", "subsumption": True},
+                {"uri": "http://loinc.org"},
+                {"uri": "http://hl7.org/fhir/sid/icd-10-cm"},
+                {"uri": "http://hl7.org/fhir/sid/icd-9-cm"},
+                {"uri": "http://www.nlm.nih.gov/research/umls/rxnorm"},
+                {"uri": "https://cts.nlm.nih.gov/fhir"},
+            ],
+            "expansion": {
+                "hierarchical": False,
+                "paging": True,
+                "incomplete": False,
+                "textFilter": {"documentation": "Filter by display name substring (case-insensitive)"},
+            },
+            "codeSearch": "explicit",
+            "validateCode": {"translations": False},
+            "translation": {"needsMap": True},
+            "closure": {"translation": False},
+        }, headers={"Content-Type": "application/fhir+json"})
+
     enable_auth = os.environ.get("ENABLE_AUTH", "false").lower() == "true"
     oidc_issuer = os.environ.get("OIDC_ISSUER_URL", "")
 
@@ -1364,7 +1407,7 @@ async def capability_statement():
                     "type": "CodeSystem",
                     "interaction": [
                         {"code": "read"}, {"code": "create"}, {"code": "update"},
-                        {"code": "search-type"}, {"code": "history-instance"}
+                        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"}
                     ],
                     "versioning": "versioned",
                     "readHistory": True,
@@ -1403,6 +1446,11 @@ async def capability_statement():
                         {"name": "translate", "definition": "http://hl7.org/fhir/OperationDefinition/ConceptMap-translate"},
                         {"name": "audit", "definition": "http://flint.local/OperationDefinition/resource-audit"},
                     ]
+                },
+                {
+                    "type": "TerminologyCapabilities",
+                    "interaction": [{"code": "read"}],
+                    "documentation": "Accessible via GET /metadata?mode=terminology"
                 }
             ]
         }]
@@ -1452,7 +1500,7 @@ async def update_value_set(request: Request, resource_id: str, value_set: ValueS
     await state.search_engine.index_resource(data)
     await state.cache.invalidate_pattern(f"ValueSet:{resource_id}:*")
     RESOURCE_COUNT.labels(resource_type="ValueSet", operation="update").inc()
-    return _fhir_response(await state.db.get_resource(resource_id))
+    return _fhir_response(await state.db.get_resource(resource_id), request=request)
 
 
 @app.delete("/ValueSet/{resource_id}", status_code=204)
@@ -1600,7 +1648,18 @@ async def update_code_system(request: Request, resource_id: str, code_system: Co
     await state.search_engine.index_resource(data)
     await state.cache.invalidate_pattern(f"CodeSystem:{resource_id}:*")
     RESOURCE_COUNT.labels(resource_type="CodeSystem", operation="update").inc()
-    return _fhir_response(await state.db.get_resource(resource_id))
+    return _fhir_response(await state.db.get_resource(resource_id), request=request)
+
+
+@app.delete("/CodeSystem/{resource_id}", status_code=204)
+async def delete_code_system(resource_id: str):
+    existing = await state.db.get_resource(resource_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"CodeSystem/{resource_id} not found")
+    await state.db.delete_resource(resource_id)
+    await state.search_engine.delete_resource(resource_id)
+    await state.cache.invalidate_pattern(f"CodeSystem:{resource_id}:*")
+    await state.cache.invalidate_pattern("CodeSystem:*")
 
 
 @app.get("/CodeSystem")
@@ -1715,7 +1774,7 @@ async def update_concept_map(request: Request, resource_id: str, concept_map: Co
     await state.search_engine.index_resource(data)
     await state.cache.invalidate_pattern(f"ConceptMap:{resource_id}:*")
     RESOURCE_COUNT.labels(resource_type="ConceptMap", operation="update").inc()
-    return _fhir_response(await state.db.get_resource(resource_id))
+    return _fhir_response(await state.db.get_resource(resource_id), request=request)
 
 
 @app.delete("/ConceptMap/{resource_id}", status_code=204)
