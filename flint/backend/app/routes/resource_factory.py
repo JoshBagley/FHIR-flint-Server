@@ -17,12 +17,21 @@ SearchHook = Callable[
     Tuple[Dict[str, Any], List[Tuple[str, Any]]]
 ]
 
+# ValidateHook: async callable receiving the resource dict; raises HTTPException to reject.
+ValidateHook = Callable[[Dict[str, Any]], Any]
+
+# IncludeConfig: maps _include param value → (reference_field_name, target_resource_type)
+# e.g. {"Observation:subject": ("subject", "Patient")}
+IncludeConfig = Dict[str, Tuple[str, str]]
+
 
 def create_resource_router(
     resource_type: str,
     model_class: Type[BaseModel],
     search_hook: Optional[SearchHook] = None,
     allow_archive: bool = False,
+    validate_hook: Optional[ValidateHook] = None,
+    include_config: Optional[IncludeConfig] = None,
 ) -> APIRouter:
     router = APIRouter(tags=[resource_type])
     rt = resource_type
@@ -30,6 +39,8 @@ def create_resource_router(
     async def _create(request: Request, resource: model_class):
         data = resource.model_dump(exclude_none=True, by_alias=True)
         data['resourceType'] = rt
+        if validate_hook:
+            await validate_hook(data)
         resource_id = await state.db.create_resource(rt, data)
         await state.search_engine.index_resource(data)
         await state.cache.invalidate_pattern(f"{rt}:*")
@@ -56,6 +67,8 @@ def create_resource_router(
         data = resource.model_dump(exclude_none=True, by_alias=True)
         data['id'] = resource_id
         data['resourceType'] = rt
+        if validate_hook:
+            await validate_hook(data)
         await state.db.update_resource(resource_id, data)
         await state.search_engine.index_resource(data)
         await state.cache.invalidate_pattern(f"{rt}:{resource_id}:*")
@@ -76,6 +89,7 @@ def create_resource_router(
         _count: int = Query(20, alias="_count", ge=1, le=1000),
         _offset: int = Query(0, alias="_offset", ge=0),
         _sort: Optional[str] = Query(None, alias="_sort"),
+        _include: Optional[str] = Query(None, alias="_include"),
     ):
         base_params: Dict[str, Any] = {}
         extra_pairs: List[Tuple[str, Any]] = []
@@ -85,11 +99,26 @@ def create_resource_router(
             rt, base_params, extra_pairs,
             limit=_count, offset=_offset, sort=_sort
         )
+        entries: List[Dict[str, Any]] = [{"resource": r} for r in results]
+        if _include and include_config and _include in include_config:
+            ref_field, _ = include_config[_include]
+            seen: set = set()
+            for r in results:
+                ref_obj = r.get(ref_field, {})
+                if isinstance(ref_obj, dict):
+                    ref_str = ref_obj.get("reference", "")
+                    if ref_str:
+                        rid = ref_str.split("/")[-1]
+                        if rid and rid not in seen:
+                            seen.add(rid)
+                            included = await state.db.get_resource(rid)
+                            if included:
+                                entries.append({"search": {"mode": "include"}, "resource": included})
         return {
             "resourceType": "Bundle", "type": "searchset",
             "total": total,
             "link": _bundle_links(request, total, _count, _offset),
-            "entry": [{"resource": r} for r in results],
+            "entry": entries,
         }
 
     async def _history(resource_id: str):

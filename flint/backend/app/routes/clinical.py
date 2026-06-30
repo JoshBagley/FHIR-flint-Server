@@ -1,9 +1,48 @@
 from typing import Dict, List, Any, Tuple
 
+from fastapi import HTTPException, Body
+from app import state
 from app.capability import register_resource
 from app.models.clinical import Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization
 from app.routes.resource_factory import create_resource_router
 
+
+# ---------------------------------------------------------------------------
+# Shared helper: validate codings against complete local CodeSystems.
+# Raises 422 only when a system is locally stored as content=complete and the
+# code is explicitly absent. Unknown or stub/fragment systems are skipped.
+# ---------------------------------------------------------------------------
+async def _check_codings(coding_list: List[Dict[str, Any]], field: str) -> None:
+    for coding in coding_list:
+        system = coding.get("system")
+        code = coding.get("code")
+        if not system or not code:
+            continue
+        _, cs_results = await state.db.search_resources("CodeSystem", {"url": system})
+        if not cs_results:
+            continue
+        cs = cs_results[0]
+        if cs.get("content") != "complete":
+            continue
+
+        def _find(concepts: List[Dict], target: str) -> bool:
+            for c in concepts:
+                if c.get("code") == target:
+                    return True
+                if _find(c.get("concept", []), target):
+                    return True
+            return False
+
+        if not _find(cs.get("concept", []), code):
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown code '{code}' in system '{system}' for {field}"
+            )
+
+
+# ---------------------------------------------------------------------------
+# Search hooks
+# ---------------------------------------------------------------------------
 
 def _patient_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
     base: Dict[str, Any] = {}
@@ -126,12 +165,130 @@ def _immunization_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
     return base, extra
 
 
+# ---------------------------------------------------------------------------
+# Validate hooks
+# ---------------------------------------------------------------------------
+
+async def _observation_validate(data: Dict[str, Any]) -> None:
+    codings = (data.get("code") or {}).get("coding", [])
+    await _check_codings(codings, "Observation.code")
+
+
+async def _immunization_validate(data: Dict[str, Any]) -> None:
+    codings = (data.get("vaccineCode") or {}).get("coding", [])
+    await _check_codings(codings, "Immunization.vaccineCode")
+
+
+# ---------------------------------------------------------------------------
+# Routers
+# ---------------------------------------------------------------------------
+
 patient_router = create_resource_router("Patient", Patient, _patient_search_hook)
-observation_router = create_resource_router("Observation", Observation, _observation_search_hook)
+observation_router = create_resource_router(
+    "Observation", Observation, _observation_search_hook,
+    validate_hook=_observation_validate,
+    include_config={"Observation:subject": ("subject", "Patient")},
+)
 condition_router = create_resource_router("Condition", Condition, _condition_search_hook)
 encounter_router = create_resource_router("Encounter", Encounter, _encounter_search_hook)
 allergy_router = create_resource_router("AllergyIntolerance", AllergyIntolerance, _allergy_search_hook)
-immunization_router = create_resource_router("Immunization", Immunization, _immunization_search_hook)
+immunization_router = create_resource_router(
+    "Immunization", Immunization, _immunization_search_hook,
+    validate_hook=_immunization_validate,
+)
+
+
+# ---------------------------------------------------------------------------
+# Patient/$match — probabilistic patient matching
+# ---------------------------------------------------------------------------
+
+@patient_router.post("/Patient/$match")
+async def patient_match(body: Dict[str, Any] = Body(...)):
+    params = {p["name"]: p for p in body.get("parameter", [])}
+    patient_data: Dict[str, Any] = params.get("resource", {}).get("resource") or {}
+    if not patient_data:
+        raise HTTPException(status_code=400, detail="Parameters.resource (Patient) is required")
+
+    max_count = int(params.get("count", {}).get("valueInteger", 3))
+    only_certain = bool(params.get("onlyCertainMatches", {}).get("valueBoolean", False))
+
+    extra_pairs: List[Tuple[str, Any]] = []
+    names = patient_data.get("name", [])
+    if names and names[0].get("family"):
+        extra_pairs.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'name', '[]'::jsonb)) n WHERE n->>'family' ILIKE ??)",
+            f"%{names[0]['family']}%"
+        ))
+    identifiers = patient_data.get("identifier", [])
+    if identifiers and identifiers[0].get("value"):
+        extra_pairs.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) id WHERE id->>'value' = ??)",
+            identifiers[0]["value"]
+        ))
+    if patient_data.get("birthDate"):
+        extra_pairs.append(("data->>'birthDate' = ??", patient_data["birthDate"]))
+
+    if not extra_pairs:
+        raise HTTPException(
+            status_code=400,
+            detail="Must supply at least one of: name, identifier, birthDate"
+        )
+
+    _, candidates = await state.db.search_resources_ex(
+        "Patient", {}, extra_pairs, limit=max_count * 5, offset=0
+    )
+
+    def _score(candidate: Dict[str, Any]) -> float:
+        s = 0.0
+        for ident in identifiers:
+            for ci in candidate.get("identifier", []):
+                if ci.get("value") == ident.get("value"):
+                    s += 0.5
+        if patient_data.get("birthDate") and patient_data["birthDate"] == candidate.get("birthDate"):
+            s += 0.3
+        for n in names:
+            for cn in candidate.get("name", []):
+                if n.get("family", "").lower() == cn.get("family", "").lower():
+                    s += 0.2
+        return min(s, 1.0)
+
+    def _grade(s: float) -> str:
+        if s >= 0.8:
+            return "certain"
+        if s >= 0.5:
+            return "probable"
+        return "possible"
+
+    entries = []
+    for r in candidates:
+        s = _score(r)
+        if only_certain and s < 0.8:
+            continue
+        entries.append({
+            "resource": r,
+            "search": {
+                "mode": "match",
+                "score": round(s, 2),
+                "extension": [{
+                    "url": "http://hl7.org/fhir/StructureDefinition/match-grade",
+                    "valueCode": _grade(s)
+                }]
+            }
+        })
+
+    entries.sort(key=lambda e: e["search"]["score"], reverse=True)
+    entries = entries[:max_count]
+    return {
+        "resourceType": "Bundle",
+        "type": "searchset",
+        "total": len(entries),
+        "entry": entries,
+    }
+
+
+# ---------------------------------------------------------------------------
+# CapabilityStatement registrations
+# ---------------------------------------------------------------------------
 
 register_resource({
     "type": "Patient",
@@ -152,6 +309,9 @@ register_resource({
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
     ],
+    "operation": [
+        {"name": "match", "definition": "http://hl7.org/fhir/OperationDefinition/Patient-match"},
+    ],
 })
 
 register_resource({
@@ -162,6 +322,7 @@ register_resource({
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "searchInclude": ["Observation:subject"],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "code", "type": "token"},
@@ -170,6 +331,7 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_include", "type": "string"},
     ],
 })
 

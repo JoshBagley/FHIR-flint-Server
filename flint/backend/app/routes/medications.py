@@ -1,8 +1,43 @@
 from typing import Dict, List, Any, Tuple
 
+from fastapi import HTTPException
+from app import state
 from app.capability import register_resource
 from app.models.medications import MedicationRequest, Procedure, DiagnosticReport
 from app.routes.resource_factory import create_resource_router
+
+
+async def _check_codings(coding_list: List[Dict[str, Any]], field: str) -> None:
+    for coding in coding_list:
+        system = coding.get("system")
+        code = coding.get("code")
+        if not system or not code:
+            continue
+        _, cs_results = await state.db.search_resources("CodeSystem", {"url": system})
+        if not cs_results:
+            continue
+        cs = cs_results[0]
+        if cs.get("content") != "complete":
+            continue
+
+        def _find(concepts: List[Dict], target: str) -> bool:
+            for c in concepts:
+                if c.get("code") == target:
+                    return True
+                if _find(c.get("concept", []), target):
+                    return True
+            return False
+
+        if not _find(cs.get("concept", []), code):
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown code '{code}' in system '{system}' for {field}"
+            )
+
+
+async def _medication_validate(data: Dict[str, Any]) -> None:
+    codings = (data.get("medicationCodeableConcept") or {}).get("coding", [])
+    await _check_codings(codings, "MedicationRequest.medicationCodeableConcept")
 
 
 def _medication_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
@@ -59,7 +94,10 @@ def _diagnostic_report_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], 
     return base, extra
 
 
-medication_request_router = create_resource_router("MedicationRequest", MedicationRequest, _medication_request_search_hook)
+medication_request_router = create_resource_router(
+    "MedicationRequest", MedicationRequest, _medication_request_search_hook,
+    validate_hook=_medication_validate,
+)
 procedure_router = create_resource_router("Procedure", Procedure, _procedure_search_hook)
 diagnostic_report_router = create_resource_router("DiagnosticReport", DiagnosticReport, _diagnostic_report_search_hook)
 

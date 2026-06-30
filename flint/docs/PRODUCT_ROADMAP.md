@@ -2,7 +2,7 @@
 
 This document tracks the gaps between Flint's current capabilities and a commercially viable, conformant FHIR R4 server. It is the authoritative source for implementation priorities. Update checkboxes as work is completed.
 
-**Last updated:** 2026-06-28
+**Last updated:** 2026-06-30
 **Analysis basis:** Gap analysis vs HAPI FHIR, Azure Health Data Services, Google Cloud Healthcare API, Medplum, and Smile CDR.
 
 ---
@@ -116,7 +116,7 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 - [x] Implement `GET /Patient` search: `identifier`, `name`, `family`, `given`, `birthdate`, `gender`
 - [x] Add `GET /Patient/{id}/_history` and named version read
 - [x] Register in CapabilityStatement
-- [ ] Implement basic `Patient/$match` (probabilistic matching on name + birthdate + identifier)
+- [x] Implement basic `Patient/$match` (probabilistic matching on name + birthdate + identifier)
 
 **Why it matters:** Patient is the cornerstone of every clinical FHIR implementation. Without it, Flint cannot participate in any patient-centric workflow, EHR integration, or US Core-compliant data exchange.
 
@@ -127,8 +127,8 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 - [x] Define `Observation` Pydantic model (R4: `status`, `category`, `code`, `subject`, `effective`, `value[x]`, `component`, `interpretation`)
 - [x] Implement full CRUD + search: `patient`, `category`, `code`, `status`
 - [x] Register in CapabilityStatement
-- [ ] Support `_include=Observation:subject` to pull referenced Patient in one request
-- [ ] Validate `code` against known CodeSystems using the existing `$lookup` path
+- [x] Support `_include=Observation:subject` to pull referenced Patient in one request
+- [x] Validate `code` against known CodeSystems using the existing `$lookup` path
 
 **Why it matters:** Lab results, vitals, and social history all use Observation. Required for CDC surveillance reporting, USCDI, CQL quality measures, and essentially every clinical data exchange scenario.
 
@@ -167,7 +167,7 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 - [x] Define `Immunization` Pydantic model (R4: `status`, `vaccineCode`, `patient`, `occurrence[x]`, `primarySource`, `lotNumber`, `site`, `route`, `doseQuantity`)
 - [x] Implement full CRUD + search: `patient`, `vaccine-code`, `date`, `status`
 - [x] Register in CapabilityStatement
-- [ ] Wire vaccine code validation against CVX `CodeSystem` (already imported)
+- [x] Wire vaccine code validation against CVX `CodeSystem` (already imported)
 
 **Why it matters:** CDC immunization registry integration. Flint already has CVX codes but no Immunization resource to hold records.
 
@@ -203,7 +203,7 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 - [x] `MedicationRequest` — CRUD + search (`patient`, `status`, `intent`, `medication-code`)
 - [x] `Procedure` — CRUD + search (`patient`, `code`, `status`)
 - [x] `DiagnosticReport` — CRUD + search (`patient`, `category`, `code`, `status`)
-- [ ] Validate medication code against RxNorm connector on `MedicationRequest` create
+- [x] Validate medication code against RxNorm connector on `MedicationRequest` create
 
 ---
 
