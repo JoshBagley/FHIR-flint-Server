@@ -104,11 +104,16 @@ diagnostic_report_router = create_resource_router("DiagnosticReport", Diagnostic
 register_resource({
     "type": "MedicationRequest",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchInclude": ["MedicationRequest:subject", "MedicationRequest:encounter"],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "status", "type": "token"},
@@ -117,17 +122,26 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_include", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 
 register_resource({
     "type": "Procedure",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchInclude": ["Procedure:subject", "Procedure:encounter"],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "status", "type": "token"},
@@ -136,17 +150,26 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_include", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 
 register_resource({
     "type": "DiagnosticReport",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchInclude": ["DiagnosticReport:subject", "DiagnosticReport:encounter"],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "status", "type": "token"},
@@ -155,6 +178,10 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_include", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 

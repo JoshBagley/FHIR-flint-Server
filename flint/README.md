@@ -8,8 +8,15 @@ A general-purpose, production-ready FHIR R4 server. Supports 16 resource types, 
 - 16 FHIR R4 resource types with full CRUD, versioning, ETag enforcement, and paginated search
 - `POST /` Bundle endpoint — batch (per-entry error isolation) and transaction (atomic rollback)
 - `urn:uuid:` reference resolution within transaction bundles
-- Version history (`/_history`) and named version read (`/_history/{vid}`) on every resource
+- Instance history (`/{Type}/{id}/_history`), type-level history (`/{Type}/_history`), and system history (`GET /_history`)
+- Named version read (`/_history/{vid}`) on every resource
 - Optimistic locking via `If-Match: W/"N"` — 412 on conflict
+- JSON Patch (RFC 6902): `PATCH /{Type}/{id}` — partial updates, patched result validated against schema before persist
+- Conditional create (`If-None-Exist` header), conditional update (`PUT /{Type}?params`), conditional delete (`DELETE /{Type}?params`)
+- `POST /{Type}/$validate?profile={url}` — structural validation (Pydantic) + optional profile validation delegated to `tx.fhir.org`; profile results cached in Redis for 1 hour
+- `POST /Patient/$match` — probabilistic patient matching scored on identifier, birthDate, and family name
+- `_include` / `_revinclude` — resolve forward and reverse references in a single search request (e.g. `_include=Observation:subject`, `_revinclude=Observation:subject`)
+- Code validation on create/update: Observation code (LOINC/SNOMED), Immunization vaccineCode (CVX), MedicationRequest medicationCodeableConcept (RxNorm) — validated against locally stored complete CodeSystems
 
 ### Terminology & Vocabulary
 - FHIR R4 operations: `$expand`, `$validate-code`, `$validate-batch`, `$lookup`, `$translate`, `$subsumes`, `$diff`
@@ -23,6 +30,7 @@ A general-purpose, production-ready FHIR R4 server. Supports 16 resource types, 
 - Fast full-text search with Elasticsearch
 - AI-powered concept search and mapping (Anthropic, OpenAI, or Gemini)
 - Dynamic CapabilityStatement (`GET /metadata`) reflecting runtime auth config
+- Per-client rate limiting via Redis sliding window — `429 Too Many Requests` with `Retry-After` + `X-RateLimit-*` headers; identified by `X-API-Key` header or remote IP; configurable via `RATE_LIMIT_PER_MINUTE` / `RATE_LIMIT_AI_PER_MINUTE`
 - Prometheus metrics + Grafana dashboards + Loki log aggregation
 - Modern React/TypeScript UI with Value Set Builder
 

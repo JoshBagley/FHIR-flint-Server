@@ -293,11 +293,20 @@ async def patient_match(body: Dict[str, Any] = Body(...)):
 register_resource({
     "type": "Patient",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchRevInclude": [
+        "Observation:subject", "Condition:subject", "Encounter:subject",
+        "AllergyIntolerance:patient", "Immunization:patient",
+        "MedicationRequest:subject", "Procedure:subject", "DiagnosticReport:subject",
+    ],
     "searchParam": [
         {"name": "family", "type": "string"},
         {"name": "given", "type": "string"},
@@ -308,21 +317,27 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
     ],
     "operation": [
         {"name": "match", "definition": "http://hl7.org/fhir/OperationDefinition/Patient-match"},
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 
 register_resource({
     "type": "Observation",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
-    "searchInclude": ["Observation:subject"],
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchInclude": ["Observation:subject", "Observation:encounter"],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "code", "type": "token"},
@@ -333,16 +348,24 @@ register_resource({
         {"name": "_sort", "type": "string"},
         {"name": "_include", "type": "string"},
     ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
+    ],
 })
 
 register_resource({
     "type": "Condition",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchInclude": ["Condition:subject", "Condition:encounter"],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "clinical-status", "type": "token"},
@@ -352,17 +375,30 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_include", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 
 register_resource({
     "type": "Encounter",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchInclude": ["Encounter:subject"],
+    "searchRevInclude": [
+        "Observation:encounter", "Condition:encounter", "MedicationRequest:encounter",
+        "Procedure:encounter", "DiagnosticReport:encounter",
+    ],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "status", "type": "token"},
@@ -370,17 +406,27 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_include", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 
 register_resource({
     "type": "AllergyIntolerance",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchInclude": ["AllergyIntolerance:patient"],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "clinical-status", "type": "token"},
@@ -389,17 +435,26 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_include", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 
 register_resource({
     "type": "Immunization",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchInclude": ["Immunization:patient"],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "vaccine-code", "type": "token"},
@@ -408,6 +463,10 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_include", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 

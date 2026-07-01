@@ -226,10 +226,10 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 
 ### P2.2 — Conditional Interactions
 
-- [ ] Conditional create: `POST /{type}` with `If-None-Exist: {search-params}` header — search first; create only if no match; return existing if 1 match; error if multiple
-- [ ] Conditional update: `PUT /{type}?{search-params}` — search; update if 1 match; create if 0; error if multiple
-- [ ] Conditional delete: `DELETE /{type}?{search-params}` — delete all matching resources
-- [ ] Register in CapabilityStatement under `conditionalCreate`, `conditionalUpdate`, `conditionalDelete`
+- [x] Conditional create: `POST /{type}` with `If-None-Exist: {search-params}` header — search first; create only if no match; return existing if 1 match; error if multiple
+- [x] Conditional update: `PUT /{type}?{search-params}` — search; update if 1 match; create if 0; error if multiple
+- [x] Conditional delete: `DELETE /{type}?{search-params}` — delete all matching resources
+- [x] Register in CapabilityStatement under `conditionalCreate`, `conditionalUpdate`, `conditionalDelete`
 
 **Why it matters:** All idempotent bulk import pipelines (ETL from EHRs, national registries) rely on conditional operations to avoid duplicates without requiring a GET-then-POST pattern.
 
@@ -237,11 +237,11 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 
 ### P2.3 — `_include` and `_revinclude` Search Modifiers
 
-- [ ] Parse `_include={type}:{searchParam}` from search requests
-- [ ] After primary search, resolve all referenced resources and add to Bundle as `include` entries
-- [ ] Support `_include:iterate` for chained includes
-- [ ] Parse `_revinclude={type}:{searchParam}` — find resources of type `{type}` that reference any result
-- [ ] Add `_include` and `_revinclude` to CapabilityStatement
+- [x] Parse `_include={type}:{searchParam}` from search requests
+- [x] After primary search, resolve all referenced resources and add to Bundle as `include` entries
+- [ ] Support `_include:iterate` for chained includes (deferred — complex; not required for MVP conformance)
+- [x] Parse `_revinclude={type}:{searchParam}` — find resources of type `{type}` that reference any result
+- [x] Add `_include` and `_revinclude` to CapabilityStatement (`searchInclude`, `searchRevInclude` per resource)
 
 **Why it matters:** Cross-resource includes are the backbone of efficient FHIR queries. Without them, every client makes N+1 requests to resolve references.
 
@@ -266,13 +266,13 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 
 ### P2.5 — `$validate` Operation (Structural + Profile Validation)
 
-- [ ] Implement `POST /{type}/$validate` accepting a resource body and optional `profile` parameter
-- [ ] Validate resource structure against R4 Pydantic models (already have models — wire the validation step)
-- [ ] Delegate profile validation to tx.fhir.org/r4/$validate for US Core and other published profiles
-- [ ] Cache validation results by profile URL + resource hash (Redis)
-- [ ] Return `OperationOutcome` with structured issues (severity, location, details)
+- [x] Implement `POST /{type}/$validate` accepting a resource body and optional `profile` parameter
+- [x] Validate resource structure against R4 Pydantic models (already have models — wire the validation step)
+- [x] Delegate profile validation to tx.fhir.org/r4/$validate for US Core and other published profiles
+- [x] Cache validation results by profile URL + resource hash (Redis, TTL 1 hour)
+- [x] Return `OperationOutcome` with structured issues (severity, location, details)
 - [ ] Optionally store `StructureDefinition` resources locally and validate against them
-- [ ] Register in CapabilityStatement
+- [x] Register in CapabilityStatement
 
 ---
 
@@ -290,19 +290,19 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 
 ### P2.7 — PATCH Operations
 
-- [ ] Implement `PATCH /{type}/{id}` with `Content-Type: application/json-patch+json` (JSON Patch, RFC 6902)
-- [ ] Implement `PATCH /{type}/{id}` with `Content-Type: application/fhir+json` (FHIRPath Patch)
-- [ ] Apply patches atomically; validate result against resource schema before persisting
-- [ ] Register in CapabilityStatement under each resource's `interaction` list
+- [x] Implement `PATCH /{type}/{id}` with `Content-Type: application/json-patch+json` (JSON Patch, RFC 6902)
+- [ ] Implement `PATCH /{type}/{id}` with `Content-Type: application/fhir+json` (FHIRPath Patch — requires P4.4)
+- [x] Apply patches atomically; validate result against resource schema before persisting
+- [x] Register in CapabilityStatement under each resource's `interaction` list
 
 ---
 
 ### P2.8 — System-Level and Type-Level History
 
-- [ ] Implement `GET /_history` (system-level history): all changes across all resource types since `_since`
-- [ ] Implement `GET /{type}/_history` (type-level history): all changes for one resource type
-- [ ] Return as `Bundle` with `type: history`, paginated with `_count` and `_since`
-- [ ] Register in CapabilityStatement under `interaction[type=history-system]` and `interaction[type=history-type]`
+- [x] Implement `GET /_history` (system-level history): all changes across all resource types since `_since`
+- [x] Implement `GET /{type}/_history` (type-level history): all changes for one resource type
+- [x] Return as `Bundle` with `type: history`, paginated with `_count` and `_since`
+- [x] Register in CapabilityStatement under `interaction[type=history-system]` and `interaction[type=history-type]`
 
 ---
 
@@ -346,11 +346,11 @@ Required for commercial deployment, multi-customer SaaS, or regulated environmen
 
 ### P3.4 — Rate Limiting and Quotas
 
-- [ ] Per-client rate limiting on all endpoints (requests/minute, configurable)
+- [x] Per-client rate limiting on all endpoints (`RATE_LIMIT_PER_MINUTE`, default 600; identified by `X-API-Key` header or remote IP)
 - [ ] Bulk export job concurrency limit per tenant
-- [ ] AI endpoint per-client quota (to control LLM API spend)
-- [ ] Return `429 Too Many Requests` with `Retry-After` header
-- [ ] Expose rate limit metrics in Prometheus
+- [x] AI endpoint per-client quota (`RATE_LIMIT_AI_PER_MINUTE`, default 20; also applies to `$expand`)
+- [x] Return `429 Too Many Requests` with `Retry-After` and `X-RateLimit-*` headers
+- [x] Expose rate limit metrics in Prometheus (`fhir_rate_limit_exceeded_total` counter by client type)
 
 ---
 
@@ -481,10 +481,14 @@ To qualify for ONC Health IT Certification (§170.315), Flint would need to comp
 
 ---
 
+## UI / Design Backlog
+
+- [ ] **Icon v2** — Redesign the Flint icon to show a literal flint-stone striking metal to produce sparks that ignite a fire. Current icon uses a FHIR-inspired flame with radiating sparks; the next version should make the "striking" moment more explicit (angular stone silhouette, impact point, sparks fanning outward into a nascent flame). Update all three locations: `frontend/public/favicon.svg`, `frontend/src/components/AppLogo.tsx`, `frontend/index.html` (data URI).
+
+---
+
 ## Known Technical Debt (Non-Feature Gaps)
 
-- [ ] CapabilityStatement `security` block is hardcoded; does not reflect runtime `ENABLE_AUTH` setting
-- [ ] `GET /ConceptMap/{id}/_history` not implemented (ValueSet and CodeSystem have it; ConceptMap does not)
 - [ ] `versionId` in resource Meta is the DB integer version, not a FHIR-compliant UUID or string — spec requires that this is opaque and stable
 - [ ] FHIR extension URL `http://flint.local/StructureDefinition/source` is not resolvable; should register a real `StructureDefinition` resource at that URL or change to a URL the server can serve
 - [ ] Elasticsearch index mapping has no explicit `@timestamp` field; Loki queries and time-series searches may behave unexpectedly

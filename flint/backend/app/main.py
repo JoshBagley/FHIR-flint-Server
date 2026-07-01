@@ -38,7 +38,7 @@ import sys
 from email.utils import formatdate
 from app import state
 from app.fhir_utils import (
-    REQUEST_COUNT, REQUEST_DURATION, RESOURCE_COUNT,
+    REQUEST_COUNT, REQUEST_DURATION, RESOURCE_COUNT, RATE_LIMIT_EXCEEDED,
     _fhir_issue_code, _fhir_response, _check_etag, _bundle_links
 )
 from app.capability import RESOURCE_REGISTRY
@@ -798,6 +798,77 @@ class DatabaseManager:
                 'summary': row['change_summary']
             } for row in rows]
 
+    async def get_type_history(
+        self,
+        resource_type: str,
+        since: Optional[str] = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> tuple[int, List[Dict]]:
+        conditions = ["r.resource_type = $1"]
+        values: List[Any] = [resource_type]
+        idx = 2
+        if since:
+            conditions.append(f"rv.created_at > ${idx}::timestamp")
+            values.append(since)
+            idx += 1
+        where = " AND ".join(conditions)
+        async with self.pool.acquire() as conn:
+            total = await conn.fetchval(
+                f"SELECT COUNT(*) FROM resource_versions rv JOIN fhir_resources r ON r.id = rv.resource_id WHERE {where}",
+                *values
+            )
+            rows = await conn.fetch(
+                f"""SELECT rv.resource_id, r.resource_type, rv.version_number, rv.data, rv.created_at
+                    FROM resource_versions rv JOIN fhir_resources r ON r.id = rv.resource_id
+                    WHERE {where} ORDER BY rv.created_at DESC LIMIT ${idx} OFFSET ${idx+1}""",
+                *values, limit, offset
+            )
+        return int(total), [self._history_entry(row) for row in rows]
+
+    async def get_system_history(
+        self,
+        since: Optional[str] = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> tuple[int, List[Dict]]:
+        values: List[Any] = []
+        idx = 1
+        since_clause = ""
+        if since:
+            since_clause = f"WHERE rv.created_at > ${idx}::timestamp"
+            values.append(since)
+            idx += 1
+        async with self.pool.acquire() as conn:
+            total = await conn.fetchval(
+                f"SELECT COUNT(*) FROM resource_versions rv JOIN fhir_resources r ON r.id = rv.resource_id {since_clause}",
+                *values
+            )
+            rows = await conn.fetch(
+                f"""SELECT rv.resource_id, r.resource_type, rv.version_number, rv.data, rv.created_at
+                    FROM resource_versions rv JOIN fhir_resources r ON r.id = rv.resource_id
+                    {since_clause} ORDER BY rv.created_at DESC LIMIT ${idx} OFFSET ${idx+1}""",
+                *values, limit, offset
+            )
+        return int(total), [self._history_entry(row) for row in rows]
+
+    @staticmethod
+    def _history_entry(row) -> Dict:
+        data = json.loads(row['data'])
+        rt = row['resource_type']
+        rid = row['resource_id']
+        vid = row['version_number']
+        data.setdefault('meta', {}).update({
+            'versionId': str(vid),
+            'lastUpdated': row['created_at'].strftime('%Y-%m-%dT%H:%M:%SZ'),
+        })
+        return {
+            'fullUrl': f'{rt}/{rid}/_history/{vid}',
+            'resource': data,
+            'request': {'method': 'POST' if vid == 1 else 'PUT', 'url': f'{rt}/{rid}'},
+            'response': {'status': '201' if vid == 1 else '200', 'etag': f'W/"{vid}"'},
+        }
+
 
 # ============================================================================
 # Search Engine (Elasticsearch)
@@ -1020,6 +1091,77 @@ for _router in clinical_routers + administrative_routers + medication_routers:
 
 from app.routes.bundle import router as bundle_router  # noqa: E402
 app.include_router(bundle_router)
+
+
+# Per-client rate limits (requests / minute). Set to 0 to disable.
+_RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "600"))
+_RATE_LIMIT_AI_PER_MINUTE = int(os.getenv("RATE_LIMIT_AI_PER_MINUTE", "20"))
+
+# Paths exempt from per-client rate limiting (monitoring / health probes)
+_RATE_LIMIT_EXEMPT = {"/health", "/ready", "/metrics"}
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Per-client rate limiter using a Redis 1-minute sliding window.
+
+    Client identity priority: X-API-Key header → remote IP.
+    Tighter limit applied to /ai/* and $expand (expensive operations).
+    Gracefully bypasses when Redis is unavailable.
+    """
+    if _RATE_LIMIT_PER_MINUTE == 0 or request.url.path in _RATE_LIMIT_EXEMPT:
+        return await call_next(request)
+    if not state.cache or not state.cache.redis_client:
+        return await call_next(request)
+
+    api_key = request.headers.get("X-API-Key", "")
+    if api_key:
+        client_id = f"key:{api_key[:32]}"
+        client_type = "api_key"
+    else:
+        client_id = f"ip:{request.client.host if request.client else 'unknown'}"
+        client_type = "ip"
+
+    is_ai = request.url.path.startswith("/ai/") or "$expand" in request.url.path
+    limit = _RATE_LIMIT_AI_PER_MINUTE if is_ai else _RATE_LIMIT_PER_MINUTE
+
+    minute_bucket = int(time.time() // 60)
+    key = f"rl:{client_id}:{minute_bucket}"
+    try:
+        count = await state.cache.redis_client.incr(key)
+        if count == 1:
+            await state.cache.redis_client.expire(key, 60)
+    except Exception:
+        return await call_next(request)
+
+    remaining = max(0, limit - count)
+    reset_in = 60 - (int(time.time()) % 60)
+
+    if count > limit:
+        RATE_LIMIT_EXCEEDED.labels(client_type=client_type).inc()
+        return JSONResponse(
+            status_code=429,
+            headers={
+                "Retry-After": str(reset_in),
+                "X-RateLimit-Limit": str(limit),
+                "X-RateLimit-Remaining": "0",
+                "X-RateLimit-Reset": str(reset_in),
+            },
+            content={
+                "resourceType": "OperationOutcome",
+                "issue": [{
+                    "severity": "error",
+                    "code": "throttled",
+                    "diagnostics": f"Rate limit of {limit} requests/minute exceeded. Retry after {reset_in}s.",
+                }],
+            },
+        )
+
+    response = await call_next(request)
+    response.headers["X-RateLimit-Limit"] = str(limit)
+    response.headers["X-RateLimit-Remaining"] = str(remaining)
+    response.headers["X-RateLimit-Reset"] = str(reset_in)
+    return response
 
 
 @app.middleware("http")
@@ -1371,6 +1513,7 @@ async def capability_statement(mode: Optional[str] = Query(None)):
             "interaction": [
                 {"code": "transaction"},
                 {"code": "batch"},
+                {"code": "history-system"},
             ],
             "resource": [
                 *RESOURCE_REGISTRY,

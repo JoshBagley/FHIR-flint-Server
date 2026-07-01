@@ -92,11 +92,16 @@ location_router = create_resource_router("Location", Location, _location_search_
 register_resource({
     "type": "Organization",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchRevInclude": ["PractitionerRole:organization"],
     "searchParam": [
         {"name": "name", "type": "string"},
         {"name": "identifier", "type": "token"},
@@ -105,17 +110,26 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 
 register_resource({
     "type": "Practitioner",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchRevInclude": ["PractitionerRole:practitioner"],
     "searchParam": [
         {"name": "family", "type": "string"},
         {"name": "given", "type": "string"},
@@ -125,17 +139,26 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 
 register_resource({
     "type": "PractitionerRole",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchInclude": ["PractitionerRole:practitioner", "PractitionerRole:organization"],
     "searchParam": [
         {"name": "practitioner", "type": "reference"},
         {"name": "organization", "type": "reference"},
@@ -144,17 +167,25 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+        {"name": "_include", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 
 register_resource({
     "type": "Location",
     "interaction": [
-        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
         {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
     ],
     "versioning": "versioned",
     "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
     "searchParam": [
         {"name": "name", "type": "string"},
         {"name": "identifier", "type": "token"},
@@ -163,6 +194,9 @@ register_resource({
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
 })
 

@@ -9,7 +9,7 @@ Implements FHIR R4 terminology operations:
 - Analytics
 """
 
-from fastapi import APIRouter, Query, HTTPException, Body
+from fastapi import APIRouter, Query, HTTPException, Body, Request
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 import asyncio
@@ -1424,6 +1424,27 @@ async def missing_codesystems():
         'totalMissing': len(missing_urls),
         'missing': missing,
         'registered': present,
+    }
+
+
+@router.get("/_history")
+async def system_history(
+    request: Request,
+    _since: Optional[str] = Query(None, alias="_since"),
+    _count: int = Query(20, alias="_count", ge=1, le=1000),
+    _offset: int = Query(0, alias="_offset", ge=0),
+):
+    total, entries = await state.db.get_system_history(since=_since, limit=_count, offset=_offset)
+    return {
+        "resourceType": "Bundle",
+        "type": "history",
+        "total": total,
+        "link": [
+            {"relation": "self", "url": str(request.url)},
+            *([{"relation": "next", "url": str(request.url).split("?")[0] + f"?_count={_count}&_offset={_offset + _count}"}]
+              if _offset + _count < total else []),
+        ],
+        "entry": entries,
     }
 
 

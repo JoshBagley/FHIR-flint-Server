@@ -14,7 +14,7 @@ All responses use `Content-Type: application/fhir+json`.
 5. [CodeSystem — Search & Read](#5-codesystem--search--read)
 6. [CodeSystem — FHIR Operations](#6-codesystem--fhir-operations)
 7. [ConceptMap](#7-conceptmap)
-7b. [Clinical & Administrative Resources](#7b-clinical--administrative-resources)
+7b. [Clinical & Administrative Resources](#7b-clinical--administrative-resources) — including Patch, Conditional, $validate, History, $match
 7c. [Bundle — Batch & Transaction](#7c-bundle--batch--transaction)
 8. [SDO / External Vocabulary Search](#8-sdo--external-vocabulary-search)
 9. [AI Assist](#9-ai-assist)
@@ -329,12 +329,19 @@ All 13 clinical/admin resource types share the same FHIR-standard HTTP interface
 | Operation | HTTP |
 |---|---|
 | Create | `POST /{Type}` → 201 + `Location` + `ETag` |
+| Conditional create | `POST /{Type}` with `If-None-Exist: {search-params}` header |
 | Read | `GET /{Type}/{id}` → 200 + `ETag` + `Last-Modified` |
 | Update | `PUT /{Type}/{id}` → 200 (use `If-Match: W/"N"` for optimistic locking; 412 on conflict) |
+| Conditional update | `PUT /{Type}?{search-params}` — update if 1 match; create if 0; 412 if multiple |
+| Patch | `PATCH /{Type}/{id}` with JSON Patch ops (RFC 6902) — partial update, validated before persist |
 | Delete | `DELETE /{Type}/{id}` → 204 |
+| Conditional delete | `DELETE /{Type}?{search-params}` — deletes all matching resources |
 | Search | `GET /{Type}?{params}&_count=20&_offset=0&_sort=date` → Bundle searchset |
-| History | `GET /{Type}/{id}/_history` → Bundle history |
+| Instance history | `GET /{Type}/{id}/_history` → Bundle history |
+| Type history | `GET /{Type}/_history?_since=&_count=` → all changes for that resource type |
+| System history | `GET /_history?_since=&_count=` → all changes across all resource types |
 | Versioned read | `GET /{Type}/{id}/_history/{vid}` → specific version |
+| Validate | `POST /{Type}/$validate` → OperationOutcome (structural validation via Pydantic) |
 | Audit log | `GET /{Type}/{id}/$audit` → Flint audit entries |
 
 ### Supported types and search parameters
@@ -371,8 +378,8 @@ curl -X POST http://localhost/Observation \
   -H "Content-Type: application/fhir+json" \
   -d '{"resourceType":"Observation","status":"final","code":{"coding":[{"system":"http://loinc.org","code":"85354-9","display":"Blood pressure panel"}]},"subject":{"reference":"Patient/{id}"},"valueQuantity":{"value":120,"unit":"mmHg"}}'
 
-# Get all Observations for a patient
-curl "http://localhost/Observation?patient=Patient/{id}"
+# Get all Observations for a patient, including the referenced Patient resource
+curl "http://localhost/Observation?patient=Patient/{id}&_include=Observation:subject"
 
 # Update with optimistic locking
 curl -X PUT http://localhost/Patient/{id} \
@@ -380,12 +387,109 @@ curl -X PUT http://localhost/Patient/{id} \
   -H "If-Match: W/\"1\"" \
   -d '{"resourceType":"Patient","id":"{id}","name":[{"family":"Smith"}],"active":true}'
 
-# Read version history
+# Read instance history
 curl "http://localhost/Patient/{id}/_history"
 
 # Read a specific version
 curl "http://localhost/Patient/{id}/_history/1"
 ```
+
+### JSON Patch (RFC 6902)
+
+Partial updates using a list of patch operations. The result is validated against the resource schema before persisting.
+
+```bash
+# Patch Patient — change gender and mark active
+curl -X PATCH http://localhost/Patient/{id} \
+  -H "Content-Type: application/json-patch+json" \
+  -H "If-Match: W/\"1\"" \
+  -d '[
+    {"op": "replace", "path": "/gender", "value": "female"},
+    {"op": "add",     "path": "/active", "value": true}
+  ]'
+
+# Patch Observation — update status
+curl -X PATCH http://localhost/Observation/{id} \
+  -H "Content-Type: application/json-patch+json" \
+  -d '[{"op": "replace", "path": "/status", "value": "amended"}]'
+```
+
+### Conditional Interactions
+
+```bash
+# Conditional create — only create if no Patient with this identifier exists
+curl -X POST http://localhost/Patient \
+  -H "Content-Type: application/fhir+json" \
+  -H "If-None-Exist: identifier=MRN-12345" \
+  -d '{"resourceType":"Patient","identifier":[{"value":"MRN-12345"}],"name":[{"family":"Jones"}]}'
+
+# Conditional update — update the Patient matching this identifier (creates if none exist)
+curl -X PUT "http://localhost/Patient?identifier=MRN-12345" \
+  -H "Content-Type: application/fhir+json" \
+  -d '{"resourceType":"Patient","identifier":[{"value":"MRN-12345"}],"name":[{"family":"Jones","given":["Alice"]}],"active":true}'
+
+# Conditional delete — delete all Observations with this status
+curl -X DELETE "http://localhost/Observation?status=entered-in-error"
+```
+
+### `$validate`
+
+Validates a resource body against the Pydantic R4 schema. Returns `OperationOutcome` — no data is persisted.
+
+```bash
+# Validate a Patient resource
+curl -X POST http://localhost/Patient/\$validate \
+  -H "Content-Type: application/fhir+json" \
+  -d '{"resourceType":"Patient","gender":"male","birthDate":"1990-01-15"}'
+
+# Validate an Observation (will error if status is missing)
+curl -X POST http://localhost/Observation/\$validate \
+  -H "Content-Type: application/fhir+json" \
+  -d '{"resourceType":"Observation","code":{"text":"BP"}}'
+# → 200 with OperationOutcome.issue[].severity = "error" for missing required field
+```
+
+### `Patient/$match`
+
+Probabilistic patient matching. Score breakdown: identifier match (+0.5), birthDate match (+0.3), family name match (+0.2). Match grade: `certain` (≥0.8), `probable` (≥0.5), `possible` (<0.5).
+
+```bash
+curl -X POST http://localhost/Patient/\$match \
+  -H "Content-Type: application/fhir+json" \
+  -d '{
+    "resourceType": "Parameters",
+    "parameter": [
+      {
+        "name": "resource",
+        "resource": {
+          "resourceType": "Patient",
+          "identifier": [{"value": "MRN-12345"}],
+          "name": [{"family": "Smith"}],
+          "birthDate": "1990-01-15"
+        }
+      },
+      {"name": "count", "valueInteger": 5},
+      {"name": "onlyCertainMatches", "valueBoolean": false}
+    ]
+  }'
+```
+
+Response includes `search.score` and a `match-grade` extension (`certain`/`probable`/`possible`) on each Bundle entry.
+
+### History Endpoints
+
+```bash
+# All changes to a specific Patient instance
+curl "http://localhost/Patient/{id}/_history"
+
+# All changes to any Patient (type-level history)
+curl "http://localhost/Patient/_history?_count=50&_since=2026-01-01T00:00:00Z"
+
+# All changes across all resource types (system history)
+curl "http://localhost/_history?_count=100&_since=2026-06-01T00:00:00Z"
+```
+
+All history endpoints return a `Bundle` with `type: history`. Each entry includes `request` (method + URL) and `response` (status + ETag) alongside the resource snapshot.
 
 ---
 

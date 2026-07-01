@@ -18,6 +18,10 @@ RESOURCE_COUNT = Counter(
     'fhir_resources_total', 'Total FHIR resources created/updated',
     ['resource_type', 'operation']
 )
+RATE_LIMIT_EXCEEDED = Counter(
+    'fhir_rate_limit_exceeded_total', 'Total requests rejected by per-client rate limiter',
+    ['client_type']
+)
 
 
 def _fhir_issue_code(status_code: int) -> str:

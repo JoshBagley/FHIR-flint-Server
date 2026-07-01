@@ -48,8 +48,10 @@ Config: `infrastructure/docker/nginx/nginx.conf`
 
 - Python 3.11, FastAPI 0.104, Uvicorn with `--reload`
 - Implements **FHIR R4** resource operations:
-  - CRUD for `ValueSet`, `CodeSystem`, and `ConceptMap`
-  - `$expand` — expands a ValueSet to its full list of concepts; supports SNOMED CT implicit ValueSet URLs (`fhir_vs=isa/{id}`, `fhir_vs=refset/{id}`, `fhir_vs=ecl/{simple_expr}`) delegated to tx.fhir.org; complex ECL (attribute refinement, `AND`/`OR`/`MINUS`, post-coordination) is not yet supported (backlog item 17 — requires Snowstorm `$expand?ecl=` routing)
+  - CRUD + JSON Patch (RFC 6902) for all 16 resource types
+  - Conditional create (`If-None-Exist`), conditional update, conditional delete for all clinical/admin types
+  - `$validate` structural validation on all 13 factory-generated resource types
+  - `$expand` — expands a ValueSet to its full list of concepts; supports SNOMED CT implicit ValueSet URLs (`fhir_vs=isa/{id}`, `fhir_vs=refset/{id}`, `fhir_vs=ecl/{simple_expr}`) delegated to tx.fhir.org; complex ECL (attribute refinement, `AND`/`OR`/`MINUS`, post-coordination) is not yet supported
   - `$validate-code` — checks whether a code belongs to a ValueSet/CodeSystem
   - `$validate-batch` — validates up to 200 codes concurrently in one request (HL7 v2 message validation)
   - `$lookup` — looks up display name and properties for a code; supports LOINC hierarchy properties (`parent`, `child`, `COMPONENT`, etc.) via fhir.loinc.org when credentials are set
@@ -57,12 +59,15 @@ Config: `infrastructure/docker/nginx/nginx.conf`
   - `$subsumes` — hierarchy check (subsumes / subsumed-by / equivalent / not-subsumed); delegates to tx.fhir.org for SNOMED CT and fhir.loinc.org for LOINC
   - `$diff` — compares two versions of a resource
   - `$stats` / `/analytics/summary` — aggregate counts
+  - `Patient/$match` — probabilistic patient matching scored on identifier, birthDate, family name
+- **History:** instance history (`/{id}/_history`), type-level history (`/{Type}/_history`), and system history (`/_history`) — all paginated with `_since` / `_count`
 - **HL7 v2 table support** — any `http://terminology.hl7.org/CodeSystem/v2-*` URL is
   resolved locally (after running `migration/import_hl7_v2_tables.py`) or delegated
   to `tx.fhir.org` as a fallback; no explicit routing entry needed per table
-- Versioning: every PUT creates a new version row; `/_history` returns all versions
+- Versioning: every PUT/PATCH creates a new version row; ETag enforcement via `If-Match` header
 - Auth: optional JWT bearer token auth (controlled by `ENABLE_AUTH` env var)
-- Metrics: Prometheus client exposed at `/metrics`
+- Rate limiting: per-client sliding window via Redis (`RATE_LIMIT_PER_MINUTE` / `RATE_LIMIT_AI_PER_MINUTE`); returns 429 OperationOutcome with `Retry-After` + `X-RateLimit-*` headers; client identified by `X-API-Key` header or remote IP
+- Metrics: Prometheus client exposed at `/metrics`; `fhir_rate_limit_exceeded_total` counter tracks rejections by client type
 
 Source: `backend/app/`
 
@@ -86,7 +91,7 @@ Source: `backend/app/`
 
 - Version: **7-alpine**, append-only persistence, 256 MB max, LRU eviction
 - Caches expensive `$expand` results (key: `expand:{url}:{version}`)
-- Also used for rate-limit counters (via Nginx `limit_req_zone`)
+- Also used for rate-limit counters: Nginx `limit_req_zone` (IP-level) and FastAPI per-client sliding window (`rl:{client}:{minute}` keys)
 - Data persisted in Docker volume `redis_data`
 
 ### Frontend (React + Vite)
@@ -192,7 +197,7 @@ Nginx ($expand rate limit: 20r/s) → Backend
 - **CORS** origins are controlled via `CORS_ORIGINS` in `.env`.
 - **Elasticsearch and Redis** have no authentication — do not expose ports 9200 or 6379 publicly.
 - **Nginx** adds `X-Frame-Options`, `X-Content-Type-Options`, and `X-XSS-Protection` headers.
-- **Rate limiting**: API at 100 r/s, `$expand` at 20 r/s (configured in nginx.conf).
+- **Rate limiting**: Two layers — Nginx IP-level (100 r/s general, 20 r/s `$expand`, returns 429); FastAPI per-client middleware (600 req/min general, 20 req/min for `/ai/*` and `$expand`, keyed by `X-API-Key` header or remote IP). Returns FHIR `OperationOutcome` with `Retry-After` and `X-RateLimit-*` headers. Configurable via `RATE_LIMIT_PER_MINUTE` and `RATE_LIMIT_AI_PER_MINUTE` env vars.
 - All services communicate over the internal `flint-network` bridge; only the ports listed above are exposed to the host.
 
 ---
