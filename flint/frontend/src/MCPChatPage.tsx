@@ -10,6 +10,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -252,11 +253,8 @@ function ToolSidebar({ tools }: { tools: McpTool[] }) {
 // Main page
 // ---------------------------------------------------------------------------
 
-interface MCPChatPageProps {
-  onBack: () => void;
-}
-
-export default function MCPChatPage({ onBack }: MCPChatPageProps) {
+export default function MCPChatPage() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -372,7 +370,7 @@ export default function MCPChatPage({ onBack }: MCPChatPageProps) {
         <div className="max-w-full mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
-              onClick={onBack}
+              onClick={() => navigate(-1)}
               className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />

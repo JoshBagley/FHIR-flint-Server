@@ -32,6 +32,24 @@ pip install -r requirements.txt
 
 ## Available Scripts
 
+### Synthea Synthetic Patient Data
+
+Imports 10 (or more) synthetic FHIR R4 patients with full clinical history via the Bundle endpoint.
+Each patient bundle includes Encounters, Observations, Conditions, AllergyIntolerances, Immunizations, etc.
+
+```bash
+# Import 10 patients (default)
+python seed_synthea.py --target-url http://localhost
+
+# Import more patients
+python seed_synthea.py --target-url http://localhost --count 25
+
+# Dry run — list what would be imported
+python seed_synthea.py --dry-run
+```
+
+---
+
 ### HL7 FHIR R4 Core Code Systems
 
 ~981 administrative code systems from the official HL7 FHIR R4 package. No license required.
