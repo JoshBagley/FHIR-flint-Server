@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timezone
 from email.utils import formatdate
 from fastapi import HTTPException, Request
@@ -22,6 +22,17 @@ RATE_LIMIT_EXCEEDED = Counter(
     'fhir_rate_limit_exceeded_total', 'Total requests rejected by per-client rate limiter',
     ['client_type']
 )
+
+
+_DATE_PREFIXES = {'ge': '>=', 'le': '<=', 'gt': '>', 'lt': '<', 'eq': '=', 'ne': '!='}
+
+
+def _date_condition(field_expr: str, value: str) -> Tuple[str, str]:
+    """Return (sql_fragment, date_value) respecting FHIR date prefix operators."""
+    for prefix, op in _DATE_PREFIXES.items():
+        if value.startswith(prefix):
+            return (f"{field_expr} {op} ??", value[2:])
+    return (f"{field_expr} = ??", value)
 
 
 def _fhir_issue_code(status_code: int) -> str:

@@ -3,6 +3,7 @@ from typing import Dict, List, Any, Tuple
 from fastapi import HTTPException, Body
 from app import state
 from app.capability import register_resource
+from app.fhir_utils import _date_condition
 from app.models.clinical import Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization
 from app.routes.resource_factory import create_resource_router
 
@@ -47,6 +48,8 @@ async def _check_codings(coding_list: List[Dict[str, Any]], field: str) -> None:
 def _patient_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
+    if '_id' in qp:
+        extra.append(("data->>'id' = ??", qp['_id']))
     if 'name' in qp:
         base['name'] = qp['name']
     if 'family' in qp:
@@ -68,6 +71,11 @@ def _patient_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) id WHERE id->>'value' = ??)",
             qp['identifier']
         ))
+    if 'telecom' in qp:
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'telecom', '[]'::jsonb)) t WHERE t->>'value' ILIKE ??)",
+            f"%{qp['telecom']}%"
+        ))
     return base, extra
 
 
@@ -88,6 +96,8 @@ def _observation_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[T
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) cat, jsonb_array_elements(COALESCE(cat->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
             qp['category']
         ))
+    if 'date' in qp:
+        extra.append(_date_condition("data->>'effectiveDateTime'", qp['date']))
     return base, extra
 
 
@@ -113,18 +123,36 @@ def _condition_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tup
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
             qp['code']
         ))
+    if 'onset-date' in qp:
+        extra.append(_date_condition("data->>'onsetDateTime'", qp['onset-date']))
+    if 'recorded-date' in qp:
+        extra.append(_date_condition("data->>'recordedDate'", qp['recorded-date']))
     return base, extra
 
 
 def _encounter_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
+    if '_id' in qp:
+        extra.append(("data->>'id' = ??", qp['_id']))
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
         extra.append(("data->'subject'->>'reference' = ??", qp['patient']))
     if 'class' in qp:
         extra.append(("data->'class'->>'code' = ??", qp['class']))
+    if 'date' in qp:
+        extra.append(_date_condition("data->'period'->>'start'", qp['date']))
+    if 'identifier' in qp:
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) id WHERE id->>'value' = ??)",
+            qp['identifier']
+        ))
+    if 'type' in qp:
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'type', '[]'::jsonb)) t, jsonb_array_elements(COALESCE(t->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+            qp['type']
+        ))
     return base, extra
 
 
@@ -308,20 +336,26 @@ register_resource({
         "MedicationRequest:subject", "Procedure:subject", "DiagnosticReport:subject",
     ],
     "searchParam": [
+        {"name": "_id", "type": "token"},
         {"name": "family", "type": "string"},
         {"name": "given", "type": "string"},
         {"name": "birthdate", "type": "date"},
         {"name": "gender", "type": "token"},
         {"name": "identifier", "type": "token"},
         {"name": "name", "type": "string"},
+        {"name": "telecom", "type": "token"},
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
         {"name": "_revinclude", "type": "string"},
     ],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient",
+    ],
     "operation": [
         {"name": "match", "definition": "http://hl7.org/fhir/OperationDefinition/Patient-match"},
         {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
+        {"name": "export", "definition": "http://hl7.org/fhir/uv/bulkdata/OperationDefinition/patient-export"},
     ],
 })
 
@@ -338,11 +372,15 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchInclude": ["Observation:subject", "Observation:encounter"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
+    ],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "code", "type": "token"},
         {"name": "category", "type": "token"},
         {"name": "status", "type": "token"},
+        {"name": "date", "type": "date"},
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
@@ -366,12 +404,18 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchInclude": ["Condition:subject", "Condition:encounter"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-encounter-diagnosis",
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns",
+    ],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "clinical-status", "type": "token"},
         {"name": "category", "type": "token"},
         {"name": "code", "type": "token"},
         {"name": "status", "type": "token"},
+        {"name": "onset-date", "type": "date"},
+        {"name": "recorded-date", "type": "date"},
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
@@ -395,14 +439,21 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchInclude": ["Encounter:subject"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-encounter",
+    ],
     "searchRevInclude": [
         "Observation:encounter", "Condition:encounter", "MedicationRequest:encounter",
         "Procedure:encounter", "DiagnosticReport:encounter",
     ],
     "searchParam": [
+        {"name": "_id", "type": "token"},
         {"name": "patient", "type": "reference"},
         {"name": "status", "type": "token"},
         {"name": "class", "type": "token"},
+        {"name": "date", "type": "date"},
+        {"name": "identifier", "type": "token"},
+        {"name": "type", "type": "token"},
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
@@ -427,6 +478,9 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchInclude": ["AllergyIntolerance:patient"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance",
+    ],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "clinical-status", "type": "token"},
@@ -455,6 +509,9 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchInclude": ["Immunization:patient"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization",
+    ],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "vaccine-code", "type": "token"},

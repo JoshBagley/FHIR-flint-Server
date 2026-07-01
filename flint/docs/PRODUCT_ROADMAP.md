@@ -2,7 +2,7 @@
 
 This document tracks the gaps between Flint's current capabilities and a commercially viable, conformant FHIR R4 server. It is the authoritative source for implementation priorities. Update checkboxes as work is completed.
 
-**Last updated:** 2026-06-30
+**Last updated:** 2026-07-01
 **Analysis basis:** Gap analysis vs HAPI FHIR, Azure Health Data Services, Google Cloud Healthcare API, Medplum, and Smile CDR.
 
 ---
@@ -249,16 +249,16 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 
 ### P2.4 — Bulk Data Export (FHIR Bulk Data IG v2)
 
-- [ ] Implement kick-off endpoint: `GET /$export`, `GET /Patient/$export`, `GET /Group/{id}/$export`
-- [ ] Return `202 Accepted` with `Content-Location` header pointing to a status endpoint
-- [ ] Implement async export job using a background worker (Celery or asyncio task queue)
-- [ ] Serialize resources to NDJSON files (one file per resource type)
-- [ ] Implement status endpoint `GET /jobs/{id}` returning job progress
-- [ ] Implement file download endpoint (serve NDJSON from local storage or S3)
-- [ ] Implement `DELETE /jobs/{id}` to cancel an in-progress export
-- [ ] Support `_since` parameter (export only resources modified after a date)
-- [ ] Support `_type` parameter (export only specific resource types)
-- [ ] Register in CapabilityStatement with `bulkDataAccessType` extension
+- [x] Implement kick-off endpoint: `GET /$export`, `GET /Patient/$export` (`/Group/{id}/$export` deferred — Group resource not yet supported)
+- [x] Return `202 Accepted` with `Content-Location` header pointing to a status endpoint
+- [x] Implement async export job using asyncio background task (no Celery required)
+- [x] Serialize resources to NDJSON files (one file per resource type, stored under `BULK_EXPORT_DIR`)
+- [x] Implement status endpoint `GET /jobs/{id}` — returns 202 while in progress, 200 + manifest when complete
+- [x] Implement file download endpoint `GET /bulk/{job_id}/{file}.ndjson` (local storage; configurable via `BULK_EXPORT_DIR`)
+- [x] Implement `DELETE /jobs/{id}` to cancel an in-progress export
+- [x] Support `_since` parameter (filter by `meta.lastUpdated >= _since`)
+- [x] Support `_type` parameter (comma-separated resource types)
+- [x] Register `$export` operation in CapabilityStatement (system-level and Patient)
 
 **Why it matters:** Required by CMS interoperability rules for payer-side implementations. Required for population health analytics pipelines (feeding BigQuery, Databricks, Snowflake).
 
@@ -278,11 +278,13 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 
 ### P2.6 — US Core v6 Profile Conformance
 
-- [ ] Import US Core v6.1.0 StructureDefinition resources into Flint
+- [x] Add `StructureDefinition` resource type with full CRUD — profiles can now be stored locally (prerequisite for local profile validation)
+- [x] Add `supportedProfile` array to Patient CapabilityStatement entry (populated after import)
+- [x] Create `migration/import_us_core_v6.py` — downloads US Core v6.1.0 package from packages.fhir.org and imports all StructureDefinitions
+- [x] Implement all US Core v6.1.0 SHALL search parameters (16 gaps across 8 resource types): `_id`/`telecom` on Patient; `date` on Observation/DiagnosticReport; `_id`/`date`/`identifier`/`type` on Encounter; `authoredon` on MedicationRequest; `_id` on Practitioner; `address` on Organization; `address`/`address-city`/`address-postalcode`/`address-state`/`organization` on Location. FHIR date prefix operators (`ge`, `le`, `gt`, `lt`) implemented via `_date_condition` helper in `fhir_utils.py`. SHOULD params `onset-date`/`recorded-date` on Condition also added.
 - [ ] Implement must-support enforcement for US Core Patient, Observation (Lab), Condition, AllergyIntolerance, Immunization, Encounter, MedicationRequest
-- [ ] Verify search parameter coverage matches US Core SHALL/SHOULD requirements
 - [ ] Pass Inferno US Core test suite (ONC certification prerequisite)
-- [ ] Add US Core profile URLs to CapabilityStatement `rest.resource[].supportedProfile`
+- [x] Update CapabilityStatement `supportedProfile` entries after running the import script — all 13 clinical/admin/medication resource types now declare their US Core v6.1.0 profile URLs statically; no import run required
 
 **Why it matters:** US Core conformance is required for ONC Health IT Certification and for EHR integration with Cerner, Epic, and Meditech (all require US Core from their app partners).
 

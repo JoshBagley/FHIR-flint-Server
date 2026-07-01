@@ -3,6 +3,7 @@ from typing import Dict, List, Any, Tuple
 from fastapi import HTTPException
 from app import state
 from app.capability import register_resource
+from app.fhir_utils import _date_condition
 from app.models.medications import MedicationRequest, Procedure, DiagnosticReport
 from app.routes.resource_factory import create_resource_router
 
@@ -54,6 +55,8 @@ def _medication_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any],
         ))
     if 'intent' in qp:
         extra.append(("data->>'intent' = ??", qp['intent']))
+    if 'authoredon' in qp:
+        extra.append(_date_condition("data->>'authoredOn'", qp['authoredon']))
     return base, extra
 
 
@@ -91,6 +94,8 @@ def _diagnostic_report_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], 
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) cat, jsonb_array_elements(COALESCE(cat->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
             qp['category']
         ))
+    if 'date' in qp:
+        extra.append(_date_condition("data->>'effectiveDateTime'", qp['date']))
     return base, extra
 
 
@@ -114,11 +119,15 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchInclude": ["MedicationRequest:subject", "MedicationRequest:encounter"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest",
+    ],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "status", "type": "token"},
         {"name": "medication", "type": "token"},
         {"name": "intent", "type": "token"},
+        {"name": "authoredon", "type": "date"},
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
@@ -142,6 +151,9 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchInclude": ["Procedure:subject", "Procedure:encounter"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure",
+    ],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "status", "type": "token"},
@@ -170,11 +182,16 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchInclude": ["DiagnosticReport:subject", "DiagnosticReport:encounter"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-diagnosticreport-lab",
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-diagnosticreport-note",
+    ],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "status", "type": "token"},
         {"name": "code", "type": "token"},
         {"name": "category", "type": "token"},
+        {"name": "date", "type": "date"},
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},

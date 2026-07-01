@@ -17,6 +17,7 @@ A general-purpose, production-ready FHIR R4 server. Supports 16 resource types, 
 - `POST /Patient/$match` — probabilistic patient matching scored on identifier, birthDate, and family name
 - `_include` / `_revinclude` — resolve forward and reverse references in a single search request (e.g. `_include=Observation:subject`, `_revinclude=Observation:subject`)
 - Code validation on create/update: Observation code (LOINC/SNOMED), Immunization vaccineCode (CVX), MedicationRequest medicationCodeableConcept (RxNorm) — validated against locally stored complete CodeSystems
+- US Core v6.1.0 search parameter coverage — all SHALL params implemented across 13 resource types; FHIR date prefix operators (`ge`, `le`, `gt`, `lt`) supported; `supportedProfile` declared in CapabilityStatement for all US Core-profiled types
 
 ### Terminology & Vocabulary
 - FHIR R4 operations: `$expand`, `$validate-code`, `$validate-batch`, `$lookup`, `$translate`, `$subsumes`, `$diff`
@@ -25,6 +26,13 @@ A general-purpose, production-ready FHIR R4 server. Supports 16 resource types, 
 - `$subsumes` hierarchy checks for SNOMED CT, LOINC, and local CodeSystems
 - HL7 v2 table validation — offline (imported) or delegated to `tx.fhir.org`
 - SDO connectors: SNOMED CT, ICD-10-CM, ICD-9-CM, LOINC, RxNorm, VSAC
+
+### Bulk Data Export (FHIR Bulk Data IG v2)
+- `GET /$export` — system-level export of all resource types as NDJSON (one file per type)
+- `GET /Patient/$export` — patient-compartment export
+- Async: kick-off returns `202 Accepted` + `Content-Location`; poll `GET /jobs/{id}`; download via `GET /bulk/{id}/{type}.ndjson`
+- `DELETE /jobs/{id}` to cancel; `_since` and `_type` filter parameters supported
+- Jobs stored in Redis (24h TTL); files written to `BULK_EXPORT_DIR` (default `/tmp/bulk-export`)
 
 ### Platform
 - Fast full-text search with Elasticsearch
@@ -156,6 +164,9 @@ python migration/import_iso3166.py --target-url http://localhost
 
 # CDC CVX vaccine codes
 python migration/import_cvx.py --target-url http://localhost
+
+# US Core v6.1.0 StructureDefinitions (enables profile validation via $validate?profile=)
+python migration/import_us_core_v6.py --target-url http://localhost
 ```
 
 ## Documentation

@@ -19,12 +19,19 @@ def _organization_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
         ))
     if 'active' in qp:
         extra.append(("data->>'active' = ??", qp['active']))
+    if 'address' in qp:
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'address', '[]'::jsonb)) a WHERE lower(a::text) LIKE ??)",
+            f"%{qp['address'].lower()}%"
+        ))
     return base, extra
 
 
 def _practitioner_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
+    if '_id' in qp:
+        extra.append(("data->>'id' = ??", qp['_id']))
     if 'name' in qp:
         base['name'] = qp['name']
     if 'family' in qp:
@@ -81,6 +88,19 @@ def _location_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tupl
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'type', '[]'::jsonb)) t, jsonb_array_elements(COALESCE(t->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
             qp['type']
         ))
+    if 'address' in qp:
+        extra.append((
+            "lower((data->'address')::text) LIKE ??",
+            f"%{qp['address'].lower()}%"
+        ))
+    if 'address-city' in qp:
+        extra.append(("data->'address'->>'city' ILIKE ??", f"%{qp['address-city']}%"))
+    if 'address-postalcode' in qp:
+        extra.append(("data->'address'->>'postalCode' = ??", qp['address-postalcode']))
+    if 'address-state' in qp:
+        extra.append(("data->'address'->>'state' ILIKE ??", f"%{qp['address-state']}%"))
+    if 'organization' in qp:
+        extra.append(("data->'managingOrganization'->>'reference' = ??", qp['organization']))
     return base, extra
 
 
@@ -102,11 +122,15 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchRevInclude": ["PractitionerRole:organization"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-organization",
+    ],
     "searchParam": [
         {"name": "name", "type": "string"},
         {"name": "identifier", "type": "token"},
         {"name": "type", "type": "token"},
         {"name": "active", "type": "token"},
+        {"name": "address", "type": "string"},
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
@@ -130,7 +154,11 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchRevInclude": ["PractitionerRole:practitioner"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-practitioner",
+    ],
     "searchParam": [
+        {"name": "_id", "type": "token"},
         {"name": "family", "type": "string"},
         {"name": "given", "type": "string"},
         {"name": "name", "type": "string"},
@@ -159,6 +187,9 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchInclude": ["PractitionerRole:practitioner", "PractitionerRole:organization"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-practitionerrole",
+    ],
     "searchParam": [
         {"name": "practitioner", "type": "reference"},
         {"name": "organization", "type": "reference"},
@@ -186,11 +217,19 @@ register_resource({
     "conditionalCreate": True,
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-location",
+    ],
     "searchParam": [
         {"name": "name", "type": "string"},
         {"name": "identifier", "type": "token"},
         {"name": "status", "type": "token"},
         {"name": "type", "type": "token"},
+        {"name": "address", "type": "string"},
+        {"name": "address-city", "type": "string"},
+        {"name": "address-postalcode", "type": "string"},
+        {"name": "address-state", "type": "string"},
+        {"name": "organization", "type": "reference"},
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},

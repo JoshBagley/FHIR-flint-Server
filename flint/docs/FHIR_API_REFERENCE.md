@@ -346,21 +346,23 @@ All 13 clinical/admin resource types share the same FHIR-standard HTTP interface
 
 ### Supported types and search parameters
 
-| Resource | Key search parameters |
+Search parameters marked **US Core SHALL** are required by US Core v6.1.0. Date parameters support FHIR prefix operators: `ge`, `le`, `gt`, `lt` (e.g. `date=ge2024-01-01`).
+
+| Resource | Search parameters |
 |---|---|
-| `Patient` | `family`, `given`, `name`, `birthdate`, `gender`, `identifier` |
-| `Observation` | `patient`, `code`, `category`, `status` |
-| `Condition` | `patient`, `code`, `clinical-status`, `category` |
-| `Encounter` | `patient`, `status`, `class` |
+| `Patient` | `_id`, `family`, `given`, `name`, `birthdate`, `gender`, `identifier`, `telecom` |
+| `Observation` | `patient`, `code`, `category`, `status`, `date` |
+| `Condition` | `patient`, `code`, `clinical-status`, `category`, `onset-date`, `recorded-date` |
+| `Encounter` | `_id`, `patient`, `status`, `class`, `date`, `identifier`, `type` |
 | `AllergyIntolerance` | `patient`, `code`, `clinical-status`, `criticality` |
 | `Immunization` | `patient`, `vaccine-code`, `date`, `status` |
-| `Organization` | `name`, `type` |
-| `Practitioner` | `name`, `family`, `given`, `gender` |
+| `Organization` | `name`, `identifier`, `type`, `active`, `address` |
+| `Practitioner` | `_id`, `name`, `family`, `given`, `identifier`, `gender` |
 | `PractitionerRole` | `practitioner`, `organization`, `role`, `specialty` |
-| `Location` | `name`, `status` |
-| `MedicationRequest` | `patient`, `status`, `intent`, `medication-code` |
-| `Procedure` | `patient`, `code`, `status` |
-| `DiagnosticReport` | `patient`, `code`, `category`, `status` |
+| `Location` | `name`, `identifier`, `status`, `type`, `address`, `address-city`, `address-postalcode`, `address-state`, `organization` |
+| `MedicationRequest` | `patient`, `status`, `intent`, `medication`, `authoredon` |
+| `Procedure` | `patient`, `code`, `status`, `date` |
+| `DiagnosticReport` | `patient`, `code`, `category`, `status`, `date` |
 
 All search endpoints support `_count`, `_offset`, and `_sort` (values: `name`, `-name`, `date`, `-date`, `status`, `-status`). Results are wrapped in a `Bundle` with `link[rel=next/prev/first]` for pagination.
 

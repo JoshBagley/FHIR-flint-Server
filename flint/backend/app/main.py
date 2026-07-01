@@ -1031,6 +1031,9 @@ async def lifespan(app: FastAPI):
     await state.cache.connect()
     logger.info("Redis connected")
 
+    from app.routes.bulk_export import _EXPORT_DIR
+    _EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+
     logger.info("All services initialized")
     yield
 
@@ -1088,6 +1091,37 @@ from app.routes.medications import routers as medication_routers  # noqa: E402
 
 for _router in clinical_routers + administrative_routers + medication_routers:
     app.include_router(_router)
+
+from app.routes.bulk_export import router as bulk_export_router  # noqa: E402
+app.include_router(bulk_export_router)
+
+# StructureDefinition (P2.6 prep — CRUD so US Core profiles can be stored)
+from app.models.conformance import StructureDefinition  # noqa: E402
+from app.routes.resource_factory import create_resource_router  # noqa: E402
+from app.capability import register_resource  # noqa: E402
+
+_sd_router = create_resource_router("StructureDefinition", StructureDefinition, search_hook=None)
+app.include_router(_sd_router)
+
+register_resource({
+    "type": "StructureDefinition",
+    "interaction": [
+        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+    ],
+    "versioning": "versioned",
+    "readHistory": True,
+    "searchParam": [
+        {"name": "url", "type": "uri"},
+        {"name": "name", "type": "string"},
+        {"name": "status", "type": "token"},
+        {"name": "kind", "type": "token"},
+        {"name": "type", "type": "token"},
+        {"name": "_count", "type": "number"},
+        {"name": "_offset", "type": "number"},
+        {"name": "_sort", "type": "string"},
+    ],
+})
 
 from app.routes.bundle import router as bundle_router  # noqa: E402
 app.include_router(bundle_router)
@@ -1514,6 +1548,9 @@ async def capability_statement(mode: Optional[str] = Query(None)):
                 {"code": "transaction"},
                 {"code": "batch"},
                 {"code": "history-system"},
+            ],
+            "operation": [
+                {"name": "export", "definition": "http://hl7.org/fhir/uv/bulkdata/OperationDefinition/export"},
             ],
             "resource": [
                 *RESOURCE_REGISTRY,
