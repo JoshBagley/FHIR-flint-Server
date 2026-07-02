@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Search, Download, FileCode, Layers,
-  GitBranch, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2,
+  GitBranch, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2, Zap, Globe,
   ChevronDown, ChevronUp, Copy, Check, ExternalLink, ChevronLeft, ChevronRight, Plus, Settings, X, Filter, Pencil, Trash2,
   Archive, ScrollText, RefreshCw
 } from 'lucide-react';
@@ -825,6 +825,409 @@ const CodeSystemConceptsPage = ({ resource, onBack }: { resource: UiResource; on
 };
 
 // ---------------------------------------------------------------------------
+// SDO Search Panel
+// ---------------------------------------------------------------------------
+
+const LOOKUP_SYSTEMS = new Set(['snomed', 'loinc', 'icd10cm']);
+
+function SdoSearchPanel() {
+  const [systems, setSystems] = useState<SdoSystem[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<Record<string, { systemName: string; results: SdoResult[] }>>({});
+  const [lookup, setLookup] = useState<{ loading: boolean; data: unknown } | null>(null);
+  const debouncedQuery = useDebounce(query, 400);
+
+  useEffect(() => {
+    apiFetch<{ systems: SdoSystem[] }>('/sdo/systems')
+      .then(d => {
+        const avail = (d.systems ?? []).filter(s => s.available);
+        setSystems(avail);
+        setSelected(new Set(avail.map(s => s.id)));
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!debouncedQuery.trim() || selected.size === 0) { setResults({}); return; }
+    setLoading(true);
+    const active = systems.filter(s => selected.has(s.id));
+    Promise.all(active.map(async s => {
+      try {
+        const d = await apiFetch<{ results: SdoResult[] }>(
+          `/sdo/search?system=${s.id}&q=${encodeURIComponent(debouncedQuery)}&limit=15`
+        );
+        return [s.id, { systemName: s.name, results: d.results ?? [] }] as const;
+      } catch {
+        return [s.id, { systemName: s.name, results: [] }] as const;
+      }
+    })).then(pairs => { setResults(Object.fromEntries(pairs)); setLoading(false); });
+  }, [debouncedQuery, selected, systems]);
+
+  const doLookup = async (code: string, sysId: string) => {
+    setLookup({ loading: true, data: null });
+    try {
+      const d = await apiFetch<unknown>(`/sdo/lookup?system=${sysId}&code=${encodeURIComponent(code)}`);
+      setLookup({ loading: false, data: d });
+    } catch (e) {
+      setLookup({ loading: false, data: { error: String(e) } });
+    }
+  };
+
+  const toggleSystem = (id: string) => setSelected(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+
+  const totalResults = Object.values(results).reduce((n, s) => n + s.results.length, 0);
+
+  return (
+    <div className="space-y-4">
+      {/* System pills */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+        <p className="text-xs font-medium text-gray-600 mb-2.5">Code Systems</p>
+        <div className="flex flex-wrap gap-1.5">
+          {systems.length === 0
+            ? <p className="text-xs text-gray-400">Loading systems…</p>
+            : systems.map(s => (
+              <button key={s.id} onClick={() => toggleSystem(s.id)}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  selected.has(s.id)
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-500 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                }`}>{s.name}</button>
+            ))}
+        </div>
+      </div>
+
+      {/* Search input */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <input type="text" value={query} onChange={e => { setQuery(e.target.value); setLookup(null); }}
+          placeholder="Search by term or paste a code directly (e.g. 'diabetes', '73211009', '94500-6', 'J12.82')"
+          className="w-full pl-9 pr-9 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" />
+        {query && (
+          <button onClick={() => { setQuery(''); setResults({}); setLookup(null); }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Lookup detail */}
+      {lookup && (
+        <div className="bg-white border border-blue-200 rounded-lg shadow-sm p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-gray-700">Code Detail</p>
+            <button onClick={() => setLookup(null)} className="text-gray-400 hover:text-gray-600"><X className="w-3.5 h-3.5" /></button>
+          </div>
+          {lookup.loading
+            ? <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+            : <pre className="text-xs text-gray-700 overflow-auto max-h-52 whitespace-pre-wrap font-mono">{JSON.stringify(lookup.data, null, 2)}</pre>
+          }
+        </div>
+      )}
+
+      {/* Results */}
+      {!query.trim() ? (
+        <div className="text-center py-16 text-gray-400">
+          <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p className="text-sm font-medium">Search across external vocabularies</p>
+          <p className="text-xs mt-1 opacity-70">SNOMED CT · LOINC · ICD-10-CM · RxNorm · HL7 v2</p>
+        </div>
+      ) : loading ? (
+        <div className="flex justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-blue-500" /></div>
+      ) : (
+        <div className="space-y-3">
+          {totalResults === 0 && !loading && (
+            <p className="text-sm text-gray-400 text-center py-6">No results found for "{debouncedQuery}"</p>
+          )}
+          {Object.entries(results).filter(([, s]) => s.results.length > 0).map(([sysId, { systemName, results: sysResults }]) => (
+            <div key={sysId} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+                <span className="text-sm font-semibold text-gray-700">{systemName}</span>
+                <span className="text-xs text-gray-400">{sysResults.length} result{sysResults.length !== 1 ? 's' : ''}</span>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {sysResults.map(r => (
+                  <div key={r.code} className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors">
+                    <div className="min-w-0">
+                      <p className="text-sm text-gray-900 truncate">{r.display}</p>
+                      <p className="text-xs font-mono text-gray-400 mt-0.5">{r.code}</p>
+                    </div>
+                    {LOOKUP_SYSTEMS.has(sysId) && (
+                      <button onClick={() => doLookup(r.code, sysId)}
+                        className="ml-3 px-2.5 py-1 text-xs text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 flex-shrink-0 transition-colors">
+                        Detail
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// FHIR Operations Dashboard
+// ---------------------------------------------------------------------------
+
+interface OpResult { ok: boolean; data: unknown }
+
+function FieldInput({ label, value, onChange, placeholder, required }: {
+  label: string; value: string; onChange: (v: string) => void;
+  placeholder?: string; required?: boolean;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-gray-600 mb-1">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+    </div>
+  );
+}
+
+async function runGet(path: string): Promise<OpResult> {
+  try {
+    const r = await fetch(path, { headers: { Accept: 'application/fhir+json' } });
+    const data = await r.json();
+    return { ok: r.ok, data };
+  } catch (e) {
+    return { ok: false, data: { error: String(e) } };
+  }
+}
+
+async function runPost(path: string, body: unknown): Promise<OpResult> {
+  try {
+    const r = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/fhir+json' },
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    return { ok: r.ok, data };
+  } catch (e) {
+    return { ok: false, data: { error: String(e) } };
+  }
+}
+
+function ResultPanel({ result }: { result: OpResult | null }) {
+  if (!result) return null;
+  return (
+    <div className={`rounded-lg border p-3 ${result.ok ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+      <p className={`text-xs font-semibold mb-1.5 ${result.ok ? 'text-green-700' : 'text-red-700'}`}>
+        {result.ok ? '✓ Success' : '✗ Error'}
+      </p>
+      <pre className="text-xs text-gray-700 overflow-auto max-h-64 whitespace-pre-wrap font-mono">{JSON.stringify(result.data, null, 2)}</pre>
+    </div>
+  );
+}
+
+function OpCard({ title, endpoint, desc, open, onToggle, onRun, loading, result, children }: {
+  title: string; endpoint: string; desc: string; open: boolean; onToggle: () => void;
+  onRun: () => void; loading: boolean; result: OpResult | null; children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <button onClick={onToggle}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="px-2 py-0.5 rounded text-xs font-mono font-medium bg-blue-50 text-blue-700 flex-shrink-0">{endpoint}</span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900">{title}</p>
+            <p className="text-xs text-gray-400">{desc}</p>
+          </div>
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+      </button>
+      {open && (
+        <div className="border-t border-gray-100 px-5 py-4 space-y-4">
+          <div className="grid grid-cols-2 gap-3">{children}</div>
+          <button onClick={onRun} disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+            Run
+          </button>
+          <ResultPanel result={result} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OperationsDashboard() {
+  const [openOp, setOpenOp] = useState<string | null>('expand');
+  const toggle = (id: string) => setOpenOp(o => o === id ? null : id);
+
+  const [exUrl, setExUrl] = useState('');
+  const [exFilter, setExFilter] = useState('');
+  const [exCount, setExCount] = useState('50');
+  const [exResult, setExResult] = useState<OpResult | null>(null);
+  const [exLoading, setExLoading] = useState(false);
+
+  const [vsUrl, setVsUrl] = useState('');
+  const [vsCode, setVsCode] = useState('');
+  const [vsSystem, setVsSystem] = useState('');
+  const [vsDisplay, setVsDisplay] = useState('');
+  const [vsResult, setVsResult] = useState<OpResult | null>(null);
+  const [vsLoading, setVsLoading] = useState(false);
+
+  const [csUrl, setCsUrl] = useState('');
+  const [csCode, setCsCode] = useState('');
+  const [csResult, setCsResult] = useState<OpResult | null>(null);
+  const [csLoading, setCsLoading] = useState(false);
+
+  const [luSystem, setLuSystem] = useState('');
+  const [luCode, setLuCode] = useState('');
+  const [luResult, setLuResult] = useState<OpResult | null>(null);
+  const [luLoading, setLuLoading] = useState(false);
+
+  const [subSystem, setSubSystem] = useState('');
+  const [subCodeA, setSubCodeA] = useState('');
+  const [subCodeB, setSubCodeB] = useState('');
+  const [subResult, setSubResult] = useState<OpResult | null>(null);
+  const [subLoading, setSubLoading] = useState(false);
+
+  const [trSystem, setTrSystem] = useState('');
+  const [trCode, setTrCode] = useState('');
+  const [trUrl, setTrUrl] = useState('');
+  const [trTarget, setTrTarget] = useState('');
+  const [trResult, setTrResult] = useState<OpResult | null>(null);
+  const [trLoading, setTrLoading] = useState(false);
+
+  const [batchJson, setBatchJson] = useState('[\n  {"code": "M", "system": "http://hl7.org/fhir/administrative-gender"}\n]');
+  const [batchResult, setBatchResult] = useState<OpResult | null>(null);
+  const [batchLoading, setBatchLoading] = useState(false);
+
+  const run = async (
+    setter: (r: OpResult) => void,
+    loadSetter: (b: boolean) => void,
+    fn: () => Promise<OpResult>,
+  ) => { loadSetter(true); setter(await fn()); loadSetter(false); };
+
+  return (
+    <div className="space-y-3">
+      <OpCard title="ValueSet $expand" endpoint="GET /ValueSet/$expand"
+        desc="Expand a ValueSet to its full list of codes"
+        open={openOp === 'expand'} onToggle={() => toggle('expand')}
+        loading={exLoading} result={exResult}
+        onRun={() => run(setExResult, setExLoading, () => {
+          const p = new URLSearchParams({ url: exUrl, count: exCount });
+          if (exFilter) p.set('filter', exFilter);
+          return runGet(`/ValueSet/$expand?${p}`);
+        })}>
+        <FieldInput label="ValueSet URL" value={exUrl} onChange={setExUrl} placeholder="http://hl7.org/fhir/ValueSet/administrative-gender" required />
+        <FieldInput label="Filter" value={exFilter} onChange={setExFilter} placeholder="Optional search filter" />
+        <FieldInput label="Count" value={exCount} onChange={setExCount} placeholder="50" />
+      </OpCard>
+
+      <OpCard title="ValueSet $validate-code" endpoint="GET /ValueSet/$validate-code"
+        desc="Check if a code is valid within a ValueSet"
+        open={openOp === 'vs-validate'} onToggle={() => toggle('vs-validate')}
+        loading={vsLoading} result={vsResult}
+        onRun={() => run(setVsResult, setVsLoading, () => {
+          const p = new URLSearchParams({ url: vsUrl, code: vsCode });
+          if (vsSystem) p.set('system', vsSystem);
+          if (vsDisplay) p.set('display', vsDisplay);
+          return runGet(`/ValueSet/$validate-code?${p}`);
+        })}>
+        <FieldInput label="ValueSet URL" value={vsUrl} onChange={setVsUrl} placeholder="http://hl7.org/fhir/ValueSet/administrative-gender" required />
+        <FieldInput label="Code" value={vsCode} onChange={setVsCode} placeholder="e.g. M" required />
+        <FieldInput label="System" value={vsSystem} onChange={setVsSystem} placeholder="Optional code system URL" />
+        <FieldInput label="Display" value={vsDisplay} onChange={setVsDisplay} placeholder="Optional expected display" />
+      </OpCard>
+
+      <OpCard title="CodeSystem $validate-code" endpoint="GET /CodeSystem/$validate-code"
+        desc="Check if a code exists in a CodeSystem"
+        open={openOp === 'cs-validate'} onToggle={() => toggle('cs-validate')}
+        loading={csLoading} result={csResult}
+        onRun={() => run(setCsResult, setCsLoading, () => {
+          const p = new URLSearchParams({ url: csUrl, code: csCode });
+          return runGet(`/CodeSystem/$validate-code?${p}`);
+        })}>
+        <FieldInput label="CodeSystem URL" value={csUrl} onChange={setCsUrl} placeholder="http://hl7.org/fhir/administrative-gender" required />
+        <FieldInput label="Code" value={csCode} onChange={setCsCode} placeholder="e.g. M" required />
+      </OpCard>
+
+      <OpCard title="CodeSystem $lookup" endpoint="GET /CodeSystem/$lookup"
+        desc="Look up a code to retrieve its display name and properties"
+        open={openOp === 'lookup'} onToggle={() => toggle('lookup')}
+        loading={luLoading} result={luResult}
+        onRun={() => run(setLuResult, setLuLoading, () => {
+          const p = new URLSearchParams({ system: luSystem, code: luCode });
+          return runGet(`/CodeSystem/$lookup?${p}`);
+        })}>
+        <FieldInput label="System" value={luSystem} onChange={setLuSystem} placeholder="http://snomed.info/sct" required />
+        <FieldInput label="Code" value={luCode} onChange={setLuCode} placeholder="e.g. 73211009" required />
+      </OpCard>
+
+      <OpCard title="CodeSystem $subsumes" endpoint="GET /CodeSystem/$subsumes"
+        desc="Test whether codeA subsumes codeB in a hierarchy"
+        open={openOp === 'subsumes'} onToggle={() => toggle('subsumes')}
+        loading={subLoading} result={subResult}
+        onRun={() => run(setSubResult, setSubLoading, () => {
+          const p = new URLSearchParams({ system: subSystem, codeA: subCodeA, codeB: subCodeB });
+          return runGet(`/CodeSystem/$subsumes?${p}`);
+        })}>
+        <FieldInput label="System" value={subSystem} onChange={setSubSystem} placeholder="http://snomed.info/sct" required />
+        <FieldInput label="Code A (parent?)" value={subCodeA} onChange={setSubCodeA} placeholder="e.g. 73211009" required />
+        <FieldInput label="Code B (child?)" value={subCodeB} onChange={setSubCodeB} placeholder="e.g. 44054006" required />
+      </OpCard>
+
+      <OpCard title="ConceptMap $translate" endpoint="GET /ConceptMap/$translate"
+        desc="Translate a code to another system using a ConceptMap"
+        open={openOp === 'translate'} onToggle={() => toggle('translate')}
+        loading={trLoading} result={trResult}
+        onRun={() => run(setTrResult, setTrLoading, () => {
+          const p = new URLSearchParams({ system: trSystem, code: trCode });
+          if (trUrl) p.set('url', trUrl);
+          if (trTarget) p.set('target', trTarget);
+          return runGet(`/ConceptMap/$translate?${p}`);
+        })}>
+        <FieldInput label="Source System" value={trSystem} onChange={setTrSystem} placeholder="http://terminology.hl7.org/CodeSystem/v2-0001" required />
+        <FieldInput label="Code" value={trCode} onChange={setTrCode} placeholder="e.g. M" required />
+        <FieldInput label="ConceptMap URL" value={trUrl} onChange={setTrUrl} placeholder="Optional — filters to a specific map" />
+        <FieldInput label="Target System" value={trTarget} onChange={setTrTarget} placeholder="Optional target system URL" />
+      </OpCard>
+
+      <OpCard title="ValueSet $validate-batch" endpoint="POST /ValueSet/$validate-batch"
+        desc="Validate up to 200 codes in a single concurrent request"
+        open={openOp === 'batch'} onToggle={() => toggle('batch')}
+        loading={batchLoading} result={batchResult}
+        onRun={() => run(setBatchResult, setBatchLoading, () => {
+          let items: unknown;
+          try { items = JSON.parse(batchJson); }
+          catch { return Promise.resolve({ ok: false, data: { error: 'Invalid JSON — check the items array' } }); }
+          return runPost('/ValueSet/$validate-batch', { items });
+        })}>
+        <div className="col-span-2">
+          <label className="block text-xs font-medium text-gray-600 mb-1">Items (JSON array)</label>
+          <textarea
+            value={batchJson}
+            onChange={e => setBatchJson(e.target.value)}
+            rows={6}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+      </OpCard>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -1584,8 +1987,10 @@ const Flint = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-6">
             {[
-              { id: 'browse', label: 'Browse Resources', icon: Layers },
+              { id: 'browse', label: 'Browse Terminology', icon: Layers },
               { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+              { id: 'operations', label: 'Operations', icon: Zap },
+              { id: 'sdo-search', label: 'SDO Search', icon: Globe },
             ].map(view => (
               <button key={view.id} onClick={() => setActiveView(view.id)}
                 className={`flex items-center gap-2 px-1 py-4 border-b-2 transition-colors ${
@@ -1601,7 +2006,10 @@ const Flint = () => {
 
       {/* Main content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {activeView === 'analytics' ? <AnalyticsDashboard /> : (
+        {activeView === 'analytics' ? <AnalyticsDashboard />
+          : activeView === 'operations' ? <OperationsDashboard />
+          : activeView === 'sdo-search' ? <SdoSearchPanel />
+          : (
           <>
             {/* Search + filters */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">

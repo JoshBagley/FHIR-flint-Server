@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   Users, ArrowLeft, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
   Activity, FileText, Calendar, ShieldAlert, Syringe, AlertCircle, X,
-  Pill, Scissors, ClipboardList,
+  Pill, Scissors, ClipboardList, Download, CheckCircle,
 } from 'lucide-react';
 import { useFhirSearch } from '../../hooks/useFhirSearch';
 import { useDebounce } from '../../hooks/useDebounce';
@@ -581,7 +581,36 @@ type ChartTab = typeof CHART_TABS[number]['id'];
 
 function PatientChart({ patient, onBack }: { patient: Patient; onBack: () => void }) {
   const [activeTab, setActiveTab] = useState<ChartTab>('observations');
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const addr = patient.address?.[0];
+
+  const downloadEverything = async () => {
+    setDownloading(true);
+    setDownloadError(null);
+    try {
+      const r = await fetch(`/Patient/${patient.id}/$everything`, { headers: { Accept: 'application/fhir+json' } });
+      if (!r.ok) {
+        const text = await r.text().catch(() => `HTTP ${r.status}`);
+        setDownloadError(`${r.status}: ${text.slice(0, 120)}`);
+        return;
+      }
+      const bundle = await r.json();
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/fhir+json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `patient-${patient.id}-record.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      setDownloadError(String(e));
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <div>
@@ -591,20 +620,35 @@ function PatientChart({ patient, onBack }: { patient: Patient; onBack: () => voi
           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-4 transition-colors">
           <ArrowLeft className="w-4 h-4" /> All Patients
         </button>
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-blue-700 font-bold text-lg">
-              {patientDisplayName(patient).charAt(0)}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-gray-900">{patientDisplayName(patient)}</h3>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-gray-500">
-              <span>{formatDate(patient.birthDate)} · {patientAge(patient.birthDate)}</span>
-              <span>{capitalize(patient.gender)}</span>
-              {addr && <span>{[addr.city, addr.state].filter(Boolean).join(', ')}</span>}
-              <span className="font-mono text-xs">MRN: {mrnOf(patient)}</span>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-blue-700 font-bold text-lg">
+                {patientDisplayName(patient).charAt(0)}
+              </span>
             </div>
+            <div className="min-w-0">
+              <h3 className="text-lg font-semibold text-gray-900">{patientDisplayName(patient)}</h3>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-gray-500">
+                <span>{formatDate(patient.birthDate)} · {patientAge(patient.birthDate)}</span>
+                <span>{capitalize(patient.gender)}</span>
+                {addr && <span>{[addr.city, addr.state].filter(Boolean).join(', ')}</span>}
+                <span className="font-mono text-xs">MRN: {mrnOf(patient)}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex-shrink-0 text-right">
+            <button onClick={downloadEverything} disabled={downloading}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:border-blue-300 hover:text-blue-600 disabled:opacity-50 transition-colors bg-white"
+              title="Download full patient record as FHIR Bundle (Patient/$everything)">
+              {downloading
+                ? <><AlertCircle className="w-3.5 h-3.5 animate-pulse" /> Downloading…</>
+                : <><Download className="w-3.5 h-3.5" /> Download Record</>
+              }
+            </button>
+            {downloadError && (
+              <p className="text-xs text-red-600 mt-1 max-w-xs">{downloadError}</p>
+            )}
           </div>
         </div>
       </div>
@@ -640,27 +684,68 @@ function PatientChart({ patient, onBack }: { patient: Patient; onBack: () => voi
 // Main export
 // ---------------------------------------------------------------------------
 
+type ExportNotif = { status: 'running' } | { status: 'done'; jobId: string } | { status: 'error'; msg: string };
+
 export default function ClinicalApp() {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [exportNotif, setExportNotif] = useState<ExportNotif | null>(null);
+
+  const startPatientExport = async () => {
+    setExportNotif({ status: 'running' });
+    try {
+      const r = await fetch('/Patient/$export', { headers: { Prefer: 'respond-async' } });
+      if (r.status !== 202) { setExportNotif({ status: 'error', msg: `HTTP ${r.status}` }); return; }
+      const loc = r.headers.get('Content-Location') ?? '';
+      const jobId = loc.split('/').pop() ?? '';
+      setExportNotif({ status: 'done', jobId });
+    } catch (e) {
+      setExportNotif({ status: 'error', msg: String(e) });
+    }
+  };
 
   return (
     <div className="bg-gray-50 min-h-full">
       {/* Section header */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Users className="w-5 h-5 text-blue-500" />
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">
-                {selectedPatient ? patientDisplayName(selectedPatient) : 'Clinical Resources'}
-              </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {selectedPatient
-                  ? 'Patient Chart'
-                  : 'Patient · Observation · Condition · Encounter · AllergyIntolerance · Immunization'}
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Users className="w-5 h-5 text-blue-500" />
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {selectedPatient ? patientDisplayName(selectedPatient) : 'Clinical Resources'}
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {selectedPatient
+                    ? 'Patient Chart'
+                    : 'Patient · Observation · Condition · Encounter · AllergyIntolerance · Immunization'}
+                </p>
+              </div>
             </div>
+            {!selectedPatient && (
+              <button onClick={startPatientExport} disabled={exportNotif?.status === 'running'}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:border-blue-300 hover:text-blue-600 disabled:opacity-50 transition-colors bg-white">
+                <Download className="w-3.5 h-3.5" /> Export Patients
+              </button>
+            )}
           </div>
+          {exportNotif && (
+            <div className={`mt-3 flex items-center justify-between rounded-lg px-3 py-2 text-xs ${
+              exportNotif.status === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+            }`}>
+              {exportNotif.status === 'running' && <span>Starting export…</span>}
+              {exportNotif.status === 'done' && (
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  Export started (job {exportNotif.jobId.slice(0, 8)}…) — track progress and download files in the <strong>System</strong> tab.
+                </span>
+              )}
+              {exportNotif.status === 'error' && <span>Export failed: {exportNotif.msg}</span>}
+              <button onClick={() => setExportNotif(null)} className="ml-3 opacity-60 hover:opacity-100">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

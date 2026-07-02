@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Server, CheckCircle, XCircle, Loader2, ChevronDown, ChevronUp,
-  ExternalLink, Database, Search, Layers, Activity,
+  ExternalLink, Database, Search, Layers, Activity, Download, Package,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -154,6 +154,334 @@ function QuickLinks({ meta }: { meta: CapabilityStatement | null }) {
 }
 
 // ---------------------------------------------------------------------------
+// Bulk Export Panel
+// ---------------------------------------------------------------------------
+
+const SYSTEM_TYPES = [
+  'Patient', 'Observation', 'Condition', 'Encounter', 'AllergyIntolerance', 'Immunization',
+  'MedicationRequest', 'Procedure', 'DiagnosticReport', 'Organization', 'Practitioner',
+  'PractitionerRole', 'Location', 'ValueSet', 'CodeSystem', 'ConceptMap', 'StructureDefinition',
+];
+const PATIENT_TYPES = [
+  'Patient', 'Observation', 'Condition', 'Encounter', 'AllergyIntolerance', 'Immunization',
+  'MedicationRequest', 'Procedure', 'DiagnosticReport',
+];
+
+interface ExportJob {
+  status: 'in-progress' | 'complete' | 'failed' | 'cancelled';
+  createdAt: string;
+  output: Array<{ type: string; url: string; count: number }>;
+  error: unknown[];
+}
+
+function BulkExportPanel() {
+  const [mode, setMode] = useState<'system' | 'patient'>('system');
+  const [typeFilter, setTypeFilter] = useState<Set<string>>(new Set());
+  const [since, setSince] = useState('');
+  const [kicking, setKicking] = useState(false);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [job, setJob] = useState<ExportJob | null>(null);
+  const [kickError, setKickError] = useState<string | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (!jobId || job?.status !== 'in-progress') {
+      if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+      return;
+    }
+    pollRef.current = setInterval(async () => {
+      try {
+        const r = await fetch(`/jobs/${jobId}`);
+        if (r.status === 202) return;
+        if (r.status === 200) { setJob(await r.json()); }
+        else { setJob(prev => prev ? { ...prev, status: 'failed' } : null); }
+      } catch { /* retry on next tick */ }
+    }, 3000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [jobId, job?.status]);
+
+  const allTypes = mode === 'system' ? SYSTEM_TYPES : PATIENT_TYPES;
+
+  const toggleType = (t: string) => setTypeFilter(prev => {
+    const next = new Set(prev);
+    if (next.has(t)) next.delete(t); else next.add(t);
+    return next;
+  });
+
+  const switchMode = (m: 'system' | 'patient') => {
+    setMode(m); setTypeFilter(new Set()); setJob(null); setJobId(null); setKickError(null);
+  };
+
+  const startExport = async () => {
+    setKicking(true); setKickError(null); setJob(null); setJobId(null);
+    try {
+      const p = new URLSearchParams();
+      if (typeFilter.size > 0) p.set('_type', [...typeFilter].join(','));
+      if (since) p.set('_since', since);
+      const endpoint = mode === 'system' ? '/$export' : '/Patient/$export';
+      const qs = p.toString();
+      const r = await fetch(qs ? `${endpoint}?${qs}` : endpoint, { headers: { Prefer: 'respond-async' } });
+      if (r.status !== 202) {
+        setKickError(`HTTP ${r.status}: ${(await r.text()).slice(0, 200)}`);
+        return;
+      }
+      const loc = r.headers.get('Content-Location') ?? '';
+      const id = loc.split('/').pop() ?? '';
+      setJobId(id);
+      setJob({ status: 'in-progress', createdAt: new Date().toISOString(), output: [], error: [] });
+    } catch (e) {
+      setKickError(String(e));
+    } finally {
+      setKicking(false);
+    }
+  };
+
+  const cancelExport = async () => {
+    if (!jobId) return;
+    await fetch(`/jobs/${jobId}`, { method: 'DELETE' });
+    setJob(prev => prev ? { ...prev, status: 'cancelled' } : null);
+  };
+
+  const STATUS_STYLE: Record<string, string> = {
+    'in-progress': 'bg-yellow-100 text-yellow-700',
+    'complete':    'bg-green-100 text-green-700',
+    'failed':      'bg-red-100 text-red-700',
+    'cancelled':   'bg-gray-100 text-gray-600',
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5 space-y-4">
+      <div className="flex items-center gap-2.5">
+        <Download className="w-5 h-5 text-gray-400" />
+        <div>
+          <p className="text-sm font-semibold text-gray-900">Bulk Data Export</p>
+          <p className="text-xs text-gray-400">FHIR Bulk Data IG v2 · NDJSON output · jobs expire after 24 h</p>
+        </div>
+      </div>
+
+      {/* Mode toggle */}
+      <div className="flex rounded-lg border border-gray-200 overflow-hidden w-fit text-xs">
+        {([['system', 'System  /$export', 'All resource types'] as const,
+           ['patient', 'Patient  /Patient/$export', 'Patient compartment only'] as const]).map(([m, label, sub]) => (
+          <button key={m} onClick={() => switchMode(m)}
+            className={`px-4 py-2.5 font-medium transition-colors text-left ${mode === m ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+            <span className="font-mono">{label.split('  ')[1]}</span>
+            <span className="block text-[10px] opacity-70 font-normal">{sub}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Type filter */}
+      <div>
+        <p className="text-xs font-medium text-gray-600 mb-2">
+          Resource Types <span className="text-gray-400 font-normal">— leave blank to include all</span>
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {allTypes.map(t => (
+            <button key={t} onClick={() => toggleType(t)}
+              className={`px-2.5 py-0.5 rounded-full text-xs font-medium border transition-colors ${
+                typeFilter.has(t)
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+              }`}>{t}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Since + actions */}
+      <div className="flex items-end gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">
+            Since <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <input type="date" value={since} onChange={e => setSince(e.target.value)}
+            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        </div>
+        <button onClick={startExport} disabled={kicking || job?.status === 'in-progress'}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+          {kicking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+          Start Export
+        </button>
+        {job?.status === 'in-progress' && (
+          <button onClick={cancelExport}
+            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors">
+            <XCircle className="w-3.5 h-3.5" /> Cancel
+          </button>
+        )}
+      </div>
+
+      {kickError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{kickError}</div>
+      )}
+
+      {/* Job status */}
+      {job && jobId && (
+        <div className="border border-gray-100 rounded-lg p-4 bg-gray-50 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-gray-800 font-mono">Job {jobId.slice(0, 8)}…</p>
+              <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLE[job.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                {job.status === 'in-progress' && <Loader2 className="w-3 h-3 animate-spin" />}
+                {job.status}
+              </span>
+            </div>
+            <p className="text-xs text-gray-400">{new Date(job.createdAt).toLocaleString()}</p>
+          </div>
+
+          {job.status === 'in-progress' && (
+            <p className="text-xs text-gray-500">Exporting resources — polling every 3 s…</p>
+          )}
+
+          {job.status === 'complete' && job.output.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Output Files</p>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-gray-500 border-b border-gray-200">
+                    <th className="text-left pb-1.5 font-medium">Resource Type</th>
+                    <th className="text-right pb-1.5 font-medium">Records</th>
+                    <th className="text-right pb-1.5 font-medium">Download</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {job.output.map(f => (
+                    <tr key={f.type}>
+                      <td className="py-1.5 text-gray-700 font-medium">{f.type}</td>
+                      <td className="py-1.5 text-right text-gray-500">{f.count.toLocaleString()}</td>
+                      <td className="py-1.5 text-right">
+                        <a href={f.url} download
+                          className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors">
+                          <Download className="w-3 h-3" /> .ndjson
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {job.status === 'complete' && job.output.length === 0 && (
+            <p className="text-xs text-gray-400">No resources matched the export criteria.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Bundle Submission Panel
+// ---------------------------------------------------------------------------
+
+const DEFAULT_BUNDLE = JSON.stringify({
+  resourceType: 'Bundle',
+  type: 'batch',
+  entry: [],
+}, null, 2);
+
+interface BundleEntry { response?: { status?: string; location?: string } }
+interface BundleResponse { entry?: BundleEntry[] }
+
+function BundlePanel() {
+  const [bundleJson, setBundleJson] = useState(DEFAULT_BUNDLE);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; data: unknown } | null>(null);
+
+  let bundleType = '';
+  try { bundleType = (JSON.parse(bundleJson) as { type?: string }).type ?? ''; } catch { /* invalid json */ }
+
+  const submit = async () => {
+    setSubmitting(true);
+    setResult(null);
+    try {
+      let body: unknown;
+      try { body = JSON.parse(bundleJson); }
+      catch { setResult({ ok: false, data: { error: 'Invalid JSON — check the bundle syntax' } }); return; }
+      const r = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/fhir+json', Accept: 'application/fhir+json' },
+        body: JSON.stringify(body),
+      });
+      setResult({ ok: r.ok, data: await r.json() });
+    } catch (e) {
+      setResult({ ok: false, data: { error: String(e) } });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const entries = result?.ok ? (result.data as BundleResponse).entry ?? [] : [];
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5 space-y-4">
+      <div className="flex items-center gap-2.5">
+        <Package className="w-5 h-5 text-gray-400" />
+        <div>
+          <p className="text-sm font-semibold text-gray-900">Bundle Submission</p>
+          <p className="text-xs text-gray-400">POST / · batch (per-entry errors allowed) or transaction (atomic rollback)</p>
+        </div>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="text-xs font-medium text-gray-600">Bundle JSON</label>
+          {bundleType && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-medium ${
+              bundleType === 'transaction' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+            }`}>{bundleType}</span>
+          )}
+        </div>
+        <textarea value={bundleJson} onChange={e => setBundleJson(e.target.value)} rows={10}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+      </div>
+
+      <button onClick={submit} disabled={submitting}
+        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+        {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Package className="w-3.5 h-3.5" />}
+        Submit Bundle
+      </button>
+
+      {result && (
+        <div className={`rounded-lg border p-4 space-y-3 ${result.ok ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+          <p className={`text-xs font-semibold ${result.ok ? 'text-green-700' : 'text-red-700'}`}>
+            {result.ok
+              ? `✓ ${entries.length} entr${entries.length !== 1 ? 'ies' : 'y'} processed`
+              : '✗ Error'}
+          </p>
+          {result.ok && entries.length > 0 ? (
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-gray-500 border-b border-green-200">
+                  <th className="text-left pb-1.5 font-medium w-8">#</th>
+                  <th className="text-left pb-1.5 font-medium w-32">Status</th>
+                  <th className="text-left pb-1.5 font-medium">Location</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-green-100">
+                {entries.map((e, i) => {
+                  const status = e.response?.status ?? '—';
+                  const isErr = status.startsWith('4') || status.startsWith('5');
+                  return (
+                    <tr key={i}>
+                      <td className="py-1.5 text-gray-400">{i + 1}</td>
+                      <td className={`py-1.5 font-medium ${isErr ? 'text-red-600' : 'text-green-700'}`}>{status}</td>
+                      <td className="py-1.5 text-gray-500 font-mono text-xs truncate">{e.response?.location ?? '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <pre className="text-xs overflow-auto max-h-48 whitespace-pre-wrap font-mono text-red-700">{JSON.stringify(result.data, null, 2)}</pre>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // CapabilityStatement resource table
 // ---------------------------------------------------------------------------
 
@@ -292,7 +620,7 @@ export default function SystemApp() {
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <h2 className="text-lg font-semibold text-gray-900">System</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Health · Capability Statement · API</p>
+          <p className="text-xs text-gray-400 mt-0.5">Health · Bulk Export · Bundle · Capability Statement · API</p>
         </div>
       </div>
 
@@ -301,6 +629,8 @@ export default function SystemApp() {
           <StatusCard ready={ready} loading={!ready} />
           <QuickLinks meta={meta} />
         </div>
+        <BulkExportPanel />
+        <BundlePanel />
         <CapabilityTable meta={meta} />
       </div>
     </div>

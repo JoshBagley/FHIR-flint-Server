@@ -1,7 +1,7 @@
 """
 MCP-style FHIR chat — AI with tool-calling backed by Flint endpoints.
 
-Exposes the same six operations defined in xSoVx/fhir-mcp (Option 1):
+Six tools covering all 16 resource types (clinical, administrative, terminology):
   fhir_capabilities, fhir_search, fhir_read,
   terminology_lookup, terminology_expand, terminology_translate
 
@@ -36,6 +36,16 @@ _TOOL_TIMEOUT = 30.0        # seconds per HTTP tool call
 # Tool definitions (Anthropic / JSON Schema format — converted per provider)
 # ---------------------------------------------------------------------------
 
+_ALL_RESOURCE_TYPES = [
+    # Clinical
+    "Patient", "Observation", "Condition", "Encounter",
+    "AllergyIntolerance", "Immunization", "MedicationRequest", "Procedure", "DiagnosticReport",
+    # Administrative
+    "Organization", "Practitioner", "PractitionerRole", "Location",
+    # Terminology
+    "ValueSet", "CodeSystem", "ConceptMap",
+]
+
 MCP_TOOLS: list[dict] = [
     {
         "name": "fhir_capabilities",
@@ -48,24 +58,38 @@ MCP_TOOLS: list[dict] = [
     {
         "name": "fhir_search",
         "description": (
-            "Search for FHIR resources (ValueSet, CodeSystem, or ConceptMap).  "
-            "Returns a summary list with id, name, title, status, and canonical URL."
+            "Search for any FHIR resource type.  "
+            "Supports clinical (Patient, Observation, Condition, Encounter, AllergyIntolerance, "
+            "Immunization, MedicationRequest, Procedure, DiagnosticReport), "
+            "administrative (Organization, Practitioner, PractitionerRole, Location), "
+            "and terminology (ValueSet, CodeSystem, ConceptMap) resources.  "
+            "For clinical resources, use 'patient' to filter by patient reference, "
+            "'name' to filter patients by name, 'code' to filter by clinical code, "
+            "and 'status' to filter by resource status."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
                 "resource_type": {
                     "type": "string",
-                    "enum": ["ValueSet", "CodeSystem", "ConceptMap"],
+                    "enum": _ALL_RESOURCE_TYPES,
                     "description": "The FHIR resource type to search.",
                 },
                 "name": {
                     "type": "string",
-                    "description": "Filter by resource name or title (partial match).",
+                    "description": "Filter by name (patient family name, resource name/title — partial match).",
                 },
                 "status": {
                     "type": "string",
-                    "description": "Filter by status: active | draft | retired.",
+                    "description": "Filter by status (e.g. active, draft, retired, final).",
+                },
+                "patient": {
+                    "type": "string",
+                    "description": "Filter clinical resources by patient reference, e.g. 'Patient/uuid'.",
+                },
+                "code": {
+                    "type": "string",
+                    "description": "Filter by clinical code (system|code or plain code).",
                 },
                 "count": {
                     "type": "integer",
@@ -79,7 +103,8 @@ MCP_TOOLS: list[dict] = [
         "name": "fhir_read",
         "description": (
             "Read a specific FHIR resource by type and ID.  "
-            "Returns metadata without the full concept/compose arrays (too large); "
+            "Works for all resource types — clinical, administrative, and terminology.  "
+            "Large terminology arrays (concept, compose, expansion) are stripped; "
             "use terminology_expand to retrieve the codes of a ValueSet."
         ),
         "input_schema": {
@@ -87,11 +112,11 @@ MCP_TOOLS: list[dict] = [
             "properties": {
                 "resource_type": {
                     "type": "string",
-                    "enum": ["ValueSet", "CodeSystem", "ConceptMap"],
+                    "enum": _ALL_RESOURCE_TYPES,
                 },
                 "resource_id": {
                     "type": "string",
-                    "description": "The FHIR resource id (UUID or slug).",
+                    "description": "The FHIR resource id (UUID).",
                 },
             },
             "required": ["resource_type", "resource_id"],
@@ -164,20 +189,27 @@ MCP_TOOLS: list[dict] = [
 ]
 
 _SYSTEM_PROMPT = """\
-You are a FHIR R4 terminology assistant connected to Flint — a general-purpose
-FHIR R4 FHIR server containing value sets, code systems, and concept maps.
+You are a FHIR R4 server assistant connected to Flint — a general-purpose FHIR R4 server.
 
-You have access to six tools that mirror the operations exposed by the
-xSoVx/fhir-mcp MCP server:
-  • fhir_capabilities   — what the server supports
-  • fhir_search         — search ValueSets, CodeSystems, or ConceptMaps
-  • fhir_read           — read a resource by ID
+Flint supports 16 resource types across three domains:
+  Clinical:        Patient, Observation, Condition, Encounter, AllergyIntolerance,
+                   Immunization, MedicationRequest, Procedure, DiagnosticReport
+  Administrative:  Organization, Practitioner, PractitionerRole, Location
+  Terminology:     ValueSet, CodeSystem, ConceptMap
+
+You also have strong terminology capabilities: $expand, $validate-code, $lookup,
+$translate, $subsumes, $validate-batch, and AI-assisted concept mapping.
+
+Available tools:
+  • fhir_capabilities   — what resource types and operations the server supports
+  • fhir_search         — search any of the 16 resource types
+  • fhir_read           — read any resource by type and ID
   • terminology_lookup  — look up a code in a code system
   • terminology_expand  — expand a ValueSet to see its codes
   • terminology_translate — translate codes between systems via a ConceptMap
 
-Use tools to answer the user's questions accurately.  When listing codes always
-show the code and its display name.  Keep responses concise and well-structured.
+Use tools to answer questions accurately. When listing codes always show the code and
+display name. Keep responses concise and well-structured.
 """
 
 
@@ -207,27 +239,24 @@ async def _execute_tool(name: str, args: dict) -> Any:
             elif name == "fhir_search":
                 rt = args.get("resource_type", "ValueSet")
                 params: dict[str, str] = {
-                    "_summary": "true",
                     "_count": str(min(int(args.get("count", 10)), 20)),
                 }
                 if args.get("name"):
                     params["name"] = args["name"]
                 if args.get("status"):
                     params["status"] = args["status"]
+                if args.get("patient"):
+                    params["patient"] = args["patient"]
+                if args.get("code"):
+                    params["code"] = args["code"]
                 resp = await client.get(
                     f"{_FHIR_BASE}/{rt}", params=params, headers=headers
                 )
                 data = resp.json()
                 entries = data.get("entry", [])
+                _strip = {"concept", "compose", "expansion", "group", "entry", "link", "text"}
                 resources = [
-                    {
-                        "id": e["resource"].get("id"),
-                        "name": e["resource"].get("name"),
-                        "title": e["resource"].get("title"),
-                        "status": e["resource"].get("status"),
-                        "url": e["resource"].get("url"),
-                        "conceptCount": e["resource"].get("_conceptCount"),
-                    }
+                    {k: v for k, v in e["resource"].items() if k not in _strip}
                     for e in entries
                     if "resource" in e
                 ]

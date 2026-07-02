@@ -1,3 +1,4 @@
+import asyncio
 from typing import Dict, List, Any, Tuple
 
 from fastapi import HTTPException, Body
@@ -315,6 +316,54 @@ async def patient_match(body: Dict[str, Any] = Body(...)):
 
 
 # ---------------------------------------------------------------------------
+# Patient/$everything — full patient record as a Bundle
+# ---------------------------------------------------------------------------
+
+# (resource_type, patient_reference_field)
+_COMPARTMENT_TYPES: List[Tuple[str, str]] = [
+    ("Observation",        "data->'subject'->>'reference'"),
+    ("Condition",          "data->'subject'->>'reference'"),
+    ("Encounter",          "data->'subject'->>'reference'"),
+    ("AllergyIntolerance", "data->'patient'->>'reference'"),
+    ("Immunization",       "data->'patient'->>'reference'"),
+    ("MedicationRequest",  "data->'subject'->>'reference'"),
+    ("Procedure",          "data->'subject'->>'reference'"),
+    ("DiagnosticReport",   "data->'subject'->>'reference'"),
+]
+
+
+@patient_router.get("/Patient/{patient_id}/$everything")
+async def patient_everything(patient_id: str):
+    patient = await state.db.get_resource(patient_id)
+    if not patient or patient.get("resourceType") != "Patient":
+        raise HTTPException(status_code=404, detail=f"Patient/{patient_id} not found")
+
+    ref = f"Patient/{patient_id}"
+
+    async def _fetch(rt: str, field: str) -> List[Dict[str, Any]]:
+        _, results = await state.db.search_resources_ex(rt, {}, [(f"{field} = ??", ref)], limit=10000, offset=0)
+        return results
+
+    compartment_results = await asyncio.gather(*[
+        _fetch(rt, field) for rt, field in _COMPARTMENT_TYPES
+    ])
+
+    entries = [{"fullUrl": f"Patient/{patient_id}", "resource": patient, "search": {"mode": "match"}}]
+    for resources in compartment_results:
+        for r in resources:
+            rt = r.get("resourceType", "")
+            rid = r.get("id", "")
+            entries.append({"fullUrl": f"{rt}/{rid}", "resource": r, "search": {"mode": "include"}})
+
+    return {
+        "resourceType": "Bundle",
+        "type": "searchset",
+        "total": len(entries),
+        "entry": entries,
+    }
+
+
+# ---------------------------------------------------------------------------
 # CapabilityStatement registrations
 # ---------------------------------------------------------------------------
 
@@ -353,9 +402,10 @@ register_resource({
         "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient",
     ],
     "operation": [
-        {"name": "match", "definition": "http://hl7.org/fhir/OperationDefinition/Patient-match"},
-        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
-        {"name": "export", "definition": "http://hl7.org/fhir/uv/bulkdata/OperationDefinition/patient-export"},
+        {"name": "match",     "definition": "http://hl7.org/fhir/OperationDefinition/Patient-match"},
+        {"name": "everything", "definition": "http://hl7.org/fhir/OperationDefinition/Patient-everything"},
+        {"name": "validate",  "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
+        {"name": "export",    "definition": "http://hl7.org/fhir/uv/bulkdata/OperationDefinition/patient-export"},
     ],
 })
 

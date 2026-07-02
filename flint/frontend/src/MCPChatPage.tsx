@@ -67,12 +67,12 @@ const TOOL_COLORS: Record<string, string> = {
 };
 
 const STARTER_PROMPTS = [
-  'How many ValueSets does this server have?',
-  'Find ValueSets related to COVID-19',
-  'Expand the ValueSet for race and ethnicity codes',
-  'Look up SNOMED code 840539006',
-  'Search for CodeSystems with status active',
   'What FHIR operations does this server support?',
+  'How many patients are in the system?',
+  'Find active Conditions for a patient',
+  'How many ValueSets does this server have?',
+  'Look up SNOMED code 840539006',
+  'Expand the ValueSet for administrative gender codes',
 ];
 
 // ---------------------------------------------------------------------------
