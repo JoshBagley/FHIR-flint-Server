@@ -1082,8 +1082,11 @@ app.include_router(admin_router)
 from app.routes.mcp_chat import router as mcp_chat_router  # noqa: E402
 app.include_router(mcp_chat_router)
 
-from app.routes.auth_routes import router as auth_router  # noqa: E402
+from app.routes.auth_routes import router as auth_router, well_known_router as auth_well_known_router  # noqa: E402
+from app.auth import ENABLE_AUTH as _AUTH_ENABLED, decode_token, has_fhir_scope
+from jose import JWTError
 app.include_router(auth_router)
+app.include_router(auth_well_known_router)
 
 from app.routes.clinical import routers as clinical_routers  # noqa: E402
 from app.routes.administrative import routers as administrative_routers  # noqa: E402
@@ -1230,6 +1233,58 @@ async def fhir_middleware(request: Request, call_next):
     response.headers["X-Process-Time"] = str(round(duration, 4))
     logger.info(f"{request.method} {request.url.path} {response.status_code} {duration:.3f}s")
     return response
+
+
+# Paths that never require a SMART token
+_SMART_PUBLIC_EXACT = {"/health", "/ready", "/metrics", "/metadata", "/.well-known/smart-configuration"}
+_SMART_PUBLIC_PREFIXES = ("/auth/", "/docs", "/redoc", "/openapi", "/static")
+
+
+@app.middleware("http")
+async def smart_auth_middleware(request: Request, call_next):
+    """SMART on FHIR scope enforcement. Only active when ENABLE_AUTH=true."""
+    if not _AUTH_ENABLED:
+        return await call_next(request)
+    if request.method == "OPTIONS":
+        return await call_next(request)
+    path = request.url.path
+    if path in _SMART_PUBLIC_EXACT or any(path.startswith(p) for p in _SMART_PUBLIC_PREFIXES):
+        return await call_next(request)
+
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return JSONResponse(
+            status_code=401,
+            headers={"WWW-Authenticate": "Bearer"},
+            content={
+                "resourceType": "OperationOutcome",
+                "issue": [{"severity": "error", "code": "security", "diagnostics": "Bearer token required"}],
+            },
+        )
+
+    try:
+        payload = await decode_token(auth_header[7:])
+    except JWTError as exc:
+        return JSONResponse(
+            status_code=401,
+            headers={"WWW-Authenticate": "Bearer"},
+            content={
+                "resourceType": "OperationOutcome",
+                "issue": [{"severity": "error", "code": "security", "diagnostics": f"Invalid or expired token: {exc}"}],
+            },
+        )
+
+    if not has_fhir_scope(payload, request.method):
+        return JSONResponse(
+            status_code=403,
+            content={
+                "resourceType": "OperationOutcome",
+                "issue": [{"severity": "error", "code": "forbidden", "diagnostics": "Insufficient SMART scopes for this request"}],
+            },
+        )
+
+    request.state.fhir_token = payload
+    return await call_next(request)
 
 
 @app.exception_handler(HTTPException)

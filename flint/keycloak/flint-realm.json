@@ -1,0 +1,172 @@
+{
+  "realm": "fhir",
+  "enabled": true,
+  "displayName": "Flint FHIR",
+  "displayNameHtml": "<b>Flint</b> FHIR R4",
+  "loginTheme": "keycloak",
+  "accessTokenLifespan": 3600,
+  "refreshTokenMaxReuse": 0,
+  "bruteForceProtected": true,
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "loginWithEmailAllowed": true,
+
+  "clientScopes": [
+    {
+      "name": "fhirUser",
+      "description": "Access the current user as a FHIR Patient or Practitioner resource",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
+                      "consent.screen.text": "Identify you as a FHIR user" }
+    },
+    {
+      "name": "launch/patient",
+      "description": "Launch in the context of a specific patient",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
+                      "consent.screen.text": "Launch in patient context" }
+    },
+    {
+      "name": "launch/encounter",
+      "description": "Launch in the context of a specific encounter",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
+                      "consent.screen.text": "Launch in encounter context" }
+    },
+    {
+      "name": "patient/*.read",
+      "description": "Read all FHIR resources for the patient in context",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
+                      "consent.screen.text": "Read your clinical records" }
+    },
+    {
+      "name": "patient/*.write",
+      "description": "Write all FHIR resources for the patient in context",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
+                      "consent.screen.text": "Update your clinical records" }
+    },
+    {
+      "name": "patient/*.*",
+      "description": "Read and write all FHIR resources for the patient in context",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
+                      "consent.screen.text": "Full access to your clinical records" }
+    },
+    {
+      "name": "user/*.read",
+      "description": "Read FHIR resources for all patients the user is authorized to access",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
+                      "consent.screen.text": "Read FHIR data for your authorized patients" }
+    },
+    {
+      "name": "user/*.write",
+      "description": "Write FHIR resources for all patients the user is authorized to access",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+    },
+    {
+      "name": "user/*.*",
+      "description": "Read and write FHIR resources for all authorized patients",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+    },
+    {
+      "name": "system/*.read",
+      "description": "Read any FHIR resource on the server (backend services)",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+    },
+    {
+      "name": "system/*.write",
+      "description": "Write any FHIR resource on the server (backend services)",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+    },
+    {
+      "name": "system/*.*",
+      "description": "Full system access (backend services)",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+    }
+  ],
+
+  "clients": [
+    {
+      "clientId": "flint-app",
+      "name": "SMART App Client (Public / PKCE)",
+      "description": "Public client for browser-based SMART on FHIR applications. Requires PKCE.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost/*",
+        "http://localhost:3000/*",
+        "http://localhost:5173/*",
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": ["+"],
+      "defaultClientScopes": ["openid", "profile", "email"],
+      "optionalClientScopes": [
+        "fhirUser",
+        "launch/patient",
+        "launch/encounter",
+        "patient/*.read",
+        "patient/*.write",
+        "user/*.read",
+        "user/*.write"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost/*"
+      }
+    },
+    {
+      "clientId": "flint-backend",
+      "name": "Flint Backend Service (Confidential)",
+      "description": "Confidential client for server-to-server SMART backend services (client_credentials).",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "flint-backend-secret-change-in-prod",
+      "defaultClientScopes": ["openid"],
+      "optionalClientScopes": ["system/*.read", "system/*.write", "system/*.*"]
+    }
+  ],
+
+  "users": [
+    {
+      "username": "alice",
+      "email": "alice@example.com",
+      "firstName": "Alice",
+      "lastName": "Patient",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "alice123", "temporary": false }
+      ]
+    },
+    {
+      "username": "dr-jones",
+      "email": "jones@example.com",
+      "firstName": "Dr. Sarah",
+      "lastName": "Jones",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "jones123", "temporary": false }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Link, Outlet } from 'react-router-dom';
 import { Layers, Users, Building2, MessageSquare, Server } from 'lucide-react';
 import AppLogo from './AppLogo';
 
@@ -15,13 +15,13 @@ export default function AppShell() {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className="w-56 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col">
-        <div className="flex items-center gap-2.5 px-4 py-4 border-b border-gray-100">
+        <Link to="/" className="flex items-center gap-2.5 px-4 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
           <AppLogo size={32} className="rounded-lg shadow-sm flex-shrink-0" />
           <div>
             <p className="text-sm font-bold text-gray-900 leading-tight">Flint</p>
             <p className="text-[10px] text-gray-400 uppercase tracking-wide">FHIR R4 Server</p>
           </div>
-        </div>
+        </Link>
         <nav className="flex-1 px-2 py-3 space-y-0.5">
           {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
             <NavLink

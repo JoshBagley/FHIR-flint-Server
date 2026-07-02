@@ -10,19 +10,31 @@ Authentication module — supports three modes selected by environment variables
       Set AUTH_USERNAME + AUTH_PASSWORD in the environment.
       Tokens are HS256-signed with SECRET_KEY, expire after AUTH_TOKEN_EXPIRE_MINUTES.
 
-  ENABLE_AUTH=true  (OIDC_ISSUER_URL set)
-      External OIDC provider (Option A).
-      OIDC_ISSUER_URL must point to an OIDC issuer (Keycloak, Auth0, Azure AD, etc.).
+  ENABLE_AUTH=true  (OIDC_ISSUER_URL set)  ← recommended for SMART on FHIR
+      External OIDC provider — Keycloak, Auth0, Azure AD, etc.
+      OIDC_ISSUER_URL must point to an OIDC issuer.
       JWKS is fetched from the well-known endpoint and cached for JWKS_CACHE_TTL_SECONDS.
       Tokens must be RS256 or ES256 JWTs issued by that provider.
 
 Dependency summary:
 
-  require_api_key   — legacy X-API-Key header check (unchanged)
+  require_api_key   — legacy X-API-Key header check
   require_auth      — Bearer token check (OIDC or built-in JWT)
   require_access    — combined: require_api_key when ENABLE_AUTH=false,
-                      require_auth when ENABLE_AUTH=true. Use this on
-                      protected routers (/admin, /ai).
+                      require_auth when ENABLE_AUTH=true. Used on /admin, /ai.
+
+SMART scope enforcement (when ENABLE_AUTH=true):
+  The FHIR auth middleware in main.py calls decode_token() + has_fhir_scope()
+  on every FHIR request. Scope semantics:
+
+    system/*.read  — read any resource (server-to-server)
+    system/*.write — write any resource (server-to-server)
+    user/*.read    — clinician read access (user-level context)
+    user/*.write   — clinician write access
+    patient/*.read — patient-scoped read (context patient only; filtering V2)
+    patient/*.write— patient-scoped write
+
+  Wildcard patterns (*.* and /ResourceType.read etc.) are also matched.
 """
 
 import os
@@ -107,6 +119,44 @@ def verify_builtin_credentials(username: str, password: str) -> Optional[Dict[st
     if not user or not password or password != user["password"]:
         return None
     return user
+
+
+# ── SMART scope helpers ───────────────────────────────────────────────────────
+
+async def decode_token(token: str) -> Dict[str, Any]:
+    """Decode a JWT and return the payload. Raises JWTError on failure (not HTTPException)."""
+    if OIDC_ISSUER_URL:
+        jwks = await _get_jwks()
+        return jwt.decode(token, jwks, algorithms=["RS256", "ES256"], options={"verify_aud": False})
+    else:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("iss") != "flint":
+            raise JWTError("Invalid issuer")
+        return payload
+
+
+def has_fhir_scope(token_payload: Dict[str, Any], method: str) -> bool:
+    """Return True if the token's scopes grant access for the given HTTP method.
+
+    Recognises SMART on FHIR v2 scope patterns:
+      {context}/*.{access}          e.g. system/*.read, patient/*.write
+      {context}/{ResourceType}.{access}  e.g. user/Patient.read
+    where context ∈ {system, user, patient} and access ∈ {read, write, *}.
+    Write methods: POST, PUT, PATCH, DELETE.
+    """
+    scopes = set((token_payload.get("scope") or "").split())
+    is_write = method in ("POST", "PUT", "PATCH", "DELETE")
+    for scope in scopes:
+        context, _, resource_part = scope.partition("/")
+        if context not in ("system", "user", "patient"):
+            continue
+        if resource_part.endswith(".*"):
+            return True
+        if not is_write and resource_part.endswith(".read"):
+            return True
+        if resource_part.endswith(".write"):
+            return True
+    return False
 
 
 # ── Auth dependencies ─────────────────────────────────────────────────────────

@@ -28,6 +28,9 @@ from app.auth import (
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+# Also expose at the SMART-standard top-level path (no /auth prefix)
+well_known_router = APIRouter(tags=["Authentication"])
+
 _BASE_URL = os.environ.get("BASE_URL", "")
 
 
@@ -85,7 +88,9 @@ async def smart_configuration():
     doc: dict = {
         "token_endpoint": token_endpoint,
         "token_endpoint_auth_methods_supported": ["client_secret_post", "none"],
-        "grant_types_supported": ["password", "client_credentials"],
+        "grant_types_supported": (
+            ["authorization_code", "client_credentials"] if OIDC_ISSUER_URL else ["password", "client_credentials"]
+        ),
         "scopes_supported": ["openid", "profile", "fhirUser", "launch/patient", "system/*.read", "system/*.write"],
         "capabilities": [
             "launch-standalone",
@@ -105,3 +110,13 @@ async def smart_configuration():
         doc["jwks_uri"] = f"{base}/auth/.well-known/jwks.json"
 
     return doc
+
+
+@well_known_router.get(
+    "/.well-known/smart-configuration",
+    summary="SMART on FHIR discovery document (SMART standard location)",
+    response_model=None,
+)
+async def smart_configuration_top_level():
+    """Alias at the FHIR-base well-known location required by SMART App Launch spec."""
+    return await smart_configuration()
