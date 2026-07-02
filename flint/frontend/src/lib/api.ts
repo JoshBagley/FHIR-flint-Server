@@ -1,8 +1,13 @@
+import { getToken } from './auth';
+
 const _API_KEY = import.meta.env.VITE_ADMIN_API_KEY as string | undefined;
 
 export function getHeaders(path: string): Record<string, string> {
   const headers: Record<string, string> = { 'Accept': 'application/fhir+json' };
-  if (_API_KEY && (path.startsWith('/ai/') || path.startsWith('/admin/'))) {
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  } else if (_API_KEY && (path.startsWith('/ai/') || path.startsWith('/admin/'))) {
     headers['X-API-Key'] = _API_KEY;
   }
   return headers;

@@ -15,7 +15,8 @@ GET  /auth/.well-known/smart-configuration
 
 import os
 
-from fastapi import APIRouter, Depends, HTTPException
+import httpx
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.auth import (
@@ -32,6 +33,8 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 well_known_router = APIRouter(tags=["Authentication"])
 
 _BASE_URL = os.environ.get("BASE_URL", "")
+# Browser-facing OIDC URL (may differ from OIDC_ISSUER_URL which is Docker-internal)
+_OIDC_PUBLIC_URL = os.environ.get("OIDC_PUBLIC_ISSUER_URL", "").rstrip("/") or OIDC_ISSUER_URL
 
 
 @router.post("/token", summary="Obtain a Bearer token (built-in JWT)")
@@ -102,14 +105,34 @@ async def smart_configuration():
         "auth_required": ENABLE_AUTH,
     }
     if OIDC_ISSUER_URL:
-        doc["issuer"] = OIDC_ISSUER_URL
-        doc["authorization_endpoint"] = f"{OIDC_ISSUER_URL}/protocol/openid-connect/auth"
-        doc["jwks_uri"] = f"{OIDC_ISSUER_URL}/protocol/openid-connect/certs"
+        doc["issuer"] = _OIDC_PUBLIC_URL
+        doc["authorization_endpoint"] = f"{_OIDC_PUBLIC_URL}/protocol/openid-connect/auth"
+        doc["token_endpoint"] = f"{_OIDC_PUBLIC_URL}/protocol/openid-connect/token"
+        doc["jwks_uri"] = f"{_OIDC_PUBLIC_URL}/protocol/openid-connect/certs"
+        doc["userinfo_endpoint"] = f"{_OIDC_PUBLIC_URL}/protocol/openid-connect/userinfo"
+        doc["end_session_endpoint"] = f"{_OIDC_PUBLIC_URL}/protocol/openid-connect/logout"
     elif ENABLE_AUTH:
         doc["issuer"] = base
         doc["jwks_uri"] = f"{base}/auth/.well-known/jwks.json"
 
     return doc
+
+
+@router.get("/userinfo", summary="Proxy userinfo to OIDC provider", response_model=None)
+async def userinfo_proxy(request: Request):
+    """Proxies GET /auth/userinfo to the OIDC provider using the caller's Bearer token.
+    Avoids cross-origin issues when the OIDC provider is on a different port."""
+    if not OIDC_ISSUER_URL:
+        raise HTTPException(status_code=404, detail="OIDC not configured")
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Bearer token required")
+    userinfo_url = f"{OIDC_ISSUER_URL}/protocol/openid-connect/userinfo"
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.get(userinfo_url, headers={"Authorization": auth})
+    if not resp.is_success:
+        raise HTTPException(status_code=resp.status_code, detail="Userinfo request failed")
+    return resp.json()
 
 
 @well_known_router.get(

@@ -120,7 +120,10 @@ const _API_KEY = import.meta.env.VITE_ADMIN_API_KEY;
 
 function _buildHeaders(path: string, extra?: HeadersInit): Record<string, string> {
   const base: Record<string, string> = { 'Content-Type': 'application/json', Accept: 'application/fhir+json' };
-  if (_API_KEY && (path.startsWith('/ai/') || path.startsWith('/admin/'))) {
+  const token = sessionStorage.getItem('flint_access_token');
+  if (token) {
+    base['Authorization'] = `Bearer ${token}`;
+  } else if (_API_KEY && (path.startsWith('/ai/') || path.startsWith('/admin/'))) {
     base['X-API-Key'] = _API_KEY;
   }
   return { ...base, ...(extra as Record<string, string> | undefined) };

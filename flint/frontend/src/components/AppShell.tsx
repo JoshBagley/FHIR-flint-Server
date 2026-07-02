@@ -1,6 +1,7 @@
 import { NavLink, Link, Outlet } from 'react-router-dom';
-import { Layers, Users, Building2, MessageSquare, Server } from 'lucide-react';
+import { Layers, Users, Building2, MessageSquare, Server, LogOut, UserCircle } from 'lucide-react';
 import AppLogo from './AppLogo';
+import { useAuth } from '../contexts/AuthContext';
 
 const NAV_ITEMS = [
   { to: '/admin',       label: 'Administrative', icon: Building2 },
@@ -11,6 +12,7 @@ const NAV_ITEMS = [
 ];
 
 export default function AppShell() {
+  const { authRequired, isAuthenticated, username, logout } = useAuth();
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
@@ -40,7 +42,22 @@ export default function AppShell() {
             </NavLink>
           ))}
         </nav>
-        <div className="px-4 py-3 border-t border-gray-100">
+        <div className="px-4 py-3 border-t border-gray-100 space-y-2">
+          {authRequired && isAuthenticated && (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <UserCircle className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                <p className="text-xs text-gray-600 truncate">{username ?? 'Signed in'}</p>
+              </div>
+              <button
+                onClick={logout}
+                title="Sign out"
+                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
           <a
             href="/docs"
             target="_blank"

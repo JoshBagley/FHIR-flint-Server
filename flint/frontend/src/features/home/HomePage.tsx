@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getHeaders } from '../../lib/api';
 import { Link } from 'react-router-dom';
 import {
   Users, Building2, Layers, MessageSquare, Server,
@@ -249,7 +250,7 @@ export default function HomePage() {
       .then(setHealth)
       .catch(() => setHealth({ status: 'error' }));
 
-    fetch('/ai/provider')
+    fetch('/ai/provider', { headers: getHeaders('/ai/provider') })
       .then(r => r.json() as Promise<AiInfo>)
       .then(setAiInfo)
       .catch(() => {});

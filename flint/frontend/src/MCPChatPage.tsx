@@ -265,7 +265,11 @@ export default function MCPChatPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const _apiKey = import.meta.env.VITE_ADMIN_API_KEY;
-  const _authHeader = (_apiKey ? { 'X-API-Key': _apiKey } : {}) as Record<string, string>;
+  const _token = sessionStorage.getItem('flint_access_token');
+  const _authHeader = (_token
+    ? { 'Authorization': `Bearer ${_token}` }
+    : _apiKey ? { 'X-API-Key': _apiKey } : {}
+  ) as Record<string, string>;
 
   // Fetch tool list + provider info on mount
   useEffect(() => {

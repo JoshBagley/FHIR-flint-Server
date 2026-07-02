@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { getHeaders } from '../../lib/api';
 import {
   Server, CheckCircle, XCircle, Loader2, ChevronDown, ChevronUp,
   ExternalLink, Database, Search, Layers, Activity, Download, Package,
@@ -191,7 +192,7 @@ function BulkExportPanel() {
     }
     pollRef.current = setInterval(async () => {
       try {
-        const r = await fetch(`/jobs/${jobId}`);
+        const r = await fetch(`/jobs/${jobId}`, { headers: getHeaders(`/jobs/${jobId}`) });
         if (r.status === 202) return;
         if (r.status === 200) { setJob(await r.json()); }
         else { setJob(prev => prev ? { ...prev, status: 'failed' } : null); }
@@ -220,7 +221,7 @@ function BulkExportPanel() {
       if (since) p.set('_since', since);
       const endpoint = mode === 'system' ? '/$export' : '/Patient/$export';
       const qs = p.toString();
-      const r = await fetch(qs ? `${endpoint}?${qs}` : endpoint, { headers: { Prefer: 'respond-async' } });
+      const r = await fetch(qs ? `${endpoint}?${qs}` : endpoint, { headers: { ...getHeaders(endpoint), Prefer: 'respond-async' } });
       if (r.status !== 202) {
         setKickError(`HTTP ${r.status}: ${(await r.text()).slice(0, 200)}`);
         return;
@@ -238,7 +239,7 @@ function BulkExportPanel() {
 
   const cancelExport = async () => {
     if (!jobId) return;
-    await fetch(`/jobs/${jobId}`, { method: 'DELETE' });
+    await fetch(`/jobs/${jobId}`, { method: 'DELETE', headers: getHeaders(`/jobs/${jobId}`) });
     setJob(prev => prev ? { ...prev, status: 'cancelled' } : null);
   };
 
@@ -400,7 +401,7 @@ function BundlePanel() {
       catch { setResult({ ok: false, data: { error: 'Invalid JSON — check the bundle syntax' } }); return; }
       const r = await fetch('/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/fhir+json', Accept: 'application/fhir+json' },
+        headers: { ...getHeaders('/'), 'Content-Type': 'application/fhir+json' },
         body: JSON.stringify(body),
       });
       setResult({ ok: r.ok, data: await r.json() });

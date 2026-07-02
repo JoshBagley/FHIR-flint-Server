@@ -168,12 +168,11 @@ function toUiResource(r: FhirResource): UiResource {
 const _API_KEY = import.meta.env.VITE_ADMIN_API_KEY as string | undefined;
 
 function _getHeaders(path: string): Record<string, string> {
-  const headers: Record<string, string> = {
-    'Accept': 'application/fhir+json'
-  };
-  
-  // Only attach API Key for internal administrative or AI routes
-  if (_API_KEY && (path.startsWith('/ai/') || path.startsWith('/admin/'))) {
+  const headers: Record<string, string> = { 'Accept': 'application/fhir+json' };
+  const token = sessionStorage.getItem('flint_access_token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  } else if (_API_KEY && (path.startsWith('/ai/') || path.startsWith('/admin/'))) {
     headers['X-API-Key'] = _API_KEY;
   }
   return headers;

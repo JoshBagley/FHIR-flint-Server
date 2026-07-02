@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getHeaders } from '../../lib/api';
 import {
   Users, ArrowLeft, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
   Activity, FileText, Calendar, ShieldAlert, Syringe, AlertCircle, X,
@@ -589,7 +590,7 @@ function PatientChart({ patient, onBack }: { patient: Patient; onBack: () => voi
     setDownloading(true);
     setDownloadError(null);
     try {
-      const r = await fetch(`/Patient/${patient.id}/$everything`, { headers: { Accept: 'application/fhir+json' } });
+      const r = await fetch(`/Patient/${patient.id}/$everything`, { headers: getHeaders(`/Patient/${patient.id}/$everything`) });
       if (!r.ok) {
         const text = await r.text().catch(() => `HTTP ${r.status}`);
         setDownloadError(`${r.status}: ${text.slice(0, 120)}`);
@@ -693,7 +694,7 @@ export default function ClinicalApp() {
   const startPatientExport = async () => {
     setExportNotif({ status: 'running' });
     try {
-      const r = await fetch('/Patient/$export', { headers: { Prefer: 'respond-async' } });
+      const r = await fetch('/Patient/$export', { headers: { ...getHeaders('/Patient/$export'), Prefer: 'respond-async' } });
       if (r.status !== 202) { setExportNotif({ status: 'error', msg: `HTTP ${r.status}` }); return; }
       const loc = r.headers.get('Content-Location') ?? '';
       const jobId = loc.split('/').pop() ?? '';
