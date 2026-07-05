@@ -30,6 +30,14 @@ export interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+function nameFromClaims(p: Record<string, unknown>): string | null {
+  return (p.name as string)
+    || ((p.given_name || p.family_name) ? `${p.given_name ?? ''} ${p.family_name ?? ''}`.trim() : null)
+    || (p.preferred_username as string)
+    || (p.email as string)
+    || null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [smartConfig, setSmartConfig] = useState<SmartConfig | null>(null);
@@ -37,45 +45,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [username, setUsername] = useState<string | null>(() => {
     const idToken = getIdToken();
     if (!idToken) return null;
-    const p = parseTokenPayload(idToken);
-    return (p.name as string)
-      || ((p.given_name || p.family_name) ? `${p.given_name ?? ''} ${p.family_name ?? ''}`.trim() : null)
-      || (p.preferred_username as string)
-      || (p.email as string)
-      || null;
+    return nameFromClaims(parseTokenPayload(idToken));
   });
   const [loggedOut, setLoggedOut] = useState(false);
 
   useEffect(() => {
-    const idToken = getIdToken();
-    console.log('[auth] mount: idToken present:', !!idToken);
-    if (idToken) console.log('[auth] mount: idToken payload:', parseTokenPayload(idToken));
-
     fetch('/.well-known/smart-configuration')
       .then(r => r.json() as Promise<SmartConfig>)
       .then(cfg => { setSmartConfig(cfg); setLoading(false); })
       .catch(() => { setSmartConfig(null); setLoading(false); });
 
-    // Restore display name from userinfo if a token is already stored
+    // Restore display name from userinfo if a token is already stored (page reload)
     const existingToken = getToken();
     if (existingToken) {
       fetch('/auth/userinfo', { headers: { Authorization: `Bearer ${existingToken}` } })
-        .then(r => { console.log('[auth] mount: userinfo status:', r.status); return r.ok ? r.json() : null; })
-        .then((info: Record<string, string> | null) => {
-          console.log('[auth] mount: userinfo response:', info);
-          if (info) {
-            const name = info.name
-              || (info.given_name || info.family_name ? `${info.given_name ?? ''} ${info.family_name ?? ''}`.trim() : null)
-              || info.preferred_username
-              || info.email
-              || null;
-            if (name) setUsername(name);
-          }
+        .then(r => r.ok ? r.json() : null)
+        .then((info: Record<string, unknown> | null) => {
+          if (info) { const n = nameFromClaims(info); if (n) setUsername(n); }
         })
         .catch(() => {});
     }
   }, []);
-
 
   const login = async () => {
     if (!smartConfig?.authorization_endpoint) return;
@@ -115,38 +105,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(`Token exchange failed: ${msg}`);
     }
     const data = await resp.json() as { access_token: string; id_token?: string };
-    console.log('[auth] token response keys:', Object.keys(data));
-    console.log('[auth] id_token present:', !!data.id_token);
-    if (data.id_token) console.log('[auth] id_token payload:', parseTokenPayload(data.id_token));
     clearVerifier();
     setToken(data.access_token);
     setLoggedOut(false);
     setTokenState(data.access_token);
-    // Extract display name from the ID token immediately (synchronous, no network needed)
+    // Extract display name from ID token immediately (synchronous, no network needed)
     if (data.id_token) {
       setIdToken(data.id_token);
-      const p = parseTokenPayload(data.id_token);
-      const name = (p.name as string)
-        || ((p.given_name || p.family_name) ? `${p.given_name ?? ''} ${p.family_name ?? ''}`.trim() : null)
-        || (p.preferred_username as string)
-        || (p.email as string)
-        || null;
-      console.log('[auth] name from id_token:', name);
-      if (name) setUsername(name);
+      const n = nameFromClaims(parseTokenPayload(data.id_token));
+      if (n) setUsername(n);
     }
-    // Fallback: fetch from userinfo proxy in case ID token lacks profile claims
+    // Fallback: userinfo proxy in case ID token lacks profile claims
     fetch('/auth/userinfo', { headers: { Authorization: `Bearer ${data.access_token}` } })
-      .then(r => { console.log('[auth] userinfo status:', r.status); return r.ok ? r.json() : null; })
-      .then((info: Record<string, string> | null) => {
-        console.log('[auth] userinfo response:', info);
-        if (info) {
-          const name = info.name
-            || (info.given_name || info.family_name ? `${info.given_name ?? ''} ${info.family_name ?? ''}`.trim() : null)
-            || info.preferred_username
-            || info.email
-            || null;
-          if (name) setUsername(name);
-        }
+      .then(r => r.ok ? r.json() : null)
+      .then((info: Record<string, unknown> | null) => {
+        if (info) { const n = nameFromClaims(info); if (n) setUsername(n); }
       })
       .catch(() => {});
   };
