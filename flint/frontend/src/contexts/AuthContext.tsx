@@ -38,11 +38,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const idToken = getIdToken();
     if (!idToken) return null;
     const p = parseTokenPayload(idToken);
-    return (p.name as string) || (p.preferred_username as string) || (p.email as string) || null;
+    return (p.name as string)
+      || ((p.given_name || p.family_name) ? `${p.given_name ?? ''} ${p.family_name ?? ''}`.trim() : null)
+      || (p.preferred_username as string)
+      || (p.email as string)
+      || null;
   });
   const [loggedOut, setLoggedOut] = useState(false);
 
   useEffect(() => {
+    const idToken = getIdToken();
+    console.log('[auth] mount: idToken present:', !!idToken);
+    if (idToken) console.log('[auth] mount: idToken payload:', parseTokenPayload(idToken));
+
     fetch('/.well-known/smart-configuration')
       .then(r => r.json() as Promise<SmartConfig>)
       .then(cfg => { setSmartConfig(cfg); setLoading(false); })
@@ -52,9 +60,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const existingToken = getToken();
     if (existingToken) {
       fetch('/auth/userinfo', { headers: { Authorization: `Bearer ${existingToken}` } })
-        .then(r => r.ok ? r.json() : null)
+        .then(r => { console.log('[auth] mount: userinfo status:', r.status); return r.ok ? r.json() : null; })
         .then((info: Record<string, string> | null) => {
-          if (info) setUsername(info.name || info.preferred_username || info.email || null);
+          console.log('[auth] mount: userinfo response:', info);
+          if (info) {
+            const name = info.name
+              || (info.given_name || info.family_name ? `${info.given_name ?? ''} ${info.family_name ?? ''}`.trim() : null)
+              || info.preferred_username
+              || info.email
+              || null;
+            if (name) setUsername(name);
+          }
         })
         .catch(() => {});
     }
@@ -99,16 +115,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(`Token exchange failed: ${msg}`);
     }
     const data = await resp.json() as { access_token: string; id_token?: string };
+    console.log('[auth] token response keys:', Object.keys(data));
+    console.log('[auth] id_token present:', !!data.id_token);
+    if (data.id_token) console.log('[auth] id_token payload:', parseTokenPayload(data.id_token));
     clearVerifier();
     setToken(data.access_token);
-    if (data.id_token) setIdToken(data.id_token);
     setLoggedOut(false);
     setTokenState(data.access_token);
-    // Fetch display name via same-origin proxy (avoids CORS to Keycloak)
+    // Extract display name from the ID token immediately (synchronous, no network needed)
+    if (data.id_token) {
+      setIdToken(data.id_token);
+      const p = parseTokenPayload(data.id_token);
+      const name = (p.name as string)
+        || ((p.given_name || p.family_name) ? `${p.given_name ?? ''} ${p.family_name ?? ''}`.trim() : null)
+        || (p.preferred_username as string)
+        || (p.email as string)
+        || null;
+      console.log('[auth] name from id_token:', name);
+      if (name) setUsername(name);
+    }
+    // Fallback: fetch from userinfo proxy in case ID token lacks profile claims
     fetch('/auth/userinfo', { headers: { Authorization: `Bearer ${data.access_token}` } })
-      .then(r => r.ok ? r.json() : null)
+      .then(r => { console.log('[auth] userinfo status:', r.status); return r.ok ? r.json() : null; })
       .then((info: Record<string, string> | null) => {
-        if (info) setUsername(info.name || info.preferred_username || info.email || null);
+        console.log('[auth] userinfo response:', info);
+        if (info) {
+          const name = info.name
+            || (info.given_name || info.family_name ? `${info.given_name ?? ''} ${info.family_name ?? ''}`.trim() : null)
+            || info.preferred_username
+            || info.email
+            || null;
+          if (name) setUsername(name);
+        }
       })
       .catch(() => {});
   };
