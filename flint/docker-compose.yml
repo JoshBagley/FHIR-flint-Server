@@ -265,6 +265,7 @@ services:
       KC_LOG_LEVEL: warn
     volumes:
       - ./keycloak/flint-realm.json:/opt/keycloak/data/import/flint-realm.json:ro
+      - ./keycloak/themes/flint:/opt/keycloak/themes/flint:ro
       - keycloak_data:/opt/keycloak/data
     ports:
       - "8080:8080"

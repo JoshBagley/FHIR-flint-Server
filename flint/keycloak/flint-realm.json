@@ -2,8 +2,8 @@
   "realm": "fhir",
   "enabled": true,
   "displayName": "Flint FHIR",
-  "displayNameHtml": "<b>Flint</b> FHIR R4",
-  "loginTheme": "keycloak",
+  "displayNameHtml": "<b>Flint</b>",
+  "loginTheme": "flint",
   "accessTokenLifespan": 3600,
   "refreshTokenMaxReuse": 0,
   "bruteForceProtected": true,
@@ -19,16 +19,6 @@
     ]
   },
 
-  "userProfile": {
-    "attributes": [
-      {"name":"username","displayName":"${username}","validations":{"length":{"min":3,"max":255},"username-prohibited-characters":{},"up-username-not-idn-homograph":{}},"permissions":{"view":["admin","user"],"edit":["admin","user"]},"multivalued":false},
-      {"name":"email","displayName":"${email}","validations":{"email":{},"length":{"max":255}},"required":{"roles":["user"]},"permissions":{"view":["admin","user"],"edit":["admin","user"]},"multivalued":false},
-      {"name":"firstName","displayName":"${firstName}","validations":{"length":{"max":255},"person-name-prohibited-characters":{}},"required":{"roles":["user"]},"permissions":{"view":["admin","user"],"edit":["admin","user"]},"multivalued":false},
-      {"name":"lastName","displayName":"${lastName}","validations":{"length":{"max":255},"person-name-prohibited-characters":{}},"required":{"roles":["user"]},"permissions":{"view":["admin","user"],"edit":["admin","user"]},"multivalued":false},
-      {"name":"fhirUser","displayName":"FHIR User Reference","permissions":{"view":["admin"],"edit":["admin"]},"multivalued":false}
-    ],
-    "groups": [{"name":"user-metadata","displayHeader":"User metadata"}]
-  },
 
   "clientScopes": [
     {

@@ -1,0 +1,146 @@
+/* Flint FHIR Server — Keycloak login theme
+   Extends: keycloak (classic)
+   Style: light clinical — slate-100 bg, white card, blue-600 accent
+*/
+
+/* ── Page background ─────────────────────────────────────────────────── */
+body {
+  background-color: #f1f5f9 !important; /* slate-100 */
+  background-image: none !important;
+}
+
+.login-pf {
+  background-color: #f1f5f9 !important;
+  background-image: none !important;
+}
+
+.login-pf-page {
+  background-image: none !important;
+}
+
+/* ── Header: show Flint logo above the card ──────────────────────────── */
+#kc-header {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+#kc-header-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 0 8px;
+  color: #0f172a !important; /* slate-900 */
+  text-shadow: none !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+}
+
+/* Insert the Flint logo before the realm name text */
+#kc-header-wrapper::before {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 72px;
+  background-image: url("../img/logo.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Subtitle under the realm name */
+#kc-header-wrapper::after {
+  content: "FHIR\00AE R4 Server";
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #64748b; /* slate-500 */
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ── Login card ──────────────────────────────────────────────────────── */
+#kc-form-wrapper,
+.card-pf {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important; /* slate-200 */
+  border-radius: 12px !important;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* ── Labels & text ───────────────────────────────────────────────────── */
+#kc-form label,
+.login-pf label {
+  color: #475569 !important; /* slate-600 */
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Page title */
+#kc-page-title {
+  color: #1e293b !important; /* slate-800 */
+}
+
+/* ── Inputs ──────────────────────────────────────────────────────────── */
+#kc-form input[type="text"],
+#kc-form input[type="password"],
+#kc-form input[type="email"] {
+  background: #f8fafc !important; /* slate-50 */
+  border: 1px solid #cbd5e1 !important; /* slate-300 */
+  color: #0f172a !important; /* slate-900 */
+  border-radius: 8px !important;
+}
+
+#kc-form input:focus {
+  border-color: #2563eb !important; /* blue-600 */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+  outline: none !important;
+}
+
+/* ── Primary button (Sign In) ────────────────────────────────────────── */
+.btn-primary,
+#kc-login {
+  background-color: #2563eb !important; /* blue-600 */
+  border-color: #1d4ed8 !important;     /* blue-700 */
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover,
+#kc-login:hover {
+  background-color: #1d4ed8 !important; /* blue-700 */
+  border-color: #1e40af !important;     /* blue-800 */
+}
+
+/* ── Links ───────────────────────────────────────────────────────────── */
+a {
+  color: #2563eb !important; /* blue-600 */
+}
+
+a:hover {
+  color: #1d4ed8 !important; /* blue-700 */
+}
+
+/* ── Alert / error messages ──────────────────────────────────────────── */
+.alert-error {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  color: #b91c1c !important; /* red-700 */
+  border-radius: 8px !important;
+}
+
+/* ── Footer trademark notice ─────────────────────────────────────────── */
+#kc-info-message::after,
+body::after {
+  content: "FHIR\00AE is the registered trademark of HL7 and is used with the permission of HL7.";
+  display: block;
+  text-align: center;
+  font-size: 0.65rem;
+  color: #94a3b8; /* slate-400 */
+  padding: 16px;
+  margin-top: 8px;
+}
