@@ -1079,11 +1079,18 @@ app.include_router(ai_router)
 from app.routes.admin import router as admin_router  # noqa: E402
 app.include_router(admin_router)
 
+from app.routes.admin_users import router as admin_users_router  # noqa: E402
+app.include_router(admin_users_router)
+
 from app.routes.mcp_chat import router as mcp_chat_router  # noqa: E402
 app.include_router(mcp_chat_router)
 
 from app.routes.auth_routes import router as auth_router, well_known_router as auth_well_known_router  # noqa: E402
-from app.auth import ENABLE_AUTH as _AUTH_ENABLED, decode_token, has_fhir_scope
+from app.auth import (
+    ENABLE_AUTH as _AUTH_ENABLED,
+    decode_token, has_fhir_scope,
+    get_roles, check_role_scope_compatibility, get_patient_context, get_clinician_id,
+)
 from jose import JWTError
 app.include_router(auth_router)
 app.include_router(auth_well_known_router)
@@ -1283,7 +1290,39 @@ async def smart_auth_middleware(request: Request, call_next):
             },
         )
 
+    roles = get_roles(payload)
+    role_error = check_role_scope_compatibility(roles, payload)
+    if role_error:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "resourceType": "OperationOutcome",
+                "issue": [{"severity": "error", "code": "forbidden", "diagnostics": role_error}],
+            },
+        )
+
+    patient_id = get_patient_context(payload)
+
+    # Patient-scoped tokens with no fhirUser cannot be safely filtered — reject
+    scopes = set((payload.get("scope") or "").split())
+    only_patient_scope = (
+        any(s.startswith("patient/") for s in scopes)
+        and not any(s.startswith("user/") or s.startswith("system/") for s in scopes)
+    )
+    if only_patient_scope and patient_id is None and "fhir-admin" not in roles:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "resourceType": "OperationOutcome",
+                "issue": [{"severity": "error", "code": "forbidden",
+                           "diagnostics": "patient-scoped token is missing fhirUser claim; cannot determine patient context"}],
+            },
+        )
+
     request.state.fhir_token = payload
+    request.state.fhir_roles = roles
+    request.state.fhir_patient_id = patient_id
+    request.state.fhir_clinician_id = get_clinician_id(payload)
     return await call_next(request)
 
 

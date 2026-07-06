@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { getHeaders } from '../../lib/api';
+import { getHeaders, apiFetchMut } from '../../lib/api';
 import {
   Users, ArrowLeft, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
   Activity, FileText, Calendar, ShieldAlert, Syringe, AlertCircle, X,
-  Pill, Scissors, ClipboardList, Download, CheckCircle,
+  Pill, Scissors, ClipboardList, Download, CheckCircle, UserPlus,
 } from 'lucide-react';
 import { useFhirSearch } from '../../hooks/useFhirSearch';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useAuth } from '../../contexts/AuthContext';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -190,10 +191,123 @@ function LoadingRows({ cols }: { cols: number }) {
 }
 
 // ---------------------------------------------------------------------------
+// New Patient modal (for clinician-initiated registration)
+// ---------------------------------------------------------------------------
+
+function NewPatientModal({ onClose, onCreated, clinicianRef }: {
+  onClose: () => void;
+  onCreated: () => void;
+  clinicianRef: string | null;
+}) {
+  const [form, setForm] = useState({
+    firstName: '', lastName: '', email: '', username: '',
+    birthDate: '', gender: '', phone: '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true); setError(null);
+    try {
+      await apiFetchMut('POST', '/admin/users/patient', {
+        ...form,
+        birthDate: form.birthDate || undefined,
+        gender: form.gender || undefined,
+        phone: form.phone || undefined,
+        generalPractitioner: clinicianRef || undefined,
+      });
+      onCreated();
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <UserPlus className="w-4 h-4 text-blue-500" /> Register New Patient
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+        </div>
+        <form onSubmit={submit} className="px-5 py-4 space-y-3">
+          {error && (
+            <div className="flex items-start gap-2 text-red-600 text-sm bg-red-50 rounded-lg p-3">
+              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />{error}
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <PatientField label="First name *" value={form.firstName} onChange={set('firstName')} required />
+            <PatientField label="Last name *" value={form.lastName} onChange={set('lastName')} required />
+          </div>
+          <PatientField label="Email *" type="email" value={form.email} onChange={set('email')} required />
+          <div className="grid grid-cols-2 gap-3">
+            <PatientField label="Username *" value={form.username} onChange={set('username')} required />
+            <PatientField label="Date of birth" type="date" value={form.birthDate} onChange={set('birthDate')} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Gender</label>
+              <select value={form.gender} onChange={set('gender')}
+                className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <option value="">Unknown</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <PatientField label="Phone" type="tel" value={form.phone} onChange={set('phone')} placeholder="+1 555 000 0000" />
+          </div>
+          {clinicianRef && (
+            <p className="text-xs text-gray-400">
+              Patient will be linked to your panel ({clinicianRef}).
+            </p>
+          )}
+          <p className="text-xs text-gray-400">A temporary password "ChangeMe123!" will be set — patient must change it on first login.</p>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose}
+              className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" disabled={saving}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              {saving ? 'Registering…' : 'Register Patient'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function PatientField({
+  label, value, onChange, required, type = 'text', placeholder,
+}: {
+  label: string; value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean; type?: string; placeholder?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
+      <input type={type} value={value} onChange={onChange} required={required} placeholder={placeholder}
+        className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Patient list
 // ---------------------------------------------------------------------------
 
-function PatientList({ onSelect }: { onSelect: (p: Patient) => void }) {
+function PatientList({ onSelect, refreshKey }: { onSelect: (p: Patient) => void; refreshKey?: number }) {
   const [nameSearch, setNameSearch] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const debouncedName = useDebounce(nameSearch, 350);
@@ -205,6 +319,7 @@ function PatientList({ onSelect }: { onSelect: (p: Patient) => void }) {
       _sort: 'family',
     },
     pageSize: 20,
+    refreshKey,
   });
 
   return (
@@ -688,8 +803,11 @@ function PatientChart({ patient, onBack }: { patient: Patient; onBack: () => voi
 type ExportNotif = { status: 'running' } | { status: 'done'; jobId: string } | { status: 'error'; msg: string };
 
 export default function ClinicalApp() {
+  const { fhirUser } = useAuth();
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [exportNotif, setExportNotif] = useState<ExportNotif | null>(null);
+  const [showNewPatient, setShowNewPatient] = useState(false);
+  const [patientRefreshKey, setPatientRefreshKey] = useState(0);
 
   const startPatientExport = async () => {
     setExportNotif({ status: 'running' });
@@ -706,6 +824,13 @@ export default function ClinicalApp() {
 
   return (
     <div className="bg-gray-50 min-h-full">
+      {showNewPatient && (
+        <NewPatientModal
+          clinicianRef={fhirUser}
+          onClose={() => setShowNewPatient(false)}
+          onCreated={() => { setShowNewPatient(false); setPatientRefreshKey(k => k + 1); }}
+        />
+      )}
       {/* Section header */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -724,10 +849,16 @@ export default function ClinicalApp() {
               </div>
             </div>
             {!selectedPatient && (
-              <button onClick={startPatientExport} disabled={exportNotif?.status === 'running'}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:border-blue-300 hover:text-blue-600 disabled:opacity-50 transition-colors bg-white">
-                <Download className="w-3.5 h-3.5" /> Export Patients
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setShowNewPatient(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                  <UserPlus className="w-3.5 h-3.5" /> New Patient
+                </button>
+                <button onClick={startPatientExport} disabled={exportNotif?.status === 'running'}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:border-blue-300 hover:text-blue-600 disabled:opacity-50 transition-colors bg-white">
+                  <Download className="w-3.5 h-3.5" /> Export Patients
+                </button>
+              </div>
             )}
           </div>
           {exportNotif && (
@@ -753,7 +884,7 @@ export default function ClinicalApp() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {selectedPatient
           ? <PatientChart patient={selectedPatient} onBack={() => setSelectedPatient(null)} />
-          : <PatientList onSelect={setSelectedPatient} />
+          : <PatientList onSelect={setSelectedPatient} refreshKey={patientRefreshKey} />
         }
       </div>
     </div>

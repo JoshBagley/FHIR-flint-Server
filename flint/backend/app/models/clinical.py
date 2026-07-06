@@ -47,6 +47,8 @@ class Patient(BaseModel):
     maritalStatus: Optional[CodeableConcept] = None
     multipleBirthBoolean: Optional[bool] = None
     multipleBirthInteger: Optional[int] = None
+    generalPractitioner: Optional[List[Reference]] = None
+    managingOrganization: Optional[Reference] = None
     communication: Optional[List[Dict[str, Any]]] = None
     link: Optional[List[Dict[str, Any]]] = None
     extension: Optional[List[Dict[str, Any]]] = None

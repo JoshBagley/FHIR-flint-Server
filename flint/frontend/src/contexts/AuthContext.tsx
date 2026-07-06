@@ -23,6 +23,8 @@ export interface AuthState {
   loggedOut: boolean;
   token: string | null;
   username: string | null;
+  roles: string[];
+  fhirUser: string | null;
   login: () => Promise<void>;
   logout: () => void;
   handleCallback: (code: string) => Promise<void>;
@@ -38,6 +40,12 @@ function nameFromClaims(p: Record<string, unknown>): string | null {
     || null;
 }
 
+function rolesFromClaims(p: Record<string, unknown>): string[] {
+  const kc = ((p.realm_access as Record<string, unknown> | undefined)?.roles as string[]) || [];
+  if (kc.length) return kc;
+  return (p.roles as string[]) || [];
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [smartConfig, setSmartConfig] = useState<SmartConfig | null>(null);
@@ -46,6 +54,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const idToken = getIdToken();
     if (!idToken) return null;
     return nameFromClaims(parseTokenPayload(idToken));
+  });
+  const [roles, setRoles] = useState<string[]>(() => {
+    const idToken = getIdToken();
+    if (!idToken) return [];
+    return rolesFromClaims(parseTokenPayload(idToken));
+  });
+  const [fhirUser, setFhirUser] = useState<string | null>(() => {
+    const idToken = getIdToken();
+    if (!idToken) return null;
+    return (parseTokenPayload(idToken).fhirUser as string) || null;
   });
   const [loggedOut, setLoggedOut] = useState(false);
 
@@ -109,11 +127,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(data.access_token);
     setLoggedOut(false);
     setTokenState(data.access_token);
-    // Extract display name from ID token immediately (synchronous, no network needed)
+    // Extract display name, roles, and fhirUser from ID token immediately (synchronous)
     if (data.id_token) {
       setIdToken(data.id_token);
-      const n = nameFromClaims(parseTokenPayload(data.id_token));
+      const claims = parseTokenPayload(data.id_token);
+      const n = nameFromClaims(claims);
       if (n) setUsername(n);
+      setRoles(rolesFromClaims(claims));
+      setFhirUser((claims.fhirUser as string) || null);
     }
     // Fallback: userinfo proxy in case ID token lacks profile claims
     fetch('/auth/userinfo', { headers: { Authorization: `Bearer ${data.access_token}` } })
@@ -129,6 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearToken();
     setTokenState(null);
     setUsername(null);
+    setRoles([]);
+    setFhirUser(null);
     setLoggedOut(true);
     if (smartConfig?.end_session_endpoint) {
       const params = new URLSearchParams({
@@ -148,6 +171,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loggedOut,
       token,
       username,
+      roles,
+      fhirUser,
       login,
       logout,
       handleCallback,

@@ -135,6 +135,82 @@ async def decode_token(token: str) -> Dict[str, Any]:
         return payload
 
 
+def get_roles(token_payload: Dict[str, Any]) -> List[str]:
+    """Extract FHIR realm roles from a Keycloak or built-in JWT token.
+
+    Keycloak places realm roles at realm_access.roles.
+    Built-in JWT (create_access_token) puts them at the top-level 'roles' key.
+    """
+    kc_roles = (token_payload.get("realm_access") or {}).get("roles") or []
+    if kc_roles:
+        return list(kc_roles)
+    return list(token_payload.get("roles") or [])
+
+
+def check_role_scope_compatibility(roles: List[str], token_payload: Dict[str, Any]) -> Optional[str]:
+    """Return an error string if the role+scope combination is not permitted, else None.
+
+    fhir-patient   → only patient/* scopes allowed
+    fhir-clinician → user/* and patient/* allowed; system/* denied
+    fhir-admin     → unrestricted
+    no FHIR role   → no additional restriction (service accounts, built-in JWT)
+    """
+    scopes = set((token_payload.get("scope") or "").split())
+    has_system = any(s.startswith("system/") for s in scopes)
+    if "fhir-patient" in roles and has_system:
+        return "fhir-patient role may not use system/* scopes"
+    if "fhir-clinician" in roles and has_system:
+        return "fhir-clinician role may not use system/* scopes"
+    return None
+
+
+def get_clinician_id(token_payload: Dict[str, Any]) -> Optional[str]:
+    """Return the bare Practitioner UUID for fhir-clinician tokens, else None.
+
+    Used by Option B panel filtering in resource_factory._search/_read.
+    The Practitioner ID comes from the fhirUser claim (e.g. "Practitioner/uuid").
+
+    Option C (future — CareTeam-based access):
+      Replace this simple ID lookup with a check against CareTeam resources.
+      Each clinical resource read/search would need a correlated subquery:
+        EXISTS (
+          SELECT 1 FROM fhir_resources ct
+          WHERE ct.resource_type = 'CareTeam'
+            AND ct.data->'subject'->>'reference' = {patient_ref}
+            AND ct.data->'participant' @> '[{"member":{"reference":"Practitioner/{id}"}}]'
+        )
+      This covers Observation, Condition, Encounter, etc. — not just Patient lists.
+      Requires CareTeam resources to be populated and kept current.
+    """
+    roles = get_roles(token_payload)
+    if "fhir-clinician" not in roles:
+        return None
+    fhir_user = (token_payload.get("fhirUser") or "").strip()
+    if fhir_user.startswith("Practitioner/"):
+        return fhir_user[len("Practitioner/"):]
+    return None
+
+
+def get_patient_context(token_payload: Dict[str, Any]) -> Optional[str]:
+    """Return the bare patient UUID if this token is patient-scoped, else None.
+
+    Returns None (no filtering) for admin/clinician tokens with broad access.
+    Returns None for service accounts (client_credentials) with no fhirUser.
+    Returns the UUID portion of Patient/{id} from the fhirUser claim for patients.
+    """
+    roles = get_roles(token_payload)
+    if "fhir-admin" in roles:
+        return None
+    scopes = set((token_payload.get("scope") or "").split())
+    has_broad = any(s.startswith("user/") or s.startswith("system/") for s in scopes)
+    if "fhir-clinician" in roles and has_broad:
+        return None
+    fhir_user = (token_payload.get("fhirUser") or "").strip()
+    if fhir_user.startswith("Patient/"):
+        return fhir_user[len("Patient/"):]
+    return None
+
+
 def has_fhir_scope(token_payload: Dict[str, Any], method: str) -> bool:
     """Return True if the token's scopes grant access for the given HTTP method.
 

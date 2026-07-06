@@ -11,6 +11,25 @@
   "resetPasswordAllowed": true,
   "loginWithEmailAllowed": true,
 
+  "roles": {
+    "realm": [
+      {"name": "fhir-patient",   "description": "Patient portal user — patient-scoped FHIR access only"},
+      {"name": "fhir-clinician", "description": "Clinician — user-scoped FHIR access"},
+      {"name": "fhir-admin",     "description": "Admin — system-scoped FHIR access"}
+    ]
+  },
+
+  "userProfile": {
+    "attributes": [
+      {"name":"username","displayName":"${username}","validations":{"length":{"min":3,"max":255},"username-prohibited-characters":{},"up-username-not-idn-homograph":{}},"permissions":{"view":["admin","user"],"edit":["admin","user"]},"multivalued":false},
+      {"name":"email","displayName":"${email}","validations":{"email":{},"length":{"max":255}},"required":{"roles":["user"]},"permissions":{"view":["admin","user"],"edit":["admin","user"]},"multivalued":false},
+      {"name":"firstName","displayName":"${firstName}","validations":{"length":{"max":255},"person-name-prohibited-characters":{}},"required":{"roles":["user"]},"permissions":{"view":["admin","user"],"edit":["admin","user"]},"multivalued":false},
+      {"name":"lastName","displayName":"${lastName}","validations":{"length":{"max":255},"person-name-prohibited-characters":{}},"required":{"roles":["user"]},"permissions":{"view":["admin","user"],"edit":["admin","user"]},"multivalued":false},
+      {"name":"fhirUser","displayName":"FHIR User Reference","permissions":{"view":["admin"],"edit":["admin"]},"multivalued":false}
+    ],
+    "groups": [{"name":"user-metadata","displayHeader":"User metadata"}]
+  },
+
   "clientScopes": [
     {
       "name": "fhirUser",
@@ -128,6 +147,34 @@
       },
       "protocolMappers": [
         {
+          "name": "realm-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "userinfo.token.claim": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "fhirUser",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "fhirUser",
+            "claim.name": "fhirUser",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
           "name": "full name",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-full-name-mapper",
@@ -196,7 +243,9 @@
       "emailVerified": true,
       "credentials": [
         { "type": "password", "value": "alice123", "temporary": false }
-      ]
+      ],
+      "attributes": { "fhirUser": ["Patient/3e7c75f4-d87c-4648-bff5-89a3c5adbdb1"] },
+      "realmRoles": ["fhir-patient"]
     },
     {
       "username": "dr-jones",
@@ -207,7 +256,21 @@
       "emailVerified": true,
       "credentials": [
         { "type": "password", "value": "jones123", "temporary": false }
-      ]
+      ],
+      "attributes": { "fhirUser": ["Practitioner/2c419e4d-0f6c-458b-b6a5-2eda3b3a9d6a"] },
+      "realmRoles": ["fhir-clinician"]
+    },
+    {
+      "username": "admin",
+      "email": "admin@example.com",
+      "firstName": "FHIR",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "admin123", "temporary": false }
+      ],
+      "realmRoles": ["fhir-admin"]
     }
   ]
 }

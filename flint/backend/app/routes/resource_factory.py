@@ -2,7 +2,7 @@
 Generic FHIR resource router factory.
 Generates standard CRUD + history + versioned read + audit routes for any resource type.
 """
-from typing import Callable, Dict, List, Optional, Any, Tuple, Type
+from typing import Callable, Dict, List, Optional, Any, Tuple, Type, Set
 from urllib.parse import parse_qs
 import hashlib
 import json
@@ -52,6 +52,125 @@ _INCLUDE_REFERENCE_MAP: Dict[str, Tuple[str, str]] = {
 }
 
 
+# Maps resource types in the patient compartment to their SQL filter path and Python accessor.
+# sql_path=None means the filter is on the resource's own 'id' field (Patient itself).
+_PATIENT_COMPARTMENT: Dict[str, Tuple[Optional[str], Callable[[Dict[str, Any]], Optional[str]]]] = {
+    "Patient":            (None,                                   lambda r: r.get("id")),
+    "Observation":        ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+    "Condition":          ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+    "Encounter":          ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+    "AllergyIntolerance": ("data->'patient'->>'reference'",        lambda r: (r.get("patient") or {}).get("reference")),
+    "Immunization":       ("data->'patient'->>'reference'",        lambda r: (r.get("patient") or {}).get("reference")),
+    "MedicationRequest":  ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+    "Procedure":          ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+    "DiagnosticReport":   ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+}
+
+
+def _owns_resource(rt: str, resource: Dict[str, Any], patient_id: str) -> bool:
+    """Return True if the resource belongs to the given patient."""
+    compartment = _PATIENT_COMPARTMENT.get(rt)
+    if not compartment:
+        return True
+    _, accessor = compartment
+    actual = accessor(resource)
+    return actual == patient_id if rt == "Patient" else actual == f"Patient/{patient_id}"
+
+
+# Resource types scoped to the clinician's organization membership.
+_ORG_SCOPED: Set[str] = {"Organization", "Practitioner", "PractitionerRole", "Location"}
+
+
+async def _get_panel_patient_refs(clinician_id: str) -> List[str]:
+    gp_filter = json.dumps([{"reference": f"Practitioner/{clinician_id}"}])
+    _, results = await state.db.search_resources_ex(
+        "Patient", {}, [("data->'generalPractitioner' @> ??::jsonb", gp_filter)],
+        limit=10000, offset=0
+    )
+    return [f"Patient/{r['id']}" for r in results if r.get("id")]
+
+
+async def _check_clinician_panel(rt: str, resource: Dict[str, Any], clinician_id: str) -> None:
+    """Raise 403 if the clinician is not authorized for the patient linked to this resource."""
+    if rt == "Patient":
+        gp_list = resource.get("generalPractitioner") or []
+        gp_ref = f"Practitioner/{clinician_id}"
+        if not any(isinstance(gp, dict) and gp.get("reference") == gp_ref for gp in gp_list):
+            raise HTTPException(status_code=403, detail="This patient is not in your panel")
+    else:
+        compartment = _PATIENT_COMPARTMENT.get(rt)
+        if not compartment:
+            return
+        _, accessor = compartment
+        patient_ref = accessor(resource)
+        if not patient_ref or not patient_ref.startswith("Patient/"):
+            raise HTTPException(status_code=403, detail="Cannot determine patient context")
+        patient = await state.db.get_resource(patient_ref[len("Patient/"):])
+        if not patient:
+            raise HTTPException(status_code=403, detail="Patient not found")
+        gp_list = patient.get("generalPractitioner") or []
+        gp_ref = f"Practitioner/{clinician_id}"
+        if not any(isinstance(gp, dict) and gp.get("reference") == gp_ref for gp in gp_list):
+            raise HTTPException(status_code=403, detail="This patient is not in your panel")
+
+
+async def _get_clinician_org_context(clinician_id: str) -> Dict[str, List[str]]:
+    """Return org_refs and loc_refs from the clinician's PractitionerRoles."""
+    _, roles = await state.db.search_resources_ex(
+        "PractitionerRole", {},
+        [("data->'practitioner'->>'reference' = ??", f"Practitioner/{clinician_id}")],
+        limit=100, offset=0,
+    )
+    org_refs: List[str] = []
+    loc_refs: List[str] = []
+    for role in roles:
+        org_ref = (role.get("organization") or {}).get("reference")
+        if org_ref:
+            org_refs.append(org_ref)
+        for loc in role.get("location") or []:
+            ref = loc.get("reference")
+            if ref:
+                loc_refs.append(ref)
+    return {"org_refs": list(set(org_refs)), "loc_refs": list(set(loc_refs))}
+
+
+async def _get_org_practitioner_refs(org_refs: List[str]) -> List[str]:
+    """Return all practitioner refs with a PractitionerRole in any of the given orgs."""
+    if not org_refs:
+        return []
+    _, roles = await state.db.search_resources_ex(
+        "PractitionerRole", {},
+        [("data->'organization'->>'reference' = ANY(??)", org_refs)],
+        limit=10000, offset=0,
+    )
+    return list({(role.get("practitioner") or {}).get("reference") for role in roles} - {None})
+
+
+async def _check_clinician_org_access(rt: str, resource: Dict[str, Any], clinician_id: str) -> None:
+    """Raise 403 if the resource is outside the clinician's organization scope."""
+    ctx = await _get_clinician_org_context(clinician_id)
+    org_refs = ctx["org_refs"]
+    if not org_refs:
+        raise HTTPException(status_code=403, detail="You have no organization membership")
+    resource_id = resource.get("id", "")
+    if rt == "Organization":
+        if f"Organization/{resource_id}" not in org_refs:
+            raise HTTPException(status_code=403, detail="This organization is not accessible")
+    elif rt == "PractitionerRole":
+        role_org = (resource.get("organization") or {}).get("reference")
+        if role_org not in org_refs:
+            raise HTTPException(status_code=403, detail="This role is not in your organization")
+    elif rt == "Location":
+        if f"Location/{resource_id}" not in ctx["loc_refs"]:
+            mgmt_org = (resource.get("managingOrganization") or {}).get("reference")
+            if mgmt_org not in org_refs:
+                raise HTTPException(status_code=403, detail="This location is not in your organization")
+    elif rt == "Practitioner":
+        prac_refs = await _get_org_practitioner_refs(org_refs)
+        if f"Practitioner/{resource_id}" not in prac_refs:
+            raise HTTPException(status_code=403, detail="This practitioner is not in your organization")
+
+
 def create_resource_router(
     resource_type: str,
     model_class: Type[BaseModel],
@@ -79,6 +198,14 @@ def create_resource_router(
     # ------------------------------------------------------------------
 
     async def _create(request: Request, resource: model_class):
+        patient_id = getattr(request.state, "fhir_patient_id", None)
+        if patient_id and rt in _PATIENT_COMPARTMENT:
+            data_check = resource.model_dump(exclude_none=True, by_alias=True)
+            if rt == "Patient" or not _owns_resource(rt, data_check, patient_id):
+                raise HTTPException(status_code=403, detail="patient-scoped token may only create resources for their own patient record")
+        clinician_id = getattr(request.state, "fhir_clinician_id", None)
+        if clinician_id and rt in _PATIENT_COMPARTMENT and rt != "Patient" and not patient_id:
+            await _check_clinician_panel(rt, resource.model_dump(exclude_none=True, by_alias=True), clinician_id)
         # Conditional create: If-None-Exist header
         if_none_exist = request.headers.get("If-None-Exist")
         if if_none_exist and search_hook:
@@ -100,21 +227,34 @@ def create_resource_router(
         created = await state.db.get_resource(resource_id)
         return _fhir_response(created, status_code=201, extra_headers={"Location": f"/{rt}/{resource_id}/_history/1"}, request=request)
 
-    async def _read(resource_id: str):
+    async def _read(resource_id: str, request: Request):
         cache_key = f"{rt}:{resource_id}:latest"
         cached = await state.cache.get(cache_key)
-        if cached:
-            return _fhir_response(cached)
-        resource = await state.db.get_resource(resource_id)
+        resource = cached or await state.db.get_resource(resource_id)
         if not resource:
             raise HTTPException(status_code=404, detail=f"{rt}/{resource_id} not found")
-        await state.cache.set(cache_key, resource)
+        if not cached:
+            await state.cache.set(cache_key, resource)
+        patient_id = getattr(request.state, "fhir_patient_id", None)
+        if patient_id and rt in _PATIENT_COMPARTMENT and not _owns_resource(rt, resource, patient_id):
+            raise HTTPException(status_code=403, detail="Access to this resource is not permitted")
+        clinician_id = getattr(request.state, "fhir_clinician_id", None)
+        if clinician_id and rt in _PATIENT_COMPARTMENT and not patient_id:
+            await _check_clinician_panel(rt, resource, clinician_id)
+        if clinician_id and rt in _ORG_SCOPED:
+            await _check_clinician_org_access(rt, resource, clinician_id)
         return _fhir_response(resource)
 
     async def _update(request: Request, resource_id: str, resource: model_class):
         existing = await state.db.get_resource(resource_id)
         if not existing:
             raise HTTPException(status_code=404, detail=f"{rt}/{resource_id} not found")
+        patient_id = getattr(request.state, "fhir_patient_id", None)
+        if patient_id and rt in _PATIENT_COMPARTMENT and not _owns_resource(rt, existing, patient_id):
+            raise HTTPException(status_code=403, detail="Access to this resource is not permitted")
+        clinician_id = getattr(request.state, "fhir_clinician_id", None)
+        if clinician_id and rt in _PATIENT_COMPARTMENT and not patient_id:
+            await _check_clinician_panel(rt, existing, clinician_id)
         _check_etag(request, existing)
         data = resource.model_dump(exclude_none=True, by_alias=True)
         data['id'] = resource_id
@@ -127,10 +267,17 @@ def create_resource_router(
         RESOURCE_COUNT.labels(resource_type=rt, operation="update").inc()
         return _fhir_response(await state.db.get_resource(resource_id), request=request)
 
-    async def _delete(resource_id: str):
+    async def _delete(resource_id: str, request: Request):
         existing = await state.db.get_resource(resource_id)
         if not existing:
             raise HTTPException(status_code=404, detail=f"{rt}/{resource_id} not found")
+        patient_id = getattr(request.state, "fhir_patient_id", None)
+        if patient_id and rt in _PATIENT_COMPARTMENT:
+            if rt == "Patient" or not _owns_resource(rt, existing, patient_id):
+                raise HTTPException(status_code=403, detail="Access to this resource is not permitted")
+        clinician_id = getattr(request.state, "fhir_clinician_id", None)
+        if clinician_id and rt in _PATIENT_COMPARTMENT and not patient_id:
+            await _check_clinician_panel(rt, existing, clinician_id)
         await state.db.delete_resource(resource_id)
         await state.search_engine.delete_resource(resource_id)
         await state.cache.invalidate_pattern(f"{rt}:{resource_id}:*")
@@ -144,6 +291,12 @@ def create_resource_router(
         existing = await state.db.get_resource(resource_id)
         if not existing:
             raise HTTPException(status_code=404, detail=f"{rt}/{resource_id} not found")
+        patient_id = getattr(request.state, "fhir_patient_id", None)
+        if patient_id and rt in _PATIENT_COMPARTMENT and not _owns_resource(rt, existing, patient_id):
+            raise HTTPException(status_code=403, detail="Access to this resource is not permitted")
+        clinician_id = getattr(request.state, "fhir_clinician_id", None)
+        if clinician_id and rt in _PATIENT_COMPARTMENT and not patient_id:
+            await _check_clinician_panel(rt, existing, clinician_id)
         _check_etag(request, existing)
         try:
             patched = jsonpatch.JsonPatch(body).apply(existing)
@@ -230,6 +383,75 @@ def create_resource_router(
         extra_pairs: List[Tuple[str, Any]] = []
         if search_hook:
             base_params, extra_pairs = search_hook(dict(request.query_params))
+
+        # Patient-context filtering: restrict results to the token's patient
+        patient_id = getattr(request.state, "fhir_patient_id", None)
+        if patient_id and rt in _PATIENT_COMPARTMENT:
+            sql_path, _ = _PATIENT_COMPARTMENT[rt]
+            if sql_path is None:
+                extra_pairs = [("data->>'id' = ??", patient_id)] + list(extra_pairs)
+            else:
+                extra_pairs = [(f"{sql_path} = ??", f"Patient/{patient_id}")] + list(extra_pairs)
+
+        # Option B — Clinician panel filtering: restrict results to the clinician's panel.
+        # Patient: JSONB containment on generalPractitioner.
+        # Clinical resources: restrict to patients in the panel via = ANY(panel_refs).
+        clinician_id = getattr(request.state, "fhir_clinician_id", None)
+        if clinician_id and rt in _PATIENT_COMPARTMENT and not patient_id:
+            if rt == "Patient":
+                gp_ref = json.dumps([{"reference": f"Practitioner/{clinician_id}"}])
+                extra_pairs = [("data->'generalPractitioner' @> ??::jsonb", gp_ref)] + list(extra_pairs)
+            else:
+                sql_path, _ = _PATIENT_COMPARTMENT[rt]
+                if sql_path:
+                    panel_refs = await _get_panel_patient_refs(clinician_id)
+                    if not panel_refs:
+                        return {
+                            "resourceType": "Bundle", "type": "searchset", "total": 0,
+                            "link": _bundle_links(request, 0, _count, _offset), "entry": [],
+                        }
+                    extra_pairs = [(f"{sql_path} = ANY(??)", panel_refs)] + list(extra_pairs)
+
+        # Org-scope filtering: restrict admin resources to the clinician's organization(s).
+        if clinician_id and rt in _ORG_SCOPED:
+            ctx = await _get_clinician_org_context(clinician_id)
+            org_refs = ctx["org_refs"]
+            if not org_refs:
+                return {
+                    "resourceType": "Bundle", "type": "searchset", "total": 0,
+                    "link": _bundle_links(request, 0, _count, _offset), "entry": [],
+                }
+            if rt == "Organization":
+                org_ids = [r.split("/")[-1] for r in org_refs]
+                extra_pairs = [("data->>'id' = ANY(??)", org_ids)] + list(extra_pairs)
+            elif rt == "PractitionerRole":
+                extra_pairs = [("data->'organization'->>'reference' = ANY(??)", org_refs)] + list(extra_pairs)
+            elif rt == "Practitioner":
+                prac_refs = await _get_org_practitioner_refs(org_refs)
+                if not prac_refs:
+                    return {
+                        "resourceType": "Bundle", "type": "searchset", "total": 0,
+                        "link": _bundle_links(request, 0, _count, _offset), "entry": [],
+                    }
+                prac_ids = [r.split("/")[-1] for r in prac_refs]
+                extra_pairs = [("data->>'id' = ANY(??)", prac_ids)] + list(extra_pairs)
+            elif rt == "Location":
+                # Locations explicitly listed in PractitionerRole OR managed by the org
+                loc_ids = [r.split("/")[-1] for r in ctx["loc_refs"]]
+                _, org_locs = await state.db.search_resources_ex(
+                    "Location", {},
+                    [("data->'managingOrganization'->>'reference' = ANY(??)", org_refs)],
+                    limit=10000, offset=0,
+                )
+                loc_ids += [r.get("id") for r in org_locs if r.get("id")]
+                loc_ids = list(set(filter(None, loc_ids)))
+                if not loc_ids:
+                    return {
+                        "resourceType": "Bundle", "type": "searchset", "total": 0,
+                        "link": _bundle_links(request, 0, _count, _offset), "entry": [],
+                    }
+                extra_pairs = [("data->>'id' = ANY(??)", loc_ids)] + list(extra_pairs)
+
         total, results = await state.db.search_resources_ex(
             rt, base_params, extra_pairs,
             limit=_count, offset=_offset, sort=_sort

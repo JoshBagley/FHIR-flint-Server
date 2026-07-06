@@ -18,13 +18,14 @@ interface UseFhirSearchOptions {
   params?: Record<string, string | number | undefined>;
   enabled?: boolean;
   pageSize?: number;
+  refreshKey?: number;
 }
 
 export function useFhirSearch<T>(
   resourceType: string,
   options: UseFhirSearchOptions = {},
 ) {
-  const { params = {}, enabled = true, pageSize = 20 } = options;
+  const { params = {}, enabled = true, pageSize = 20, refreshKey } = options;
 
   const [state, setState] = useState<SearchState<T>>({
     data: [],
@@ -42,7 +43,8 @@ export function useFhirSearch<T>(
       if (v !== undefined && v !== '') qs.set(k, String(v));
     }
     return `/${resourceType}?${qs.toString()}`;
-  }, [resourceType, offset, pageSize, JSON.stringify(params)]);
+  // refreshKey changes produce a new buildUrl ref, triggering a re-fetch
+  }, [resourceType, offset, pageSize, JSON.stringify(params), refreshKey]);
 
   useEffect(() => {
     if (!enabled) return;

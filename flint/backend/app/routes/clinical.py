@@ -1,7 +1,7 @@
 import asyncio
 from typing import Dict, List, Any, Tuple
 
-from fastapi import HTTPException, Body
+from fastapi import HTTPException, Body, Request
 from app import state
 from app.capability import register_resource
 from app.fhir_utils import _date_condition
@@ -232,7 +232,9 @@ immunization_router = create_resource_router(
 # ---------------------------------------------------------------------------
 
 @patient_router.post("/Patient/$match")
-async def patient_match(body: Dict[str, Any] = Body(...)):
+async def patient_match(request: Request, body: Dict[str, Any] = Body(...)):
+    if getattr(request.state, "fhir_patient_id", None):
+        raise HTTPException(status_code=403, detail="patient-scoped tokens may not use $match")
     params = {p["name"]: p for p in body.get("parameter", [])}
     patient_data: Dict[str, Any] = params.get("resource", {}).get("resource") or {}
     if not patient_data:
@@ -333,7 +335,10 @@ _COMPARTMENT_TYPES: List[Tuple[str, str]] = [
 
 
 @patient_router.get("/Patient/{patient_id}/$everything")
-async def patient_everything(patient_id: str):
+async def patient_everything(patient_id: str, request: Request):
+    ctx = getattr(request.state, "fhir_patient_id", None)
+    if ctx and ctx != patient_id:
+        raise HTTPException(status_code=403, detail="Access to this patient record is not permitted")
     patient = await state.db.get_resource(patient_id)
     if not patient or patient.get("resourceType") != "Patient":
         raise HTTPException(status_code=404, detail=f"Patient/{patient_id} not found")

@@ -1,5 +1,5 @@
 import { NavLink, Link, Outlet } from 'react-router-dom';
-import { Layers, Users, Building2, MessageSquare, Server, LogOut, UserCircle } from 'lucide-react';
+import { Layers, Users, Building2, MessageSquare, Server, LogOut, UserCircle, HeartPulse } from 'lucide-react';
 import AppLogo from './AppLogo';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -11,8 +11,13 @@ const NAV_ITEMS = [
   { to: '/system',     label: 'System',           icon: Server },
 ];
 
+const PATIENT_NAV_ITEMS = [
+  { to: '/my-health', label: 'My Health', icon: HeartPulse },
+];
+
 export default function AppShell() {
-  const { authRequired, isAuthenticated, username, logout } = useAuth();
+  const { authRequired, isAuthenticated, username, roles, logout } = useAuth();
+  const navItems = roles.includes('fhir-patient') ? PATIENT_NAV_ITEMS : NAV_ITEMS;
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
@@ -25,7 +30,7 @@ export default function AppShell() {
           </div>
         </Link>
         <nav className="flex-1 px-2 py-3 space-y-0.5">
-          {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+          {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
