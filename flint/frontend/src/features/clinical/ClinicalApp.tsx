@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { getHeaders, apiFetchMut } from '../../lib/api';
+import { useState, useEffect } from 'react';
+import { getHeaders, apiFetch, apiFetchMut } from '../../lib/api';
 import {
   Users, ArrowLeft, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
   Activity, FileText, Calendar, ShieldAlert, Syringe, AlertCircle, X,
-  Pill, Scissors, ClipboardList, Download, CheckCircle, UserPlus,
+  Pill, Scissors, ClipboardList, Download, CheckCircle, UserPlus, FileCheck, CreditCard,
 } from 'lucide-react';
 import { useFhirSearch } from '../../hooks/useFhirSearch';
 import { useDebounce } from '../../hooks/useDebounce';
@@ -96,6 +96,46 @@ interface DiagnosticReport {
   status?: string;
   category?: Array<{ coding?: Coding[] }>;
   presentedForm?: Array<{ data?: string; contentType?: string }>;
+}
+
+interface QuestionnaireResponse {
+  id: string;
+  questionnaire?: string;
+  status?: string;
+  authored?: string;
+  author?: { reference?: string; display?: string };
+}
+
+interface QRAnswerValue {
+  valueBoolean?: boolean;
+  valueDecimal?: number;
+  valueInteger?: number;
+  valueDate?: string;
+  valueDateTime?: string;
+  valueString?: string;
+  valueCoding?: Coding;
+  valueReference?: { reference?: string; display?: string };
+}
+
+interface QRItem {
+  linkId: string;
+  text?: string;
+  answer?: QRAnswerValue[];
+  item?: QRItem[];
+}
+
+interface QuestionnaireResponseDetail extends QuestionnaireResponse {
+  item?: QRItem[];
+}
+
+interface Claim {
+  id: string;
+  status?: string;
+  use?: string;
+  type?: CodeableConcept;
+  created?: string;
+  insurer?: { reference?: string; display?: string };
+  priority?: { coding?: Coding[] };
 }
 
 // ---------------------------------------------------------------------------
@@ -678,6 +718,189 @@ function DiagnosticReportsTab({ patientId }: { patientId: string }) {
   );
 }
 
+function answerText(a: QRAnswerValue): string {
+  if (a.valueString !== undefined) return a.valueString;
+  if (a.valueCoding) return a.valueCoding.display ?? a.valueCoding.code ?? '—';
+  if (a.valueBoolean !== undefined) return a.valueBoolean ? 'Yes' : 'No';
+  if (a.valueDate) return formatDate(a.valueDate);
+  if (a.valueDateTime) return formatDate(a.valueDateTime);
+  if (a.valueDecimal !== undefined) return String(a.valueDecimal);
+  if (a.valueInteger !== undefined) return String(a.valueInteger);
+  if (a.valueReference) return a.valueReference.display ?? a.valueReference.reference ?? '—';
+  return '—';
+}
+
+function QRItemsView({ items, depth = 0 }: { items: QRItem[]; depth?: number }) {
+  return (
+    <>
+      {items.map(item => (
+        <div key={item.linkId} style={{ paddingLeft: depth * 16 }}
+          className="py-2.5 border-b border-gray-50 last:border-0">
+          <p className="text-xs text-gray-500 mb-0.5">{item.text ?? item.linkId}</p>
+          {item.answer && item.answer.length > 0
+            ? item.answer.map((a, i) => (
+              <p key={i} className="text-sm text-gray-900">{answerText(a)}</p>
+            ))
+            : !item.item && <p className="text-sm text-gray-400 italic">No answer</p>
+          }
+          {item.item && item.item.length > 0 && (
+            <QRItemsView items={item.item} depth={depth + 1} />
+          )}
+        </div>
+      ))}
+    </>
+  );
+}
+
+function QuestionnaireResponseDetailModal({ id, onClose }: { id: string; onClose: () => void }) {
+  const [qr, setQr] = useState<QuestionnaireResponseDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiFetch<QuestionnaireResponseDetail>(`/QuestionnaireResponse/${id}`)
+      .then(setQr)
+      .catch(err => setError(String(err)))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const formTitle = qr?.questionnaire?.split('|')[0]?.split('/').pop() ?? qr?.questionnaire ?? 'Form Response';
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <FileCheck className="w-4 h-4 text-blue-500" />
+            {loading ? 'Loading…' : formTitle}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="overflow-y-auto flex-1 px-5 py-4">
+          {loading && (
+            <div className="animate-pulse space-y-3">
+              {[0, 1, 2].map(i => <div key={i} className="h-4 bg-gray-100 rounded w-3/4" />)}
+            </div>
+          )}
+          {error && (
+            <div className="flex items-center gap-2 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4" />{error}
+            </div>
+          )}
+          {qr && (
+            <>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm mb-5">
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Authored</p>
+                  <p className="text-gray-700">{formatDate(qr.authored)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Status</p>
+                  <StatusBadge value={qr.status} green={['completed', 'amended']} yellow={['in-progress']} />
+                </div>
+                {qr.author?.display && (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Author</p>
+                    <p className="text-gray-700">{qr.author.display}</p>
+                  </div>
+                )}
+              </div>
+              {qr.item && qr.item.length > 0 ? (
+                <>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Answers</p>
+                  <QRItemsView items={qr.item} />
+                </>
+              ) : (
+                <p className="text-sm text-gray-400 text-center py-6">No answers recorded</p>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FormsTab({ patientId }: { patientId: string }) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { data, loading, page, totalPages, goToPage } =
+    useFhirSearch<QuestionnaireResponse>('QuestionnaireResponse', {
+      params: { patient: `Patient/${patientId}`, _sort: '-authored' },
+      pageSize: 20,
+    });
+  return (
+    <div>
+      {selectedId && <QuestionnaireResponseDetailModal id={selectedId} onClose={() => setSelectedId(null)} />}
+      <table className="w-full text-sm">
+        <thead><tr className="border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wide">
+          <th className="px-4 py-3 text-left font-medium">Form</th>
+          <th className="px-4 py-3 text-left font-medium">Authored</th>
+          <th className="px-4 py-3 text-left font-medium">Status</th>
+        </tr></thead>
+        <tbody className="divide-y divide-gray-50">
+          {loading ? <LoadingRows cols={3} /> : data.map(qr => {
+            const title = qr.questionnaire?.split('|')[0]?.split('/').pop() ?? qr.questionnaire ?? '—';
+            return (
+              <tr key={qr.id} onClick={() => setSelectedId(qr.id)}
+                className="hover:bg-blue-50 cursor-pointer transition-colors">
+                <td className="px-4 py-3 text-blue-700 font-mono text-xs">{title}</td>
+                <td className="px-4 py-3 text-gray-500 text-xs">{formatDate(qr.authored)}</td>
+                <td className="px-4 py-3">
+                  <StatusBadge value={qr.status}
+                    green={['completed', 'amended']}
+                    yellow={['in-progress']} />
+                </td>
+              </tr>
+            );
+          })}
+          {!loading && data.length === 0 && <tr><td colSpan={3}><EmptyState message="No forms completed" /></td></tr>}
+        </tbody>
+      </table>
+      <div className="px-4 py-3"><Pagination page={page} totalPages={totalPages} goToPage={goToPage} /></div>
+    </div>
+  );
+}
+
+function PriorAuthTab({ patientId }: { patientId: string }) {
+  const { data, loading, page, totalPages, goToPage } =
+    useFhirSearch<Claim>('Claim', {
+      params: { patient: `Patient/${patientId}`, use: 'preauthorization', _sort: '-created' },
+      pageSize: 20,
+    });
+  return (
+    <div>
+      <table className="w-full text-sm">
+        <thead><tr className="border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wide">
+          <th className="px-4 py-3 text-left font-medium">Type</th>
+          <th className="px-4 py-3 text-left font-medium">Insurer</th>
+          <th className="px-4 py-3 text-left font-medium">Created</th>
+          <th className="px-4 py-3 text-left font-medium">Status</th>
+        </tr></thead>
+        <tbody className="divide-y divide-gray-50">
+          {loading ? <LoadingRows cols={4} /> : data.map(claim => (
+            <tr key={claim.id}>
+              <td className="px-4 py-3 text-gray-900">
+                {claim.type?.coding?.[0]?.display ?? claim.type?.text ?? '—'}
+              </td>
+              <td className="px-4 py-3 text-gray-500 text-xs">
+                {claim.insurer?.display ?? claim.insurer?.reference ?? '—'}
+              </td>
+              <td className="px-4 py-3 text-gray-500 text-xs">{formatDate(claim.created)}</td>
+              <td className="px-4 py-3">
+                <StatusBadge value={claim.status}
+                  green={['active']}
+                  yellow={['draft']} />
+              </td>
+            </tr>
+          ))}
+          {!loading && data.length === 0 && <tr><td colSpan={4}><EmptyState message="No prior authorization requests" /></td></tr>}
+        </tbody>
+      </table>
+      <div className="px-4 py-3"><Pagination page={page} totalPages={totalPages} goToPage={goToPage} /></div>
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Patient chart
 // ---------------------------------------------------------------------------
@@ -691,6 +914,8 @@ const CHART_TABS = [
   { id: 'diagnostic-reports', label: 'Reports',            icon: ClipboardList },
   { id: 'allergies',          label: 'Allergies',          icon: ShieldAlert },
   { id: 'immunizations',      label: 'Immunizations',      icon: Syringe },
+  { id: 'forms',              label: 'Forms',              icon: FileCheck },
+  { id: 'prior-auth',         label: 'Prior Auth',         icon: CreditCard },
 ] as const;
 
 type ChartTab = typeof CHART_TABS[number]['id'];
@@ -791,6 +1016,8 @@ function PatientChart({ patient, onBack }: { patient: Patient; onBack: () => voi
         {activeTab === 'diagnostic-reports' && <DiagnosticReportsTab patientId={patient.id} />}
         {activeTab === 'allergies'          && <AllergiesTab         patientId={patient.id} />}
         {activeTab === 'immunizations'      && <ImmunizationsTab     patientId={patient.id} />}
+        {activeTab === 'forms'              && <FormsTab             patientId={patient.id} />}
+        {activeTab === 'prior-auth'         && <PriorAuthTab         patientId={patient.id} />}
       </div>
     </div>
   );

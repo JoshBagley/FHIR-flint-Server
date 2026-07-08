@@ -1098,8 +1098,9 @@ app.include_router(auth_well_known_router)
 from app.routes.clinical import routers as clinical_routers  # noqa: E402
 from app.routes.administrative import routers as administrative_routers  # noqa: E402
 from app.routes.medications import routers as medication_routers  # noqa: E402
+from app.routes.prior_auth import routers as prior_auth_routers  # noqa: E402
 
-for _router in clinical_routers + administrative_routers + medication_routers:
+for _router in clinical_routers + administrative_routers + medication_routers + prior_auth_routers:
     app.include_router(_router)
 
 from app.routes.bulk_export import router as bulk_export_router  # noqa: E402

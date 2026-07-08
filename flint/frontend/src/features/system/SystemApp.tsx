@@ -40,13 +40,18 @@ const RESOURCE_CATEGORY: Record<string, string> = {
   MedicationRequest: 'Medications', Procedure: 'Medications', DiagnosticReport: 'Medications',
   ValueSet: 'Terminology', CodeSystem: 'Terminology', ConceptMap: 'Terminology',
   StructureDefinition: 'Terminology', TerminologyCapabilities: 'Terminology',
+  Questionnaire: 'General Purpose', QuestionnaireResponse: 'General Purpose',
+  Claim: 'Financial', Coverage: 'Financial', ClaimResponse: 'Financial',
+  ServiceRequest: 'Clinical',
 };
 
 const CATEGORY_COLOUR: Record<string, string> = {
-  Clinical:       'bg-blue-50 text-blue-700',
-  Administrative: 'bg-purple-50 text-purple-700',
-  Medications:    'bg-green-50 text-green-700',
-  Terminology:    'bg-amber-50 text-amber-700',
+  Clinical:        'bg-blue-50 text-blue-700',
+  Administrative:  'bg-purple-50 text-purple-700',
+  Medications:     'bg-green-50 text-green-700',
+  Terminology:     'bg-amber-50 text-amber-700',
+  'General Purpose': 'bg-teal-50 text-teal-700',
+  Financial:         'bg-orange-50 text-orange-700',
 };
 
 const PARAM_TYPE_COLOUR: Record<string, string> = {
@@ -162,10 +167,12 @@ const SYSTEM_TYPES = [
   'Patient', 'Observation', 'Condition', 'Encounter', 'AllergyIntolerance', 'Immunization',
   'MedicationRequest', 'Procedure', 'DiagnosticReport', 'Organization', 'Practitioner',
   'PractitionerRole', 'Location', 'ValueSet', 'CodeSystem', 'ConceptMap', 'StructureDefinition',
+  'Questionnaire', 'QuestionnaireResponse', 'Claim', 'Coverage', 'ClaimResponse', 'ServiceRequest',
 ];
 const PATIENT_TYPES = [
   'Patient', 'Observation', 'Condition', 'Encounter', 'AllergyIntolerance', 'Immunization',
   'MedicationRequest', 'Procedure', 'DiagnosticReport',
+  'QuestionnaireResponse', 'Claim', 'ClaimResponse', 'Coverage', 'ServiceRequest',
 ];
 
 interface ExportJob {

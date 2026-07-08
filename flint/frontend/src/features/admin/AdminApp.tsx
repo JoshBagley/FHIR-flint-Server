@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Building2, Search, ChevronLeft, ChevronRight, AlertCircle, X,
-  Stethoscope, MapPin, Users, UserPlus, ToggleLeft, ToggleRight, ShieldCheck,
+  Stethoscope, MapPin, Users, UserPlus, ToggleLeft, ToggleRight, ShieldCheck, FileText,
 } from 'lucide-react';
 import { useFhirSearch } from '../../hooks/useFhirSearch';
 import { useDebounce } from '../../hooks/useDebounce';
@@ -57,9 +57,38 @@ interface Location {
   managingOrganization?: { display?: string };
 }
 
+interface Questionnaire {
+  id: string;
+  url?: string;
+  name?: string;
+  title?: string;
+  status?: string;
+  date?: string;
+  publisher?: string;
+}
+
+interface QuestionnaireItem {
+  linkId: string;
+  text?: string;
+  type?: string;
+  required?: boolean;
+  item?: QuestionnaireItem[];
+}
+
+interface QuestionnaireDetail extends Questionnaire {
+  description?: string;
+  item?: QuestionnaireItem[];
+}
+
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
+
+function formatDate(iso?: string): string {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); }
+  catch { return iso; }
+}
 
 function formatAddress(a?: Address | null): string {
   if (!a) return '—';
@@ -90,9 +119,11 @@ function capitalize(s?: string) {
 // Shared sub-components (mirrors ClinicalApp pattern)
 // ---------------------------------------------------------------------------
 
-function StatusBadge({ value, green }: { value?: string; green?: string[] }) {
+function StatusBadge({ value, green, yellow }: { value?: string; green?: string[]; yellow?: string[] }) {
   const v = value ?? '';
-  const colour = green?.includes(v) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600';
+  const colour = green?.includes(v) ? 'bg-green-100 text-green-700'
+    : yellow?.includes(v) ? 'bg-yellow-100 text-yellow-700'
+    : 'bg-gray-100 text-gray-600';
   return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colour}`}>{v || '—'}</span>;
 }
 
@@ -749,6 +780,159 @@ function UsersTab() {
 }
 
 // ---------------------------------------------------------------------------
+// Questionnaire detail modal
+// ---------------------------------------------------------------------------
+
+function QuestionnaireDetailModal({ id, onClose }: { id: string; onClose: () => void }) {
+  const [q, setQ] = useState<QuestionnaireDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiFetch<QuestionnaireDetail>(`/Questionnaire/${id}`)
+      .then(setQ)
+      .catch(err => setError(String(err)))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  function renderItems(items: QuestionnaireItem[], depth = 0): React.ReactNode {
+    return items.map(item => (
+      <div key={item.linkId} style={{ paddingLeft: depth * 16 }}
+        className="py-2.5 border-b border-gray-50 last:border-0">
+        <div className="flex items-start gap-2">
+          <span className="text-xs text-gray-400 font-mono mt-0.5 flex-shrink-0">{item.linkId}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-gray-900">{item.text ?? '(no text)'}</p>
+            <div className="flex gap-1.5 mt-1 flex-wrap">
+              {item.type && (
+                <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{item.type}</span>
+              )}
+              {item.required && (
+                <span className="text-xs text-red-600 bg-red-50 px-1.5 py-0.5 rounded">required</span>
+              )}
+            </div>
+          </div>
+        </div>
+        {item.item && item.item.length > 0 && renderItems(item.item, depth + 1)}
+      </div>
+    ));
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-blue-500" />
+            {loading ? 'Loading…' : (q?.title ?? q?.name ?? 'Questionnaire')}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="overflow-y-auto flex-1 px-5 py-4">
+          {loading && (
+            <div className="animate-pulse space-y-3">
+              {[0, 1, 2].map(i => <div key={i} className="h-4 bg-gray-100 rounded w-3/4" />)}
+            </div>
+          )}
+          {error && (
+            <div className="flex items-center gap-2 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4" />{error}
+            </div>
+          )}
+          {q && (
+            <>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm mb-5">
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">URL</p>
+                  <p className="font-mono text-xs text-gray-700 break-all">{q.url ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Publisher</p>
+                  <p className="text-gray-700">{q.publisher ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Date</p>
+                  <p className="text-gray-700">{formatDate(q.date)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Status</p>
+                  <StatusBadge value={q.status} green={['active']} yellow={['draft']} />
+                </div>
+              </div>
+              {q.description && (
+                <p className="text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100">{q.description}</p>
+              )}
+              {q.item && q.item.length > 0 ? (
+                <>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                    Questions ({q.item.length})
+                  </p>
+                  <div>{renderItems(q.item)}</div>
+                </>
+              ) : (
+                <p className="text-sm text-gray-400 text-center py-6">No questions defined</p>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Questionnaires tab
+// ---------------------------------------------------------------------------
+
+function QuestionnairesTab() {
+  const [search, setSearch] = useState('');
+  const debounced = useDebounce(search, 350);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { data, total, loading, error, page, totalPages, goToPage } =
+    useFhirSearch<Questionnaire>('Questionnaire', {
+      params: { title: debounced || undefined, _sort: 'title' },
+      pageSize: 20,
+    });
+
+  return (
+    <div>
+      {selectedId && <QuestionnaireDetailModal id={selectedId} onClose={() => setSelectedId(null)} />}
+      <SearchBar value={search} onChange={v => { setSearch(v); goToPage(0); }}
+        placeholder="Search by title…" total={total} loading={loading} />
+      <table className="w-full text-sm">
+        <thead><tr className="border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wide">
+          <th className="px-4 py-3 text-left font-medium">Title</th>
+          <th className="px-4 py-3 text-left font-medium">URL</th>
+          <th className="px-4 py-3 text-left font-medium">Publisher</th>
+          <th className="px-4 py-3 text-left font-medium">Date</th>
+          <th className="px-4 py-3 text-left font-medium">Status</th>
+        </tr></thead>
+        <tbody className="divide-y divide-gray-50">
+          {loading ? <LoadingRows cols={5} /> : error
+            ? <ErrorRow cols={5} msg={error} />
+            : data.length === 0
+            ? <tr><td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400">No questionnaires found</td></tr>
+            : data.map(q => (
+              <tr key={q.id} onClick={() => setSelectedId(q.id)}
+                className="hover:bg-blue-50 cursor-pointer transition-colors">
+                <td className="px-4 py-3 font-medium text-blue-700">{q.title ?? q.name ?? '—'}</td>
+                <td className="px-4 py-3 text-gray-400 font-mono text-xs truncate max-w-xs">{q.url ?? '—'}</td>
+                <td className="px-4 py-3 text-gray-500">{q.publisher ?? '—'}</td>
+                <td className="px-4 py-3 text-gray-500 text-xs">{formatDate(q.date)}</td>
+                <td className="px-4 py-3">
+                  <StatusBadge value={q.status} green={['active']} yellow={['draft']} />
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+      <div className="px-4 py-3"><Pagination page={page} totalPages={totalPages} goToPage={goToPage} /></div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
 
@@ -758,6 +942,7 @@ const TABS = [
   { id: 'practitioners',       label: 'Practitioners',      icon: Stethoscope },
   { id: 'practitioner-roles',  label: 'Roles',              icon: Users },
   { id: 'locations',           label: 'Locations',          icon: MapPin },
+  { id: 'forms',               label: 'Forms',              icon: FileText },
 ] as const;
 
 type AdminTab = typeof TABS[number]['id'];
@@ -800,6 +985,7 @@ export default function AdminApp() {
           {activeTab === 'practitioners'      && <PractitionersTab />}
           {activeTab === 'practitioner-roles' && <PractitionerRolesTab />}
           {activeTab === 'locations'          && <LocationsTab />}
+          {activeTab === 'forms'             && <QuestionnairesTab />}
         </div>
       </div>
     </div>
