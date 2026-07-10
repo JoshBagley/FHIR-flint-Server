@@ -5,24 +5,33 @@ graph TB
     %% ── User / Client ──────────────────────────────────────────────
     User(["Browser / API Client"])
 
+    %% ── Auth ────────────────────────────────────────────────────────
+    subgraph auth_layer["Keycloak  :8080"]
+        KC["Keycloak 24\nRealm: fhir\nRoles: fhir-patient · fhir-clinician · fhir-admin\nClient: flint-app (PKCE)\nClient: flint-backend (client_credentials)\nTheme: keycloak/themes/flint/"]
+    end
+
     %% ── Entry Point ────────────────────────────────────────────────
     subgraph nginx_layer["Nginx  :80"]
-        NGINX["Reverse Proxy\nnginx.conf\n\n/ai/  →  backend :8000\n/ValueSet|CodeSystem|...  →  backend :8000\n/  →  frontend :5173"]
+        NGINX["Reverse Proxy · nginx.conf\n\n/auth/  →  Keycloak :8080\n/ai/  →  backend :8000  (120s timeout)\n/mcp-chat/  →  backend :8000  (120s timeout)\n/admin/  →  backend :8000\n/Patient|Claim|Coverage|...  →  backend :8000\n/  →  frontend :5173"]
     end
 
     %% ── Frontend ────────────────────────────────────────────────────
     subgraph frontend_layer["Frontend  :5173"]
-        VITE["React + Vite (HMR)\nApp.tsx\nValueSetBuilder.tsx\n└─ 3-panel VS editor\n└─ Vocabulary AI Assistant chat"]
+        VITE["React 18 + Vite (HMR)\nNo router — role-based app selection\n\nTerminologyApp  (all roles)\n  App.tsx · ValueSetBuilder.tsx\nClinicalApp  (fhir-clinician)\n  Patient panel · clinical tabs\n  Forms / Prior Auth tabs\nAdminApp  (fhir-admin)\n  FHIR resource CRUD · user mgmt\nSystemApp  (fhir-admin)\n  Bulk export · resource browser\nPatientPortalPage  (fhir-patient)\n  Read-only own record\nLoginGate → AuthCallback → JWT"]
     end
 
     %% ── Backend ─────────────────────────────────────────────────────
     subgraph backend_layer["Backend  :8000  (FastAPI)"]
-        MAIN["main.py\nrouter registration\nPrometheus /metrics"]
+        MAIN["main.py\nDatabaseManager · router registration\nSMART auth middleware\nPrometheus /metrics"]
 
         subgraph routes["Routes"]
-            FHIR["fhir_operations.py\nValueSet CRUD / $expand\nCodeSystem $lookup / $validate\nConceptMap $translate\n$subsumes · $diff · _history\nPOST $validate-batch (200 codes)"]
-            SDO_RT["sdo_search.py\nGET /sdo/systems\nGET /sdo/search\nGET /sdo/lookup"]
-            AI_RT["ai_assist.py\nPOST /ai/suggest\nPOST /ai/describe\nPOST /ai/map\nGET  /ai/provider"]
+            FHIR["fhir_operations.py\nValueSet / CodeSystem / ConceptMap CRUD\n$expand · $validate-code · $validate-batch\n$lookup · $translate · $subsumes · $diff"]
+            FACTORY["resource_factory.py\ncreate_resource_router()\n13 clinical/admin types\nPOST · GET · PUT · DELETE\n_history · $audit · $validate\nclinician panel filter\npatient compartment filter"]
+            PAS_RT["prior_auth.py\nQuestionnaire · QuestionnaireResponse\nClaim · Coverage · ClaimResponse\nServiceRequest\nPOST /Claim/$submit"]
+            BUNDLE["bundle.py\nPOST / (batch/transaction)\nurn:uuid: reference resolution\natomic rollback"]
+            SDO_RT["sdo_search.py\nGET /sdo/systems\nGET /sdo/search\nGET /sdo/lookup\nGET /sdo/snomed/children/{id}"]
+            AI_RT["ai_assist.py\nPOST /ai/suggest\nPOST /ai/describe\nPOST /ai/map\nGET  /ai/provider\n\nmcp_chat.py\nPOST /mcp-chat/"]
+            ADMIN_RT["admin_users.py\nGET /admin/users\nPOST /admin/users/clinician\nPOST /admin/users/patient\nPOST /admin/users/admin\nPATCH /admin/users/{id}/enable|disable"]
         end
 
         subgraph services["Services"]
@@ -31,8 +40,12 @@ graph TB
         end
 
         MAIN --> FHIR
+        MAIN --> FACTORY
+        MAIN --> PAS_RT
+        MAIN --> BUNDLE
         MAIN --> SDO_RT
         MAIN --> AI_RT
+        MAIN --> ADMIN_RT
         FHIR --> EXT_CS
         SDO_RT --> EXT_CS
         AI_RT --> AI_SVC
@@ -41,7 +54,7 @@ graph TB
 
     %% ── Storage ──────────────────────────────────────────────────────
     subgraph storage_layer["Storage"]
-        PG[("PostgreSQL  :5432\nDB: flint\n\nfhir_resources\nresource_versions\nidx_unique_resource_url_version\n\n2,017 ValueSets\n1,176 CodeSystems\n1 ConceptMap")]
+        PG[("PostgreSQL  :5432\nDB: flint\n\nfhir_resources  (22 types, JSONB)\nresource_versions  (full snapshots)\naudit_log  (every write event)\n\n~2,000 ValueSets\n~1,200 CodeSystems\n21+ Patients · 6+ Practitioners\n...clinical, PAS resources")]
         ES[("Elasticsearch  :9200\nIndex: fhir_resources\nnested objects limit: 50,000\nFull-text + concept search")]
         REDIS[("Redis  :6379\nSession / cache")]
     end
@@ -90,11 +103,20 @@ graph TB
     User -->|HTTP| nginx_layer
     nginx_layer -->|proxy| frontend_layer
     nginx_layer -->|proxy| backend_layer
+    nginx_layer -->|/auth/| auth_layer
+    frontend_layer -->|PKCE login| auth_layer
+    MAIN -->|JWT validation| auth_layer
 
     FHIR <-->|read/write| PG
+    FACTORY <-->|read/write| PG
+    PAS_RT <-->|read/write| PG
+    BUNDLE <-->|read/write| PG
+    ADMIN_RT -->|Keycloak Admin REST| auth_layer
     FHIR <-->|index/search| ES
+    FACTORY <-->|index/search| ES
     AI_RT <-->|cache| REDIS
     SDO_RT <-->|cache| REDIS
+    BUNDLE <-->|job state| REDIS
 
     EXT_CS -->|delegate $expand/$lookup| SNOMED
     EXT_CS -->|delegate $expand/$lookup| ICD10
@@ -145,10 +167,18 @@ graph TB
 
 | Path pattern | Handler |
 |---|---|
+| `/auth/*` | Keycloak 24 (SMART on FHIR PKCE / token / discovery) |
 | `/ai/*` | `ai_assist.py` — fan-out to SDOs + AI model |
+| `/mcp-chat/*` | `mcp_chat.py` — tool-calling AI chat backed by FHIR endpoints |
+| `/admin/*` | `admin_users.py` — Keycloak user management |
 | `/sdo/*` | `sdo_search.py` → `external_cs.py` |
 | `/ValueSet`, `/CodeSystem`, `/ConceptMap` CRUD | `fhir_operations.py` → PostgreSQL + ES |
 | `/$expand`, `/$lookup`, `/$validate*`, `/$translate`, `/$subsumes` | `fhir_operations.py` → local or delegate |
+| `/Patient`, `/Observation`, `/Condition`, `/Encounter`, ... (13 types) | `resource_factory.py` (generated routers) → PostgreSQL |
+| `/Questionnaire`, `/QuestionnaireResponse`, `/Claim`, `/Coverage`, `/ClaimResponse`, `/ServiceRequest` | `prior_auth.py` (generated routers) → PostgreSQL |
+| `POST /Claim/$submit` | `prior_auth.py` — PAS workflow |
+| `POST /` (Bundle) | `bundle.py` — batch/transaction |
+| `/jobs/*`, `/$export` | `bulk_export.py` — async NDJSON export |
 | `/metrics` | Prometheus scrape endpoint (Starlette middleware) |
 
 ## Port Reference

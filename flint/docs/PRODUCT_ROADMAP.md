@@ -2,27 +2,33 @@
 
 This document tracks the gaps between Flint's current capabilities and a commercially viable, conformant FHIR R4 server. It is the authoritative source for implementation priorities. Update checkboxes as work is completed.
 
-**Last updated:** 2026-07-01
+**Last updated:** 2026-07-10
 **Analysis basis:** Gap analysis vs HAPI FHIR, Azure Health Data Services, Google Cloud Healthcare API, Medplum, and Smile CDR.
 
 ---
 
 ## Current State Summary
 
-Flint currently supports **16 of 145 FHIR R4 resource types**: `ValueSet`, `CodeSystem`, `ConceptMap`, `Patient`, `Observation`, `Condition`, `Encounter`, `AllergyIntolerance`, `Immunization`, `Organization`, `Practitioner`, `PractitionerRole`, `Location`, `MedicationRequest`, `Procedure`, `DiagnosticReport`.
+Flint currently supports **22 of 145 FHIR R4 resource types**: `ValueSet`, `CodeSystem`, `ConceptMap`, `Patient`, `Observation`, `Condition`, `Encounter`, `AllergyIntolerance`, `Immunization`, `Organization`, `Practitioner`, `PractitionerRole`, `Location`, `MedicationRequest`, `Procedure`, `DiagnosticReport`, `Questionnaire`, `QuestionnaireResponse`, `Claim`, `Coverage`, `ClaimResponse`, `ServiceRequest`, `StructureDefinition`.
 
 **Where Flint leads:**
 - Best-in-class terminology operations for public health vocabulary (SDO connectors, SNOMED ECL, VSAC, HL7 v2/v3, PHIN VADS)
 - Embedded multi-provider AI (Anthropic / OpenAI / Gemini) with live code validation pre-injection to prevent hallucination
 - Production-grade observability stack (Prometheus + Grafana + Loki) included out of the box
 - Multi-tier code system storage (`complete` / `not-present` / `fragment`) with external delegation
+- Da Vinci Prior Authorization Support (PAS) — `POST /Claim/$submit` PASRequestBundle workflow
+- SMART on FHIR v2 via Keycloak 24 — PKCE public client, confidential backend client, three realm roles, custom login theme
+- In-app user management — create/enable/disable clinicians, patients, and admins via AdminApp; audit logged
 
 **Where Flint trails every major competitor:**
-- Resource type coverage (3 vs 145)
-- SMART on FHIR authorization (not implemented)
-- Batch / transaction bundles (not implemented)
-- ~~Standard FHIR search pagination~~ (completed P0.1 � pagination, sort, Bundle.link)
-- Bulk Data Export (not implemented)
+- Resource type coverage (22 vs 145)
+- ~~SMART on FHIR authorization~~ (completed P2.1 — Keycloak 24)
+- ~~Batch / transaction bundles~~ (completed P1.7)
+- ~~Standard FHIR search pagination~~ (completed P0.1 — pagination, sort, Bundle.link)
+- ~~Bulk Data Export~~ (completed P2.4)
+- Advanced search modifiers (`_has`, chained params, `_filter`) — in progress P2.2
+- US Core must-support enforcement — in progress P2.6
+- ONC Inferno test suite — pending (next gate)
 
 ---
 
@@ -207,31 +213,65 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 
 ---
 
+### P1.10 — Da Vinci Prior Authorization Support (PAS) ✓
+
+- [x] Define PAS Pydantic models: `Questionnaire`, `QuestionnaireResponse`, `Claim` (`class_` alias for `class`), `Coverage`, `ClaimResponse`, `ServiceRequest` — in `app/models/prior_auth.py`
+- [x] Implement full CRUD + search for all 6 PAS resource types via `routes/prior_auth.py`
+- [x] Implement `POST /Claim/$submit` — accepts PASRequestBundle, stores all resources atomically, returns PASResponseBundle with `ClaimResponse.outcome=queued`
+- [x] Register all 6 types in Nginx regex, Vite proxy, CapabilityStatement, and SystemApp bulk export categories
+- [x] QuestionnaireResponse detail modal in ClinicalApp (recursive `QRItemsView` for nested items)
+- [x] Questionnaire detail modal in AdminApp (linkId, type badge, required flag per item)
+- [ ] Real payer integration — X12 278 translation, clearinghouse or FHIR-native payer endpoint (CMS-0057-F mandates FHIR-native payers by 2027)
+- [ ] CoverageEligibilityRequest/Response resource types (payer eligibility workflow)
+
+**Why it matters:** CMS Prior Authorization Rule (CMS-0057-F) requires FHIR-native payer APIs by 2027. Da Vinci PAS is the industry-standard IG for this workflow.
+
+---
+
+### P1.11 — Admin User Management ✓
+
+- [x] `GET /admin/users` — list all Keycloak users with roles and status
+- [x] `POST /admin/users/clinician` / `patient` / `admin` — create realm users via Keycloak Admin REST API
+- [x] `PATCH /admin/users/{id}/enable` / `disable` — account enable/disable
+- [x] `AdminApp.tsx` Users tab — list, search, create (modal), enable/disable
+- [x] `ClinicalApp.tsx` New Patient modal — clinicians can register patients with their Practitioner pre-filled as `generalPractitioner`
+- [x] Audit logging — all identity events logged to `audit_log` with `resource_type='KeycloakUser'`
+
+---
+
 ## Phase 2 — Interoperability & Standards (3–6 months)
 
-### P2.1 — SMART on FHIR v2
+### P2.1 — SMART on FHIR v2 ✓
 
-- [ ] Implement `GET /.well-known/smart-configuration` returning SMART metadata
-- [ ] Implement `/authorize` OAuth 2.0 authorization endpoint (or configure Keycloak/Auth0 as provider)
-- [ ] Implement PKCE support (`code_challenge`, `code_challenge_method=S256`)
-- [ ] Implement launch context: standalone launch (`launch/patient`) and EHR launch
-- [ ] Define SMART scopes: `patient/*.read`, `user/*.read`, `system/*.read`, resource-level scopes
-- [ ] Enforce scopes on resource access in route middleware
-- [ ] Register SMART in CapabilityStatement `rest.security` block
-- [ ] Test with Inferno SMART on FHIR test suite
+- [x] Implement `GET /.well-known/smart-configuration` returning SMART metadata
+- [x] Implement `/authorize` OAuth 2.0 authorization endpoint — Keycloak 24 as provider; Nginx proxies `/auth/*`
+- [x] Implement PKCE support (`code_challenge`, `code_challenge_method=S256`) — `flint-app` public client
+- [x] Implement launch context: standalone launch — `LoginGate.tsx` → PKCE redirect → `AuthCallback.tsx`
+- [x] Define SMART scopes: `patient/*.read`, `user/*.read`, `system/*.read` — full scope set on Keycloak realm
+- [x] Enforce scopes on resource access in route middleware — `require_access` in `auth.py`; three roles: `fhir-patient`, `fhir-clinician`, `fhir-admin`
+- [x] Register SMART in CapabilityStatement `rest.security` block
+- [ ] Test with Inferno SMART on FHIR test suite — **next gate**
+
+**Implementation notes:** Keycloak 24.0 realm `fhir` configured in `keycloak/flint-realm.json`. Public client `flint-app` (PKCE), confidential backend client `flint-backend` (`client_credentials`). Custom login theme at `keycloak/themes/flint/`. Seed users: alice/alice123, dr-jones/jones123, admin/admin123. Clinician panel filtering (Option B) via `Patient.generalPractitioner`.
 
 **Why it matters:** Required by ONC's 21st Century Cures Act for any server connected to patient data. Required for EHR app launch, patient-facing apps, and payer-to-payer exchange under CMS rules.
 
 ---
 
-### P2.2 — Conditional Interactions
+### P2.2 — Conditional Interactions + Advanced Search ✓ (partial)
 
+**Conditional interactions (complete):**
 - [x] Conditional create: `POST /{type}` with `If-None-Exist: {search-params}` header — search first; create only if no match; return existing if 1 match; error if multiple
 - [x] Conditional update: `PUT /{type}?{search-params}` — search; update if 1 match; create if 0; error if multiple
 - [x] Conditional delete: `DELETE /{type}?{search-params}` — delete all matching resources
 - [x] Register in CapabilityStatement under `conditionalCreate`, `conditionalUpdate`, `conditionalDelete`
 
-**Why it matters:** All idempotent bulk import pipelines (ETL from EHRs, national registries) rely on conditional operations to avoid duplicates without requiring a GET-then-POST pattern.
+**Advanced search (in progress):**
+- [ ] `_has` — reverse chained search (e.g., `GET /Patient?_has:Observation:patient:code=1234-5`)
+- [ ] Chained parameters (e.g., `GET /Observation?patient.name=Jones`)
+- [ ] `_filter` — complex boolean filter expressions (lowest priority)
+
+**Why it matters:** Conditional operations are required for idempotent ETL pipelines. `_has` and chained params are required by Inferno's US Core test suite for several search scenarios.
 
 ---
 
@@ -454,16 +494,18 @@ Capabilities that would make Flint meaningfully better than existing commercial 
 
 ## Competitive Positioning
 
-| Capability | Flint Now | Target (Phase 2) | HAPI FHIR | Azure | Google | Medplum |
+| Capability | Flint Now | Target | HAPI FHIR | Azure | Google | Medplum |
 |---|---|---|---|---|---|---|
-| Resource types | 3 | 30+ | 145 | 145 | 145 | 145 |
-| SMART on FHIR | No | P2.1 | Plugin | Yes | Yes | v2 |
-| Bulk Export | No | P2.4 | Limited | ADLS2 | BigQuery | Limited |
+| Resource types | 22 | 30+ | 145 | 145 | 145 | 145 |
+| SMART on FHIR | **Yes (Keycloak 24)** | ✓ | Plugin | Yes | Yes | v2 |
+| Bulk Export | **Yes (IG v2)** | ✓ | Limited | ADLS2 | BigQuery | Limited |
+| Da Vinci PAS | **Yes ($submit)** | Real payer | No | No | No | Partial |
 | Terminology (SDO connectors) | **Excellent** | **Excellent** | External only | External only | External only | Basic |
 | AI Integration | **Embedded** | **Extended** | None | Separate | Separate | Bots |
 | Observability | **Included** | **Included** | Manual | Azure Monitor | Cloud Ops | Manual |
-| Batch / Transaction | No | P1.7 | Yes | Yes | Yes | Yes |
-| US Core Conformance | No | P2.6 | Yes | Yes | Yes | Yes (ONC) |
+| Batch / Transaction | **Yes** | ✓ | Yes | Yes | Yes | Yes |
+| US Core Conformance | Partial (P2.6) | Inferno pass | Yes | Yes | Yes | Yes (ONC) |
+| Advanced Search (`_has`) | No | P2.2 | Yes | Yes | Yes | Yes |
 | CDA / HL7 v2 Ingest | No | P3.6/P3.7 | Plugin | Converter | Converter | None |
 | Multi-tenancy | No | P3.1 | Partitioning | Native | Native | Native |
 | Open source | Yes | Yes | Yes | No | No | Yes |
@@ -474,12 +516,41 @@ Capabilities that would make Flint meaningfully better than existing commercial 
 
 To qualify for ONC Health IT Certification (§170.315), Flint would need to complete at minimum:
 
-- [ ] **P0.5** — Accurate CapabilityStatement
-- [ ] **P1.1–P1.6** — Patient, Observation, Condition, AllergyIntolerance, Encounter, Immunization (US Core SHALL resources)
-- [ ] **P2.1** — SMART on FHIR v2 (required by §170.315(g)(10))
-- [ ] **P2.5** — `$validate` with US Core profile checking
-- [ ] **P2.6** — US Core v6 profile conformance
-- [ ] Pass Inferno ONC test suite (https://inferno.healthit.gov)
+- [x] **P0.5** — Accurate CapabilityStatement ✓
+- [x] **P1.1–P1.6** — Patient, Observation, Condition, AllergyIntolerance, Encounter, Immunization ✓
+- [x] **P2.1** — SMART on FHIR v2 ✓ (Keycloak 24, §170.315(g)(10))
+- [x] **P2.5** — `$validate` with US Core profile checking ✓ (delegates to tx.fhir.org)
+- [ ] **P2.6** — US Core v6 must-support enforcement + Inferno test pass
+- [ ] **P2.2** — `_has` and chained search params (required by several Inferno test cases)
+- [ ] Pass Inferno ONC test suite locally, then at https://inferno.healthit.gov
+
+### Running Inferno Locally
+
+Inferno is available as a Docker image. Add it to the dev stack:
+
+```bash
+# Pull and run the Inferno Framework test runner (US Core test suite)
+docker run --rm -it \
+  -p 4567:4567 \
+  inferno-program/inferno:latest
+
+# Or use the newer Inferno Framework (recommended):
+docker run --rm -it \
+  -p 4567:4567 \
+  infernoframework/inferno:latest
+```
+
+Point Inferno at `http://host.docker.internal` (or your host IP) so it can reach the Flint stack on port 80.
+
+**Key Inferno test suites for Flint:**
+- **US Core v6.1.0** — tests Patient, Observation, Condition, AllergyIntolerance, Immunization, Encounter, MedicationRequest searches and must-support element handling
+- **SMART App Launch** — tests PKCE flow, token exchange, scope enforcement (requires Keycloak running with `--profile smart`)
+- **Bulk Data IG** — tests `$export`, async job status, NDJSON file download
+
+**Inferno prerequisites for Flint:**
+1. SMART profile running: `docker compose --profile smart up -d`
+2. Test patients seeded (Flint has 21+ patients; ensure dr-jones panel is populated)
+3. `_has` and chained search params implemented (several US Core test cases require these)
 
 ---
 

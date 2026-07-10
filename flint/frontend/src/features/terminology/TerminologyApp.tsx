@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search, Download, FileCode, Layers,
   GitBranch, TrendingUp, Activity, Clock, Database, AlertCircle, Loader2, Zap, Globe,
@@ -1231,6 +1232,9 @@ function OperationsDashboard() {
 // ---------------------------------------------------------------------------
 
 const Flint = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
   const [activeTab, setActiveTab] = useState<'ValueSet' | 'CodeSystem' | 'ConceptMap'>('ValueSet');
   const [activeView, setActiveView] = useState('browse');
   const [searchTerm, setSearchTerm] = useState('');
@@ -1308,6 +1312,15 @@ const Flint = () => {
   }, []);
 
   useEffect(() => { loadStats(); }, [loadStats]);
+
+  // When browser back removes the ?view param, close whichever full-page view is open
+  useEffect(() => {
+    if (!searchParams.get('view')) {
+      setExpansionResource(null);
+      setCsConceptsResource(null);
+      setBuilderOpen(false);
+    }
+  }, [searchParams]);
 
   // Load resources when tab, debounced search, or active filters change
   const loadResources = useCallback(async () => {
@@ -1529,7 +1542,7 @@ const Flint = () => {
           {/* Expand button — opens full expansion page */}
           {resource.resourceType === 'ValueSet' && (
             <button
-              onClick={() => { setExpansionResource(resource); setSelectedResource(null); }}
+              onClick={() => { setExpansionResource(resource); setSelectedResource(null); navigate('?view=expand'); }}
               className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
             >
               <FileCode className="w-4 h-4" /> View Expansion ($expand)
@@ -1567,7 +1580,7 @@ const Flint = () => {
             <>
               {(resource.conceptCount ?? 0) > 0 && (
                 <button
-                  onClick={() => { setCsConceptsResource(resource); setSelectedResource(null); }}
+                  onClick={() => { setCsConceptsResource(resource); setSelectedResource(null); navigate('?view=concepts'); }}
                   className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center justify-center gap-2"
                 >
                   <FileCode className="w-4 h-4" /> Browse Concepts ({resource.conceptCount})
@@ -1942,15 +1955,15 @@ const Flint = () => {
   };
 
   if (builderOpen) {
-    return <ValueSetBuilder onBack={() => { setBuilderOpen(false); loadResources(); }} />;
+    return <ValueSetBuilder onBack={() => { setBuilderOpen(false); loadResources(); navigate(-1); }} />;
   }
 
   if (expansionResource) {
-    return <ExpansionPage resource={expansionResource} onBack={() => setExpansionResource(null)} />;
+    return <ExpansionPage resource={expansionResource} onBack={() => { setExpansionResource(null); navigate(-1); }} />;
   }
 
   if (csConceptsResource) {
-    return <CodeSystemConceptsPage resource={csConceptsResource} onBack={() => setCsConceptsResource(null)} />;
+    return <CodeSystemConceptsPage resource={csConceptsResource} onBack={() => { setCsConceptsResource(null); navigate(-1); }} />;
   }
 
   return (
@@ -1971,7 +1984,7 @@ const Flint = () => {
                 </div>
               )}
               <button
-                onClick={() => setBuilderOpen(true)}
+                onClick={() => { setBuilderOpen(true); navigate('?view=builder'); }}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 shadow-sm"
               >
                 <Plus className="w-4 h-4" /> Create Value Set

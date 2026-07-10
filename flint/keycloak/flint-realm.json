@@ -10,98 +10,139 @@
   "registrationAllowed": false,
   "resetPasswordAllowed": true,
   "loginWithEmailAllowed": true,
-
   "roles": {
     "realm": [
-      {"name": "fhir-patient",   "description": "Patient portal user — patient-scoped FHIR access only"},
-      {"name": "fhir-clinician", "description": "Clinician — user-scoped FHIR access"},
-      {"name": "fhir-admin",     "description": "Admin — system-scoped FHIR access"}
+      {
+        "name": "fhir-patient",
+        "description": "Patient portal user \u00e2\u20ac\u201d patient-scoped FHIR access only"
+      },
+      {
+        "name": "fhir-clinician",
+        "description": "Clinician \u00e2\u20ac\u201d user-scoped FHIR access"
+      },
+      {
+        "name": "fhir-admin",
+        "description": "Admin \u00e2\u20ac\u201d system-scoped FHIR access"
+      }
     ]
   },
-
-
   "clientScopes": [
     {
       "name": "fhirUser",
       "description": "Access the current user as a FHIR Patient or Practitioner resource",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
-                      "consent.screen.text": "Identify you as a FHIR user" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Identify you as a FHIR user"
+      }
     },
     {
       "name": "launch/patient",
       "description": "Launch in the context of a specific patient",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
-                      "consent.screen.text": "Launch in patient context" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Launch in patient context"
+      }
     },
     {
       "name": "launch/encounter",
       "description": "Launch in the context of a specific encounter",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
-                      "consent.screen.text": "Launch in encounter context" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Launch in encounter context"
+      }
     },
     {
       "name": "patient/*.read",
       "description": "Read all FHIR resources for the patient in context",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
-                      "consent.screen.text": "Read your clinical records" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Read your clinical records"
+      }
     },
     {
       "name": "patient/*.write",
       "description": "Write all FHIR resources for the patient in context",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
-                      "consent.screen.text": "Update your clinical records" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Update your clinical records"
+      }
     },
     {
       "name": "patient/*.*",
       "description": "Read and write all FHIR resources for the patient in context",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
-                      "consent.screen.text": "Full access to your clinical records" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Full access to your clinical records"
+      }
     },
     {
       "name": "user/*.read",
       "description": "Read FHIR resources for all patients the user is authorized to access",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "true",
-                      "consent.screen.text": "Read FHIR data for your authorized patients" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Read FHIR data for your authorized patients"
+      }
     },
     {
       "name": "user/*.write",
       "description": "Write FHIR resources for all patients the user is authorized to access",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
     },
     {
       "name": "user/*.*",
       "description": "Read and write FHIR resources for all authorized patients",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
     },
     {
       "name": "system/*.read",
       "description": "Read any FHIR resource on the server (backend services)",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
     },
     {
       "name": "system/*.write",
       "description": "Write any FHIR resource on the server (backend services)",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
     },
     {
       "name": "system/*.*",
       "description": "Full system access (backend services)",
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
     }
   ],
-
   "clients": [
     {
       "clientId": "flint-app",
@@ -118,10 +159,18 @@
         "http://localhost/*",
         "http://localhost:3000/*",
         "http://localhost:5173/*",
-        "http://localhost:8080/*"
+        "http://localhost:8080/*",
+        "http://localhost:4567/*",
+        "http://host.docker.internal/*"
       ],
-      "webOrigins": ["+"],
-      "defaultClientScopes": ["openid", "profile", "email"],
+      "webOrigins": [
+        "+"
+      ],
+      "defaultClientScopes": [
+        "openid",
+        "profile",
+        "email"
+      ],
       "optionalClientScopes": [
         "fhirUser",
         "launch/patient",
@@ -218,11 +267,16 @@
       "serviceAccountsEnabled": true,
       "clientAuthenticatorType": "client-secret",
       "secret": "flint-backend-secret-change-in-prod",
-      "defaultClientScopes": ["openid"],
-      "optionalClientScopes": ["system/*.read", "system/*.write", "system/*.*"]
+      "defaultClientScopes": [
+        "openid"
+      ],
+      "optionalClientScopes": [
+        "system/*.read",
+        "system/*.write",
+        "system/*.*"
+      ]
     }
   ],
-
   "users": [
     {
       "username": "alice",
@@ -232,10 +286,20 @@
       "enabled": true,
       "emailVerified": true,
       "credentials": [
-        { "type": "password", "value": "alice123", "temporary": false }
+        {
+          "type": "password",
+          "value": "alice123",
+          "temporary": false
+        }
       ],
-      "attributes": { "fhirUser": ["Patient/3e7c75f4-d87c-4648-bff5-89a3c5adbdb1"] },
-      "realmRoles": ["fhir-patient"]
+      "attributes": {
+        "fhirUser": [
+          "Patient/3e7c75f4-d87c-4648-bff5-89a3c5adbdb1"
+        ]
+      },
+      "realmRoles": [
+        "fhir-patient"
+      ]
     },
     {
       "username": "dr-jones",
@@ -245,10 +309,20 @@
       "enabled": true,
       "emailVerified": true,
       "credentials": [
-        { "type": "password", "value": "jones123", "temporary": false }
+        {
+          "type": "password",
+          "value": "jones123",
+          "temporary": false
+        }
       ],
-      "attributes": { "fhirUser": ["Practitioner/2c419e4d-0f6c-458b-b6a5-2eda3b3a9d6a"] },
-      "realmRoles": ["fhir-clinician"]
+      "attributes": {
+        "fhirUser": [
+          "Practitioner/2c419e4d-0f6c-458b-b6a5-2eda3b3a9d6a"
+        ]
+      },
+      "realmRoles": [
+        "fhir-clinician"
+      ]
     },
     {
       "username": "admin",
@@ -258,9 +332,15 @@
       "enabled": true,
       "emailVerified": true,
       "credentials": [
-        { "type": "password", "value": "admin123", "temporary": false }
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
       ],
-      "realmRoles": ["fhir-admin"]
+      "realmRoles": [
+        "fhir-admin"
+      ]
     }
   ]
 }

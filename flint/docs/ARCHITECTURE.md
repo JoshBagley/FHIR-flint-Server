@@ -4,7 +4,7 @@
 
 ## System Overview
 
-Flint is a containerised FHIR R4 FHIR server. All components run via Docker Compose and communicate over an internal bridge network (`flint-network`). External traffic enters through Nginx on port 80.
+Flint is a containerised FHIR R4 server supporting 22 resource types. All components run via Docker Compose and communicate over an internal bridge network (`flint-network`). External traffic enters through Nginx on port 80. Authentication uses SMART on FHIR v2 via Keycloak 24.
 
 ```
 Browser / API Client
@@ -33,50 +33,54 @@ Backend :8000     Frontend :5173
 ### Nginx (Reverse Proxy)
 
 - Listens on port **80**
-- Routes FHIR API paths (`/ValueSet`, `/CodeSystem`, `/metadata`, etc.) to the backend
-- Routes `/admin/` to the backend (sync management endpoints)
-- Routes `/$expand` with a tighter rate limit (expensive operation)
+- Routes FHIR API paths (`/ValueSet`, `/CodeSystem`, `/Patient`, `/Claim`, etc.) to the backend via a single regex location block
+- Routes `/auth/`, `/admin/`, `/ai/`, `/mcp-chat/` to the backend with appropriate timeouts
+- Routes `/$expand` with a stricter rate limit (expensive operation)
+- Routes `POST /` to the Bundle endpoint (via 418 trick); `GET /` goes to the frontend
 - Proxies everything else to the Vite frontend dev server
 - Passes WebSocket `Upgrade` headers for Vite HMR
 - Adds security headers (`X-Frame-Options`, `X-Content-Type-Options`, etc.)
 
-> **Important:** Any new backend route prefix must be added to **both** `nginx.conf` (location block) **and** `frontend/vite.config.ts` (proxy entry). The Vite dev server handles all browser requests; without a proxy rule in `vite.config.ts`, requests for that prefix return 404 before reaching nginx. `vite.config.ts` is baked into the Docker image — changes require `docker compose up -d --build frontend`.
+> **Important:** Every FHIR resource type must be listed in the Nginx regex at line 186 of `nginx.conf`. Types not in the list fall through to the React frontend and silently return HTML. After editing `nginx.conf`, reload with `docker compose exec nginx nginx -s reload`. `vite.config.ts` is baked into the Docker image — changes require `docker compose up -d --build frontend`.
 
 Config: `infrastructure/docker/nginx/nginx.conf`
 
 ### Backend (FastAPI)
 
-- Python 3.11, FastAPI 0.104, Uvicorn with `--reload`
-- Implements **FHIR R4** resource operations:
-  - CRUD + JSON Patch (RFC 6902) for all 16 resource types
-  - Conditional create (`If-None-Exist`), conditional update, conditional delete for all clinical/admin types
-  - `$validate` structural validation on all 13 factory-generated resource types
-  - `$expand` — expands a ValueSet to its full list of concepts; supports SNOMED CT implicit ValueSet URLs (`fhir_vs=isa/{id}`, `fhir_vs=refset/{id}`, `fhir_vs=ecl/{simple_expr}`) delegated to tx.fhir.org; complex ECL (attribute refinement, `AND`/`OR`/`MINUS`, post-coordination) is not yet supported
-  - `$validate-code` — checks whether a code belongs to a ValueSet/CodeSystem
-  - `$validate-batch` — validates up to 200 codes concurrently in one request (HL7 v2 message validation)
-  - `$lookup` — looks up display name and properties for a code; supports LOINC hierarchy properties (`parent`, `child`, `COMPONENT`, etc.) via fhir.loinc.org when credentials are set
-  - `$translate` — maps a code from one system to another using a stored ConceptMap; falls back to tx.fhir.org
-  - `$subsumes` — hierarchy check (subsumes / subsumed-by / equivalent / not-subsumed); delegates to tx.fhir.org for SNOMED CT and fhir.loinc.org for LOINC
-  - `$diff` — compares two versions of a resource
-  - `$stats` / `/analytics/summary` — aggregate counts
-  - `Patient/$match` — probabilistic patient matching scored on identifier, birthDate, family name
-- **History:** instance history (`/{id}/_history`), type-level history (`/{Type}/_history`), and system history (`/_history`) — all paginated with `_since` / `_count`
-- **HL7 v2 table support** — any `http://terminology.hl7.org/CodeSystem/v2-*` URL is
-  resolved locally (after running `migration/import_hl7_v2_tables.py`) or delegated
-  to `tx.fhir.org` as a fallback; no explicit routing entry needed per table
-- Versioning: every PUT/PATCH creates a new version row; ETag enforcement via `If-Match` header
-- Auth: optional JWT bearer token auth (controlled by `ENABLE_AUTH` env var)
-- Rate limiting: per-client sliding window via Redis (`RATE_LIMIT_PER_MINUTE` / `RATE_LIMIT_AI_PER_MINUTE`); returns 429 OperationOutcome with `Retry-After` + `X-RateLimit-*` headers; client identified by `X-API-Key` header or remote IP
-- Metrics: Prometheus client exposed at `/metrics`; `fhir_rate_limit_exceeded_total` counter tracks rejections by client type
+- Python 3.12, FastAPI, Uvicorn with `--reload` in dev / `--workers 4` in prod
+- Implements **FHIR R4** resource operations across **22 resource types** in three groups:
+
+**Terminology** (implemented in `main.py` + `routes/fhir_operations.py`):
+  - ValueSet, CodeSystem, ConceptMap — full CRUD + `$expand`, `$validate-code`, `$validate-batch`, `$lookup`, `$translate`, `$subsumes`, `$diff`, `$stats`
+  - HL7 v2 table support — `http://terminology.hl7.org/CodeSystem/v2-*` resolved locally or delegated to `tx.fhir.org`
+
+**Clinical / Administrative** (generated by `routes/resource_factory.py`):
+  - 13 types: Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization, Organization, Practitioner, PractitionerRole, Location, MedicationRequest, Procedure, DiagnosticReport
+  - Each type gets 9 handlers (POST, GET/{id}, PUT, DELETE, search, `_history`, versioned read, `$audit`), conditional operations, and JSON Patch via `create_resource_router()`
+  - Patient: `$match` (probabilistic matching), `$everything` (full record bundle), `$export` (bulk patient-compartment)
+
+**Da Vinci PAS** (implemented in `routes/prior_auth.py`):
+  - 6 types: Questionnaire, QuestionnaireResponse, Claim, Coverage, ClaimResponse, ServiceRequest
+  - `POST /Claim/$submit` — accepts a PASRequestBundle, stores resources atomically, returns PASResponseBundle with `ClaimResponse.outcome=queued`
+
+**Cross-cutting:**
+  - `POST /` Bundle processor (batch/transaction with `urn:uuid:` reference resolution and atomic rollback)
+  - History: instance (`/{id}/_history`), type (`/{Type}/_history`), system (`/_history`) — paginated with `_since` / `_count`
+  - `_include` / `_revinclude` on all resource types
+  - Versioning: every PUT/PATCH creates a version row; ETag enforcement via `If-Match`
+  - Bulk export: system-level (`GET /$export`) and patient-compartment (`GET /Patient/$export`) — async jobs, NDJSON output, Redis state
+  - **Auth:** SMART on FHIR v2 via Keycloak 24. Three realm roles: `fhir-patient` (patient-scoped), `fhir-clinician` (panel-scoped via `Patient.generalPractitioner`), `fhir-admin` (unrestricted). Controlled by `ENABLE_AUTH` env var.
+  - Rate limiting: per-client sliding window via Redis (`RATE_LIMIT_PER_MINUTE` / `RATE_LIMIT_AI_PER_MINUTE`); returns 429 `OperationOutcome` with `Retry-After` headers
+  - Metrics: Prometheus client at `/metrics`
 
 Source: `backend/app/`
 
 ### PostgreSQL (Primary Store)
 
 - Version: **15-alpine**
-- Stores all FHIR resources as JSONB in a `resources` table
-- Separate `resource_versions` table for full version history
-- Connection pool managed by **asyncpg** via SQLAlchemy 2 async engine
+- Stores all FHIR resources as JSONB in `fhir_resources` table (with `resource_type`, `name`, `url`, `status`, `source`, `archived`, `updated_at` indexed columns)
+- `resource_versions` table holds full version snapshots; `audit_log` tracks every create/update/delete
+- Connection pool managed by **asyncpg** (min 10 / max 50); schema self-initializes on startup via `_initialize_schema()`
 - Data persisted in Docker volume `postgres_data`
 
 ### Elasticsearch (Search Index)
@@ -97,18 +101,22 @@ Source: `backend/app/`
 ### Frontend (React + Vite)
 
 - React 18, TypeScript, Tailwind CSS
-- Single-page app (`frontend/src/App.tsx`) — no router, view state managed in React
-- Features:
-  - Browse ValueSets and CodeSystems (grid / list view)
-  - Search by name (debounced)
-  - Resource detail slide-out panel with version history
-  - Full-page `$expand` viewer with filter, pagination, and CSV export
-  - Analytics dashboard (resource counts, server status, PHIN VADS sync card)
-  - PHIN VADS Sync card: Preview (checks for new resources without importing) → Confirm import workflow
+- Multi-app architecture — no React Router; app selection based on `roles` from the SMART JWT:
+
+| App | Entry point | Who sees it | Purpose |
+|---|---|---|---|
+| `TerminologyApp` | `App.tsx` | All authenticated users | ValueSet/CodeSystem/ConceptMap browser, `$expand` viewer, AI concept mapping |
+| `ClinicalApp` | `features/clinical/ClinicalApp.tsx` | `fhir-clinician` | Patient panel, clinical resource tabs (Obs, Condition, Encounter, etc.), Forms, Prior Auth, bulk export |
+| `AdminApp` | `features/admin/AdminApp.tsx` | `fhir-admin` | FHIR resource CRUD (Org, Practitioner, Location, etc.), user management (Keycloak), Questionnaire viewer |
+| `PatientPortalPage` | `features/patient/PatientPortalPage.tsx` | `fhir-patient` | Read-only view of own health record |
+| `SystemApp` | `features/system/SystemApp.tsx` | `fhir-admin` | System-level bulk export, resource category browser |
+| `HomePage` | `features/home/HomePage.tsx` | All | Landing page with app selection |
+
+- Login is handled by `LoginGate.tsx` → PKCE redirect to Keycloak → `AuthCallback.tsx` stores JWT; `AuthContext.tsx` exposes `user`, `roles`, `getToken()`
+- `useFhirSearch<T>(resourceType, options)` hook in `hooks/useFhirSearch.ts` handles paginated FHIR bundle fetches with debounce
 - Vite configured with `usePolling: true` for Windows Docker HMR compatibility
 - `frontend/src/` is bind-mounted so edits hot-reload without container rebuild
 - `vite.config.ts` is **baked into the image** — changes require `docker compose up -d --build frontend`
-- Vite proxy rules in `vite.config.ts` must mirror all backend route prefixes routed via nginx
 
 ### Adminer (Database UI)
 
@@ -193,11 +201,12 @@ Nginx ($expand rate limit: 20r/s) → Backend
 
 ## Security Notes
 
-- **Authentication** is disabled by default (`ENABLE_AUTH=false`). Enable for production deployments.
+- **Authentication:** SMART on FHIR v2 via **Keycloak 24** (`ENABLE_AUTH=true` in production). Public client `flint-app` uses PKCE; confidential backend client `flint-backend` uses `client_credentials`. Three realm roles: `fhir-patient` (patient-scoped read of own record), `fhir-clinician` (read/write scoped to generalPractitioner panel), `fhir-admin` (unrestricted). Keycloak realm config: `keycloak/flint-realm.json`; custom login theme: `keycloak/themes/flint/`.
+- **Clinician data access (Option B):** Panel filtering enforced server-side — clinicians only see patients whose `Patient.generalPractitioner` references their Practitioner. Clinical resource types (Observation, Condition, etc.) are further scoped to the panel patient list. Individual resource reads (`GET /{type}/{id}`) block access to out-of-panel resources.
 - **CORS** origins are controlled via `CORS_ORIGINS` in `.env`.
 - **Elasticsearch and Redis** have no authentication — do not expose ports 9200 or 6379 publicly.
 - **Nginx** adds `X-Frame-Options`, `X-Content-Type-Options`, and `X-XSS-Protection` headers.
-- **Rate limiting**: Two layers — Nginx IP-level (100 r/s general, 20 r/s `$expand`, returns 429); FastAPI per-client middleware (600 req/min general, 20 req/min for `/ai/*` and `$expand`, keyed by `X-API-Key` header or remote IP). Returns FHIR `OperationOutcome` with `Retry-After` and `X-RateLimit-*` headers. Configurable via `RATE_LIMIT_PER_MINUTE` and `RATE_LIMIT_AI_PER_MINUTE` env vars.
+- **Rate limiting**: Two layers — Nginx IP-level (100 r/s general, 20 r/s for `$expand` and AI endpoints, returns 429); FastAPI per-client middleware (600 req/min general, 20 req/min for `/ai/*` and `$expand`, keyed by `X-API-Key` or remote IP). Returns FHIR `OperationOutcome` with `Retry-After` headers. Configurable via `RATE_LIMIT_PER_MINUTE` and `RATE_LIMIT_AI_PER_MINUTE` env vars.
 - All services communicate over the internal `flint-network` bridge; only the ports listed above are exposed to the host.
 
 ---

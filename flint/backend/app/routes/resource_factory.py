@@ -67,6 +67,211 @@ _PATIENT_COMPARTMENT: Dict[str, Tuple[Optional[str], Callable[[Dict[str, Any]], 
 }
 
 
+# ---------------------------------------------------------------------------
+# _has reverse-chained search tables
+# ---------------------------------------------------------------------------
+
+# Maps (LinkedType, refParam) -> SQL path in linked resource referencing the outer resource.
+_HAS_BACK_REF: Dict[Tuple[str, str], str] = {
+    ("Observation",        "patient"):      "lnk.data->'subject'->>'reference'",
+    ("Observation",        "subject"):      "lnk.data->'subject'->>'reference'",
+    ("Observation",        "encounter"):    "lnk.data->'encounter'->>'reference'",
+    ("Condition",          "patient"):      "lnk.data->'subject'->>'reference'",
+    ("Condition",          "subject"):      "lnk.data->'subject'->>'reference'",
+    ("Condition",          "encounter"):    "lnk.data->'encounter'->>'reference'",
+    ("Encounter",          "patient"):      "lnk.data->'subject'->>'reference'",
+    ("Encounter",          "subject"):      "lnk.data->'subject'->>'reference'",
+    ("AllergyIntolerance", "patient"):      "lnk.data->'patient'->>'reference'",
+    ("Immunization",       "patient"):      "lnk.data->'patient'->>'reference'",
+    ("MedicationRequest",  "patient"):      "lnk.data->'subject'->>'reference'",
+    ("MedicationRequest",  "subject"):      "lnk.data->'subject'->>'reference'",
+    ("MedicationRequest",  "encounter"):    "lnk.data->'encounter'->>'reference'",
+    ("Procedure",          "patient"):      "lnk.data->'subject'->>'reference'",
+    ("Procedure",          "subject"):      "lnk.data->'subject'->>'reference'",
+    ("Procedure",          "encounter"):    "lnk.data->'encounter'->>'reference'",
+    ("DiagnosticReport",   "patient"):      "lnk.data->'subject'->>'reference'",
+    ("DiagnosticReport",   "subject"):      "lnk.data->'subject'->>'reference'",
+    ("DiagnosticReport",   "encounter"):    "lnk.data->'encounter'->>'reference'",
+}
+
+# Maps (LinkedType, searchParam) -> SQL condition with ?? placeholder (lnk. prefix).
+_HAS_CONDITION: Dict[Tuple[str, str], str] = {
+    ("Observation",        "code"):            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+    ("Observation",        "category"):        "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'category', '[]'::jsonb)) cat, jsonb_array_elements(COALESCE(cat->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+    ("Observation",        "status"):          "lnk.data->>'status' = ??",
+    ("Condition",          "code"):            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+    ("Condition",          "category"):        "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'category', '[]'::jsonb)) cat, jsonb_array_elements(COALESCE(cat->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+    ("Condition",          "clinical-status"): "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'clinicalStatus'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+    ("Encounter",          "status"):          "lnk.data->>'status' = ??",
+    ("Encounter",          "type"):            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'type', '[]'::jsonb)) t, jsonb_array_elements(COALESCE(t->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+    ("AllergyIntolerance", "code"):            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+    ("AllergyIntolerance", "clinical-status"): "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'clinicalStatus'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+    ("Immunization",       "status"):          "lnk.data->>'status' = ??",
+    ("Immunization",       "vaccine-code"):    "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'vaccineCode'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+    ("MedicationRequest",  "status"):          "lnk.data->>'status' = ??",
+    ("Procedure",          "code"):            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+    ("Procedure",          "status"):          "lnk.data->>'status' = ??",
+    ("DiagnosticReport",   "code"):            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+    ("DiagnosticReport",   "status"):          "lnk.data->>'status' = ??",
+}
+
+
+# ---------------------------------------------------------------------------
+# Chained search tables
+# ---------------------------------------------------------------------------
+
+# Maps (SourceType, refParam) -> (targetType, sql_ref_path_in_source).
+_CHAIN_REF: Dict[Tuple[str, str], Tuple[str, str]] = {
+    ("Observation",        "patient"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("Observation",        "subject"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("Observation",        "encounter"):    ("Encounter",    "data->'encounter'->>'reference'"),
+    ("Condition",          "patient"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("Condition",          "subject"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("Condition",          "encounter"):    ("Encounter",    "data->'encounter'->>'reference'"),
+    ("Encounter",          "patient"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("Encounter",          "subject"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("AllergyIntolerance", "patient"):      ("Patient",      "data->'patient'->>'reference'"),
+    ("Immunization",       "patient"):      ("Patient",      "data->'patient'->>'reference'"),
+    ("MedicationRequest",  "patient"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("MedicationRequest",  "subject"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("MedicationRequest",  "encounter"):    ("Encounter",    "data->'encounter'->>'reference'"),
+    ("Procedure",          "patient"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("Procedure",          "subject"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("Procedure",          "encounter"):    ("Encounter",    "data->'encounter'->>'reference'"),
+    ("DiagnosticReport",   "patient"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("DiagnosticReport",   "subject"):      ("Patient",      "data->'subject'->>'reference'"),
+    ("DiagnosticReport",   "encounter"):    ("Encounter",    "data->'encounter'->>'reference'"),
+    ("PractitionerRole",   "practitioner"): ("Practitioner", "data->'practitioner'->>'reference'"),
+    ("PractitionerRole",   "organization"): ("Organization", "data->'organization'->>'reference'"),
+}
+
+# Maps (targetType, targetSearchParam) -> (sql_condition_with_??, value_transform).
+# sql_condition uses tgt. prefix; value_transform is applied to the raw param value before binding.
+_CHAIN_TARGET_CONDITION: Dict[Tuple[str, str], Tuple[str, Callable[[str], str]]] = {
+    ("Patient",      "name"):       ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'name', '[]'::jsonb)) n WHERE n->>'family' ILIKE ?? OR n->>'text' ILIKE ??)", lambda v: f"%{v}%"),
+    ("Patient",      "family"):     ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'name', '[]'::jsonb)) n WHERE n->>'family' ILIKE ??)", lambda v: f"%{v}%"),
+    ("Patient",      "given"):      ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'name', '[]'::jsonb)) n, jsonb_array_elements_text(COALESCE(n->'given', '[]'::jsonb)) g WHERE g ILIKE ??)", lambda v: f"%{v}%"),
+    ("Patient",      "birthdate"):  ("tgt.data->>'birthDate' = ??", lambda v: v),
+    ("Patient",      "gender"):     ("tgt.data->>'gender' = ??",    lambda v: v),
+    ("Patient",      "identifier"): ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'identifier', '[]'::jsonb)) id WHERE id->>'value' = ??)", lambda v: v),
+    ("Encounter",    "status"):     ("tgt.data->>'status' = ??",    lambda v: v),
+    ("Practitioner", "name"):       ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'name', '[]'::jsonb)) n WHERE n->>'family' ILIKE ?? OR n->>'text' ILIKE ??)", lambda v: f"%{v}%"),
+    ("Practitioner", "family"):     ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'name', '[]'::jsonb)) n WHERE n->>'family' ILIKE ??)", lambda v: f"%{v}%"),
+    ("Organization", "name"):       ("tgt.data->>'name' ILIKE ??",  lambda v: f"%{v}%"),
+}
+
+
+def _build_has_conditions(rt: str, query_params: Dict[str, str]) -> List[Tuple[str, Any]]:
+    """Build EXISTS conditions for _has reverse-chained search params."""
+    pairs: List[Tuple[str, Any]] = []
+    for key, value in query_params.items():
+        if not key.startswith("_has:"):
+            continue
+        parts = key[5:].split(":", 2)
+        if len(parts) != 3:
+            continue
+        linked_type, ref_param, search_param = parts
+        back_ref = _HAS_BACK_REF.get((linked_type, ref_param))
+        cond = _HAS_CONDITION.get((linked_type, search_param))
+        if not back_ref or not cond:
+            continue
+        sql = (
+            f"EXISTS (SELECT 1 FROM fhir_resources AS lnk"
+            f" WHERE lnk.resource_type = '{linked_type}'"
+            f" AND lnk.archived = FALSE"
+            f" AND {back_ref} = CONCAT('{rt}/', fhir_resources.data->>'id')"
+            f" AND {cond})"
+        )
+        pairs.append((sql, value))
+    return pairs
+
+
+def _build_chained_conditions(rt: str, query_params: Dict[str, str]) -> List[Tuple[str, Any]]:
+    """Build EXISTS conditions for chained search params (e.g., patient.family=Jones)."""
+    pairs: List[Tuple[str, Any]] = []
+    for key, value in query_params.items():
+        if key.startswith("_") or "." not in key:
+            continue
+        ref_param, target_search_param = key.split(".", 1)
+        chain_info = _CHAIN_REF.get((rt, ref_param))
+        if not chain_info:
+            continue
+        target_type, src_ref_path = chain_info
+        target_cond_info = _CHAIN_TARGET_CONDITION.get((target_type, target_search_param))
+        if not target_cond_info:
+            continue
+        target_cond, value_transform = target_cond_info
+        sql = (
+            f"EXISTS (SELECT 1 FROM fhir_resources AS tgt"
+            f" WHERE tgt.resource_type = '{target_type}'"
+            f" AND tgt.archived = FALSE"
+            f" AND fhir_resources.{src_ref_path} = CONCAT('{target_type}/', tgt.data->>'id')"
+            f" AND {target_cond})"
+        )
+        pairs.append((sql, value_transform(value)))
+    return pairs
+
+
+# ---------------------------------------------------------------------------
+# US Core must-support element checks (P2.6)
+# ---------------------------------------------------------------------------
+
+_US_CORE_MUST_SUPPORT: Dict[str, List[Tuple[str, Callable[[Dict[str, Any]], bool]]]] = {
+    "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient": [
+        ("Patient.identifier",            lambda r: bool(r.get("identifier"))),
+        ("Patient.identifier.system",     lambda r: all(bool(i.get("system")) for i in (r.get("identifier") or []))),
+        ("Patient.identifier.value",      lambda r: all(bool(i.get("value"))  for i in (r.get("identifier") or []))),
+        ("Patient.name",                  lambda r: bool(r.get("name"))),
+        ("Patient.name.family or .given", lambda r: any(n.get("family") or n.get("given") for n in (r.get("name") or []))),
+        ("Patient.gender",                lambda r: bool(r.get("gender"))),
+        ("Patient.birthDate",             lambda r: bool(r.get("birthDate"))),
+    ],
+    "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab": [
+        ("Observation.status",    lambda r: bool(r.get("status"))),
+        ("Observation.category",  lambda r: bool(r.get("category"))),
+        ("Observation.code",      lambda r: bool(r.get("code"))),
+        ("Observation.subject",   lambda r: bool(r.get("subject"))),
+        ("Observation.effective[x]", lambda r: bool(r.get("effectiveDateTime") or r.get("effectivePeriod") or r.get("effectiveInstant"))),
+        ("Observation.value[x] or dataAbsentReason", lambda r: bool(
+            r.get("valueQuantity") or r.get("valueCodeableConcept") or r.get("valueString") or
+            r.get("valueBoolean") is not None or r.get("valueInteger") is not None or
+            r.get("valueRange") or r.get("valueSampledData") or r.get("dataAbsentReason")
+        )),
+    ],
+    "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns": [
+        ("Condition.clinicalStatus", lambda r: bool(r.get("clinicalStatus"))),
+        ("Condition.category",       lambda r: bool(r.get("category"))),
+        ("Condition.code",           lambda r: bool(r.get("code"))),
+        ("Condition.subject",        lambda r: bool(r.get("subject"))),
+    ],
+    "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance": [
+        ("AllergyIntolerance.clinicalStatus", lambda r: bool(r.get("clinicalStatus"))),
+        ("AllergyIntolerance.code",           lambda r: bool(r.get("code"))),
+        ("AllergyIntolerance.patient",        lambda r: bool(r.get("patient"))),
+    ],
+    "http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization": [
+        ("Immunization.status",       lambda r: bool(r.get("status"))),
+        ("Immunization.vaccineCode",  lambda r: bool(r.get("vaccineCode"))),
+        ("Immunization.patient",      lambda r: bool(r.get("patient"))),
+        ("Immunization.occurrence[x]", lambda r: bool(r.get("occurrenceDateTime") or r.get("occurrenceString"))),
+    ],
+    "http://hl7.org/fhir/us/core/StructureDefinition/us-core-encounter": [
+        ("Encounter.status",  lambda r: bool(r.get("status"))),
+        ("Encounter.class",   lambda r: bool(r.get("class"))),
+        ("Encounter.type",    lambda r: bool(r.get("type"))),
+        ("Encounter.subject", lambda r: bool(r.get("subject"))),
+    ],
+    "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest": [
+        ("MedicationRequest.status",        lambda r: bool(r.get("status"))),
+        ("MedicationRequest.intent",        lambda r: bool(r.get("intent"))),
+        ("MedicationRequest.medication[x]", lambda r: bool(r.get("medicationCodeableConcept") or r.get("medicationReference"))),
+        ("MedicationRequest.subject",       lambda r: bool(r.get("subject"))),
+        ("MedicationRequest.authoredOn",    lambda r: bool(r.get("authoredOn"))),
+        ("MedicationRequest.requester",     lambda r: bool(r.get("requester"))),
+    ],
+}
+
+
 def _owns_resource(rt: str, resource: Dict[str, Any], patient_id: str) -> bool:
     """Return True if the resource belongs to the given patient."""
     compartment = _PATIENT_COMPARTMENT.get(rt)
@@ -383,6 +588,7 @@ def create_resource_router(
         extra_pairs: List[Tuple[str, Any]] = []
         if search_hook:
             base_params, extra_pairs = search_hook(dict(request.query_params))
+        extra_pairs = list(extra_pairs) + _build_has_conditions(rt, dict(request.query_params)) + _build_chained_conditions(rt, dict(request.query_params))
 
         # Patient-context filtering: restrict results to the token's patient
         patient_id = getattr(request.state, "fhir_patient_id", None)
@@ -560,6 +766,18 @@ def create_resource_router(
                 for err in exc.errors()
             ]
 
+        # US Core must-support checks (local, fast — only for known US Core profiles)
+        us_core_issues: List[Dict[str, Any]] = []
+        if profile and profile in _US_CORE_MUST_SUPPORT:
+            for element_expr, check_fn in _US_CORE_MUST_SUPPORT[profile]:
+                if not check_fn(body):
+                    us_core_issues.append({
+                        "severity": "warning",
+                        "code": "required",
+                        "details": {"text": f"US Core must-support element missing or incomplete: {element_expr}"},
+                        "expression": [element_expr],
+                    })
+
         # Profile validation via tx.fhir.org (only when ?profile= is provided)
         profile_issues: List[Dict[str, Any]] = []
         if profile:
@@ -596,7 +814,7 @@ def create_resource_router(
                         "details": {"text": f"Profile validation against tx.fhir.org unavailable: {e}"},
                     }]
 
-        all_issues = local_issues + profile_issues
+        all_issues = local_issues + us_core_issues + profile_issues
         if not all_issues:
             all_issues = [{"severity": "information", "code": "informational",
                            "details": {"text": f"{rt} resource is valid"}}]

@@ -74,7 +74,7 @@ This file provides context and working conventions for Claude Code when operatin
 
 ## Project Overview
 
-**Flint** is a general-purpose FHIR R4 server supporting 16 resource types. Capabilities include clinical CRUD (Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization, Organization, Practitioner, PractitionerRole, Location, MedicationRequest, Procedure, DiagnosticReport), full terminology and vocabulary management (ValueSet, CodeSystem, ConceptMap), batch/transaction Bundle processing, and AI-assisted concept mapping.
+**Flint** is a general-purpose FHIR R4 server supporting 22 resource types. Capabilities include clinical CRUD (Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization, Organization, Practitioner, PractitionerRole, Location, MedicationRequest, Procedure, DiagnosticReport), full terminology and vocabulary management (ValueSet, CodeSystem, ConceptMap), Da Vinci Prior Authorization Support (Questionnaire, QuestionnaireResponse, Claim, Coverage, ClaimResponse, ServiceRequest + `POST /Claim/$submit`), batch/transaction Bundle processing, and AI-assisted concept mapping.
 
 **Stack:** FastAPI · PostgreSQL · Elasticsearch · Redis · React/Vite · Nginx · Prometheus · Grafana · Loki · Promtail · Docker Compose
 
@@ -98,6 +98,7 @@ This file provides context and working conventions for Claude Code when operatin
 - Clinical models in `app/models/clinical.py` — `Patient`, `Observation`, `Condition`, `Encounter`, `AllergyIntolerance`, `Immunization`
 - Administrative models in `app/models/administrative.py` — `Organization`, `Practitioner`, `PractitionerRole`, `Location`
 - Medication/report models in `app/models/medications.py` — `MedicationRequest`, `Procedure`, `DiagnosticReport`
+- Prior auth / PAS models in `app/models/prior_auth.py` — `Questionnaire`, `QuestionnaireResponse`, `Claim`, `Coverage` (note: `class` aliased as `class_` + `ConfigDict(populate_by_name=True)`), `ClaimResponse`, `ServiceRequest`
 - `Literal[]` types enforce enums (`content`, `equivalence`, `status`, etc.)
 
 **Storage — three tiers:**
@@ -124,6 +125,7 @@ This file provides context and working conventions for Claude Code when operatin
 | `routes/clinical.py` | Search hooks + CapabilityStatement registration for Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization |
 | `routes/administrative.py` | Search hooks + registration for Organization, Practitioner, PractitionerRole, Location |
 | `routes/medications.py` | Search hooks + registration for MedicationRequest, Procedure, DiagnosticReport |
+| `routes/prior_auth.py` | Search hooks + registration for Questionnaire, QuestionnaireResponse, Claim, Coverage, ClaimResponse, ServiceRequest; `POST /Claim/$submit` (PAS workflow) |
 | `routes/bundle.py` | `POST /` — Bundle batch/transaction processor with atomic rollback and `urn:uuid:` reference resolution |
 | `routes/sdo_search.py` | Live SDO connector search (`/sdo/*`), SNOMED hierarchy tree |
 | `routes/ai_assist.py` | AI endpoints (`/ai/*`): suggest, describe, map, map-save, provider |
@@ -144,6 +146,7 @@ This file provides context and working conventions for Claude Code when operatin
 | Version diff | `GET /ValueSet/{id}/$diff` |
 | Capability statement | `GET /metadata` (dynamic — reflects auth config + all registered resource types) |
 | Bundle (batch/transaction) | `POST /` |
+| PAS Prior Auth submit | `POST /Claim/$submit` (PASRequestBundle → PASResponseBundle, outcome=queued) |
 
 **Storage tier decision logic** (in `fhir_operations.py`):
 `$expand` and `$lookup` check `CodeSystem.content` before sourcing concepts:
@@ -205,13 +208,15 @@ flint/
 │   │   ├── models/
 │   │   │   ├── clinical.py          # Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization
 │   │   │   ├── administrative.py    # Organization, Practitioner, PractitionerRole, Location
-│   │   │   └── medications.py       # MedicationRequest, Procedure, DiagnosticReport
+│   │   │   ├── medications.py       # MedicationRequest, Procedure, DiagnosticReport
+│   │   │   └── prior_auth.py        # Questionnaire, QuestionnaireResponse, Claim, Coverage, ClaimResponse, ServiceRequest
 │   │   ├── routes/
 │   │   │   ├── fhir_operations.py   # $expand, $validate-code, $lookup, $translate, $subsumes, $validate-batch
 │   │   │   ├── resource_factory.py  # create_resource_router() — generates CRUD+history+audit per resource type
 │   │   │   ├── clinical.py          # Search hooks + router instances for 6 clinical types
 │   │   │   ├── administrative.py    # Search hooks + router instances for 4 administrative types
 │   │   │   ├── medications.py       # Search hooks + router instances for 3 medication/report types
+│   │   │   ├── prior_auth.py        # Search hooks + routers for 6 PAS types; POST /Claim/$submit
 │   │   │   ├── bundle.py            # POST / — batch/transaction Bundle processor
 │   │   │   ├── sdo_search.py        # GET /sdo/systems, /sdo/search, /sdo/lookup, /sdo/snomed/children/{id}
 │   │   │   └── ai_assist.py         # POST /ai/suggest, /ai/describe, /ai/map, /ai/map-save, GET /ai/provider
@@ -246,6 +251,9 @@ flint/
 - **Summary mode:** `search_resources(summary=True)` uses `jsonb_build_object()` to return metadata only (no `concept`/`compose` arrays). Always includes a precomputed `_conceptCount` field so the UI can display accurate counts without fetching full resources. Also includes `extension` and `useContext` fields for provenance and view tags.
 - **Redis list caching:** List endpoints (`GET /ValueSet`, `GET /CodeSystem`) cache results for 120 s. Cache key includes all filter params. Invalidated on any write via `invalidate_pattern("ValueSet:*")`.
 - **Custom extension pattern:** `http://flint.local/StructureDefinition/source` tracks import provenance (e.g. `hl7`, `internal`). Same mechanism used for reading context tags from `useContext`.
+- **Clinician panel filtering (Option B):** `resource_factory._search` reads `request.state.fhir_clinician_id` (set by auth middleware from `fhirUser` JWT claim) and adds a JSONB containment filter on `Patient.generalPractitioner`. For non-Patient compartment types it uses `= ANY(panel_refs)`. Panel filtering for individual resource reads (`_read`) is also wired. `_PATIENT_COMPARTMENT` dict in `resource_factory.py` maps resource types to their SQL patient-reference path. Seed clinician `dr-jones` → `Practitioner/2c419e4d-0f6c-458b-b6a5-2eda3b3a9d6a`.
+- **PAS `$submit` internals:** `POST /Claim/$submit` reuses `_create_raw` and `_after_write` from `routes/bundle.py` inside a single asyncpg transaction to atomically store the PASRequestBundle resources. It then builds and returns a PASResponseBundle with a synthetic `ClaimResponse`. The real payer integration path is documented in the comment block above `submit_router` in `routes/prior_auth.py`.
+- **Nginx must list every FHIR resource type:** The regex location at line 186 of `nginx.conf` is the only routing gate. Unlisted types fall through to the React frontend and return 404. After adding a new type, run `docker compose exec nginx nginx -s reload`.
 
 ---
 
@@ -616,3 +624,5 @@ The ValueSet Builder includes a lazy-loaded hierarchy tree for SNOMED CT concept
 - **AI chat code hallucinations (fixed 2026-04-15)** — The `/ai/chat` endpoint was answering questions about specific code numbers from training memory, producing wrong or invented displays (e.g. SNOMED 119297000 described as "COVID-19 vaccination" instead of "Blood specimen"). Fixed with two layers: (1) Pre-lookup injection — before each AI call, code patterns (SNOMED 6–12 digit, LOINC `##-#`, ICD-10-CM `A##.x`) are detected in the user's latest message and looked up against the live terminology server; authoritative results are injected into the system prompt. (2) Hard rules in the system prompt forbid the AI from stating code meanings from training memory and instruct it to say "I cannot confirm" when no live lookup result was provided. `/ai/suggest` also received a tightened prompt requiring exact candidate display names to be preserved verbatim.
 - **Elasticsearch `name` field type mismatch on clinical resources (fixed 2026-06-15)** — `SearchEngine.index_resource()` was passing `data.get('name')` directly to the ES `name` field, which is mapped as `text`. Clinical resources (Patient, Practitioner) have `name` as a `List[HumanName]` (a JSON object), not a string. Fixed in `index_resource` by coercing: `name_str = raw_name if isinstance(raw_name, str) else None`.
 - **Bundle transaction `_get_raw` missing meta (fixed 2026-06-15)** — `_get_raw(conn, resource_id)` in `routes/bundle.py` initially read only `fhir_resources.data`, which does not contain `meta.versionId` (it is computed on-read from `resource_versions`). This caused `ifMatch` checks inside transactions to always see an empty versionId. Fixed by joining with a subquery for `MAX(version_number)` and computing `meta` before returning, mirroring `DatabaseManager.get_resource()`.
+- **`_sort=family` not in `_SORT_COLS` (known, not a bug)** — `search_resources_ex` only maps `name`, `url`, `status`, `date` sort keys. Clinical sort params like `family`, `given`, `birthdate` fall back silently to `ORDER BY updated_at DESC`. This means results are correctly returned but not alphabetically sorted. To fix, add JSONB-based sort expressions to `_SORT_COLS` in `DatabaseManager.search_resources_ex` in `main.py`.
+- **New FHIR resource types must be added to Nginx regex (2026-07-08)** — The regex location at line 186 of `nginx.conf` must list every resource type. Missing types return the React frontend HTML (200, not 404). After Questionnaire/QR/Claim/Coverage/ClaimResponse/ServiceRequest were added, Nginx was reloaded with `nginx -s reload`.
