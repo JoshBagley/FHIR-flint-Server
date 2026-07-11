@@ -141,7 +141,55 @@
         "include.in.token.scope": "true",
         "display.on.consent.screen": "false"
       }
-    }
+    },
+    {
+      "name": "offline_access",
+      "description": "Offline access — allows refresh tokens",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Stay signed in"
+      }
+    },
+    {
+      "name": "patient/*.rs",
+      "description": "Read and search all FHIR resources for the patient in context (SMART v2 wildcard)",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "consent.screen.text": "Read your clinical records"
+      }
+    },
+    { "name": "patient/Patient.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/AllergyIntolerance.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/CarePlan.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/CareTeam.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Condition.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Coverage.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Device.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/DiagnosticReport.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/DocumentReference.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Encounter.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Endpoint.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Goal.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Immunization.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Location.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Media.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Medication.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/MedicationDispense.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/MedicationRequest.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Observation.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Organization.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Practitioner.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/PractitionerRole.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Procedure.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Provenance.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/QuestionnaireResponse.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/RelatedPerson.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/ServiceRequest.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } },
+    { "name": "patient/Specimen.rs", "protocol": "openid-connect", "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" } }
   ],
   "clients": [
     {
@@ -174,12 +222,42 @@
       ],
       "optionalClientScopes": [
         "fhirUser",
+        "offline_access",
         "launch/patient",
         "launch/encounter",
         "patient/*.read",
         "patient/*.write",
+        "patient/*.rs",
         "user/*.read",
-        "user/*.write"
+        "user/*.write",
+        "patient/Patient.rs",
+        "patient/AllergyIntolerance.rs",
+        "patient/CarePlan.rs",
+        "patient/CareTeam.rs",
+        "patient/Condition.rs",
+        "patient/Coverage.rs",
+        "patient/Device.rs",
+        "patient/DiagnosticReport.rs",
+        "patient/DocumentReference.rs",
+        "patient/Encounter.rs",
+        "patient/Endpoint.rs",
+        "patient/Goal.rs",
+        "patient/Immunization.rs",
+        "patient/Location.rs",
+        "patient/Media.rs",
+        "patient/Medication.rs",
+        "patient/MedicationDispense.rs",
+        "patient/MedicationRequest.rs",
+        "patient/Observation.rs",
+        "patient/Organization.rs",
+        "patient/Practitioner.rs",
+        "patient/PractitionerRole.rs",
+        "patient/Procedure.rs",
+        "patient/Provenance.rs",
+        "patient/QuestionnaireResponse.rs",
+        "patient/RelatedPerson.rs",
+        "patient/ServiceRequest.rs",
+        "patient/Specimen.rs"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
@@ -212,6 +290,20 @@
             "id.token.claim": "true",
             "access.token.claim": "true",
             "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "patient",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "patient_id",
+            "claim.name": "patient",
+            "jsonType.label": "String",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false"
           }
         },
         {
@@ -294,12 +386,12 @@
         }
       ],
       "attributes": {
-        "fhirUser": [
-          "Patient/3e7c75f4-d87c-4648-bff5-89a3c5adbdb1"
-        ]
+        "fhirUser": ["http://host.docker.internal/Patient/3e7c75f4-d87c-4648-bff5-89a3c5adbdb1"],
+        "patient_id": ["3e7c75f4-d87c-4648-bff5-89a3c5adbdb1"]
       },
       "realmRoles": [
-        "fhir-patient"
+        "fhir-patient",
+        "offline_access"
       ]
     },
     {
@@ -317,12 +409,12 @@
         }
       ],
       "attributes": {
-        "fhirUser": [
-          "Practitioner/2c419e4d-0f6c-458b-b6a5-2eda3b3a9d6a"
-        ]
+        "fhirUser": ["http://host.docker.internal/Practitioner/2c419e4d-0f6c-458b-b6a5-2eda3b3a9d6a"],
+        "patient_id": ["99015722-38a0-42dd-af3b-1474a22fd71d"]
       },
       "realmRoles": [
-        "fhir-clinician"
+        "fhir-clinician",
+        "offline_access"
       ]
     },
     {
@@ -339,8 +431,13 @@
           "temporary": false
         }
       ],
+      "attributes": {
+        "fhirUser": ["http://host.docker.internal/Practitioner/2c419e4d-0f6c-458b-b6a5-2eda3b3a9d6a"],
+        "patient_id": ["99015722-38a0-42dd-af3b-1474a22fd71d"]
+      },
       "realmRoles": [
-        "fhir-admin"
+        "fhir-admin",
+        "offline_access"
       ]
     }
   ]

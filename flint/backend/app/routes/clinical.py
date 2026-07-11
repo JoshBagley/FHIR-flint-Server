@@ -1,4 +1,5 @@
 import asyncio
+import json
 from typing import Dict, List, Any, Tuple
 
 from fastapi import HTTPException, Body, Request
@@ -50,9 +51,26 @@ def _patient_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
     if '_id' in qp:
-        extra.append(("data->>'id' = ??", qp['_id']))
+        ids = [i.strip() for i in qp['_id'].split(',') if i.strip()]
+        if len(ids) == 1:
+            extra.append(("data->>'id' = ??", ids[0]))
+        elif ids:
+            # asyncpg binds a list as a PostgreSQL text array; ANY(??) matches any element
+            extra.append(("data->>'id' = ANY(??)", ids))
     if 'name' in qp:
-        base['name'] = qp['name']
+        # Search across family, given, and text fields in the name array
+        extra.append((
+            """EXISTS (
+                SELECT 1 FROM jsonb_array_elements(COALESCE(data->'name', '[]'::jsonb)) n
+                WHERE n->>'family' ILIKE ??
+                   OR n->>'text' ILIKE ??
+                   OR EXISTS (
+                       SELECT 1 FROM jsonb_array_elements_text(COALESCE(n->'given', '[]'::jsonb)) g
+                       WHERE g ILIKE ??
+                   )
+            )""",
+            f"%{qp['name']}%"
+        ))
     if 'family' in qp:
         extra.append((
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'name', '[]'::jsonb)) n WHERE n->>'family' ILIKE ??)",
@@ -68,10 +86,17 @@ def _patient_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple
     if 'gender' in qp:
         extra.append(("data->>'gender' = ??", qp['gender']))
     if 'identifier' in qp:
-        extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) id WHERE id->>'value' = ??)",
-            qp['identifier']
-        ))
+        ident = qp['identifier']
+        if '|' in ident:
+            system, _, value = ident.partition('|')
+            if system and value:
+                extra.append(("data->'identifier' @> ??::jsonb", json.dumps([{"system": system, "value": value}])))
+            elif value:
+                extra.append(("data->'identifier' @> ??::jsonb", json.dumps([{"value": value}])))
+            else:
+                extra.append(("data->'identifier' @> ??::jsonb", json.dumps([{"system": system}])))
+        else:
+            extra.append(("data->'identifier' @> ??::jsonb", json.dumps([{"value": ident}])))
     if 'telecom' in qp:
         extra.append((
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'telecom', '[]'::jsonb)) t WHERE t->>'value' ILIKE ??)",

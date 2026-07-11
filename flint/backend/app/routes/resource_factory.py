@@ -49,6 +49,8 @@ _INCLUDE_REFERENCE_MAP: Dict[str, Tuple[str, str]] = {
     "DiagnosticReport:encounter":    ("encounter",     "data->'encounter'->>'reference'"),
     "PractitionerRole:practitioner": ("practitioner",  "data->'practitioner'->>'reference'"),
     "PractitionerRole:organization": ("organization",  "data->'organization'->>'reference'"),
+    # Provenance.target is an array — sql_path is a full condition template (contains ??)
+    "Provenance:target": ("target", "EXISTS (SELECT 1 FROM jsonb_array_elements(data->'target') t WHERE t->>'reference' = ANY(??))"),
 }
 
 
@@ -694,8 +696,9 @@ def create_resource_router(
                 rev_type = _revinclude.split(":")[0]
                 primary_refs = [f"{rt}/{r['id']}" for r in results if r.get("id")]
                 if primary_refs:
+                    rev_condition = sql_path if "??" in sql_path else f"{sql_path} = ANY(??)"
                     _, rev_results = await state.db.search_resources_ex(
-                        rev_type, {}, [(f"{sql_path} = ANY(??)", primary_refs)],
+                        rev_type, {}, [(rev_condition, primary_refs)],
                         limit=min(_count * 10, 1000), offset=0
                     )
                     seen_rev: set = set()
@@ -711,6 +714,77 @@ def create_resource_router(
             "link": _bundle_links(request, total, _count, _offset),
             "entry": entries,
         }
+
+    # ------------------------------------------------------------------
+    # Search by POST (FHIR spec §3.2.2 — POST /{type}/_search)
+    # ------------------------------------------------------------------
+
+    async def _search_post(request: Request):
+        """FHIR search-by-POST: params in application/x-www-form-urlencoded body."""
+        form = await request.form()
+        # Merge URL query params (rare but allowed) with body params; body takes precedence.
+        merged = dict(request.query_params)
+        merged.update({k: v for k, v in form.multi_items()})
+
+        base_params: Dict[str, Any] = {}
+        extra_pairs: List[Tuple[str, Any]] = []
+        if search_hook:
+            base_params, extra_pairs = search_hook(merged)
+        extra_pairs = list(extra_pairs) + _build_has_conditions(rt, merged) + _build_chained_conditions(rt, merged)
+
+        _count = int(merged.get("_count", 20))
+        _offset = int(merged.get("_offset", 0))
+        _sort = merged.get("_sort")
+        _revinclude = merged.get("_revinclude")
+
+        patient_id = getattr(request.state, "fhir_patient_id", None)
+        if patient_id and rt in _PATIENT_COMPARTMENT:
+            sql_path, _ = _PATIENT_COMPARTMENT[rt]
+            if sql_path is None:
+                extra_pairs = [("data->>'id' = ??", patient_id)] + list(extra_pairs)
+            else:
+                extra_pairs = [(f"{sql_path} = ??", f"Patient/{patient_id}")] + list(extra_pairs)
+
+        clinician_id = getattr(request.state, "fhir_clinician_id", None)
+        if clinician_id and rt in _PATIENT_COMPARTMENT and not patient_id:
+            if rt == "Patient":
+                gp_ref = json.dumps([{"reference": f"Practitioner/{clinician_id}"}])
+                extra_pairs = [("data->'generalPractitioner' @> ??::jsonb", gp_ref)] + list(extra_pairs)
+            else:
+                sql_path, _ = _PATIENT_COMPARTMENT[rt]
+                if sql_path:
+                    panel_refs = await _get_panel_patient_refs(clinician_id)
+                    if not panel_refs:
+                        return {"resourceType": "Bundle", "type": "searchset", "total": 0,
+                                "link": _bundle_links(request, 0, _count, _offset), "entry": []}
+                    extra_pairs = [(f"{sql_path} = ANY(??)", panel_refs)] + list(extra_pairs)
+
+        total, results = await state.db.search_resources_ex(
+            rt, base_params, extra_pairs, limit=_count, offset=_offset, sort=_sort
+        )
+        entries: List[Dict[str, Any]] = [{"resource": r} for r in results]
+
+        if _revinclude and results:
+            rev_info = _INCLUDE_REFERENCE_MAP.get(_revinclude)
+            if rev_info:
+                _, sql_path = rev_info
+                rev_type = _revinclude.split(":")[0]
+                primary_refs = [f"{rt}/{r['id']}" for r in results if r.get("id")]
+                if primary_refs:
+                    rev_condition = sql_path if "??" in sql_path else f"{sql_path} = ANY(??)"
+                    _, rev_results = await state.db.search_resources_ex(
+                        rev_type, {}, [(rev_condition, primary_refs)],
+                        limit=min(_count * 10, 1000), offset=0
+                    )
+                    seen_rev: set = set()
+                    for r in rev_results:
+                        rid = r.get("id")
+                        if rid and rid not in seen_rev:
+                            seen_rev.add(rid)
+                            entries.append({"search": {"mode": "include"}, "resource": r})
+
+        return {"resourceType": "Bundle", "type": "searchset", "total": total,
+                "link": _bundle_links(request, total, _count, _offset), "entry": entries}
 
     # ------------------------------------------------------------------
     # History
@@ -837,6 +911,7 @@ def create_resource_router(
 
     rt_lower = rt.lower()
     _create.__name__ = f"create_{rt_lower}"
+    _search_post.__name__ = f"search_post_{rt_lower}"
     _read.__name__ = f"read_{rt_lower}"
     _update.__name__ = f"update_{rt_lower}"
     _delete.__name__ = f"delete_{rt_lower}"
@@ -855,6 +930,7 @@ def create_resource_router(
     # ------------------------------------------------------------------
 
     router.post(f"/{rt}", status_code=201)(_create)
+    router.post(f"/{rt}/_search")(_search_post)
     router.post(f"/{rt}/$validate")(_validate)
     # Type-level history MUST be registered before /{rt}/{resource_id} to take priority
     router.get(f"/{rt}/_history")(_type_history)

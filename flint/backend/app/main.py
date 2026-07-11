@@ -763,9 +763,26 @@ class DatabaseManager:
             param_idx += 1
 
         for condition_template, value in extra_condition_pairs:
-            conditions.append(condition_template.replace('??', f'${param_idx}'))
-            values.append(value)
-            param_idx += 1
+            if isinstance(value, list):
+                count = condition_template.count('??')
+                if count == 1:
+                    # Bind list as a single array parameter (e.g. = ANY(??))
+                    conditions.append(condition_template.replace('??', f'${param_idx}'))
+                    values.append(value)
+                    param_idx += 1
+                else:
+                    # Multiple distinct values — replace each ?? with successive $N
+                    sql = condition_template
+                    for v in value:
+                        sql = sql.replace('??', f'${param_idx}', 1)
+                        values.append(v)
+                        param_idx += 1
+                    conditions.append(sql)
+            else:
+                # Single value — replace all ?? with same $N (existing behavior)
+                conditions.append(condition_template.replace('??', f'${param_idx}'))
+                values.append(value)
+                param_idx += 1
 
         _SORT_COLS = {
             'name': 'name ASC', '-name': 'name DESC',
@@ -1282,7 +1299,9 @@ async def smart_auth_middleware(request: Request, call_next):
             },
         )
 
-    if not has_fhir_scope(payload, request.method):
+    # POST /{type}/_search is semantically a read (alternative search syntax per FHIR §3.2.2)
+    effective_method = "GET" if request.url.path.endswith("/_search") else request.method
+    if not has_fhir_scope(payload, effective_method):
         return JSONResponse(
             status_code=403,
             content={
@@ -1619,6 +1638,7 @@ async def capability_statement(mode: Optional[str] = Query(None)):
         {"name": "_sort", "type": "string", "documentation": "Sort field: name, -name, url, -url, status, -status, date, -date"},
     ]
 
+    _base_url = os.environ.get("BASE_URL", "").rstrip("/") or "http://localhost"
     return JSONResponse(content={
         "resourceType": "CapabilityStatement",
         "id": "flint-capability",
@@ -1630,9 +1650,14 @@ async def capability_statement(mode: Optional[str] = Query(None)):
         "publisher": "Flint",
         "description": "FHIR R4 server supporting ValueSet, CodeSystem, ConceptMap resources and FHIR terminology operations.",
         "kind": "instance",
+        "instantiates": ["http://hl7.org/fhir/us/core/CapabilityStatement/us-core-server"],
         "software": {
             "name": "Flint",
             "version": os.environ.get("GIT_SHA", "unknown")
+        },
+        "implementation": {
+            "description": "Flint FHIR R4 Server",
+            "url": _base_url,
         },
         "fhirVersion": "4.0.1",
         "format": ["application/fhir+json", "json"],

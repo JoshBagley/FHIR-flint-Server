@@ -164,11 +164,29 @@ def check_role_scope_compatibility(roles: List[str], token_payload: Dict[str, An
     return None
 
 
+def _extract_fhir_id(fhir_user: str, resource_type: str) -> Optional[str]:
+    """Extract bare UUID from a relative or absolute FHIR reference.
+
+    Handles both relative ("Patient/uuid") and absolute
+    ("http://example.com/Patient/uuid") fhirUser claim formats.
+    """
+    prefix = f"{resource_type}/"
+    if fhir_user.startswith(prefix):
+        return fhir_user[len(prefix):] or None
+    # Absolute URL — find the last occurrence of "/{resource_type}/"
+    sep = f"/{prefix}"
+    idx = fhir_user.rfind(sep)
+    if idx != -1:
+        candidate = fhir_user[idx + len(sep):]
+        return candidate or None
+    return None
+
+
 def get_clinician_id(token_payload: Dict[str, Any]) -> Optional[str]:
     """Return the bare Practitioner UUID for fhir-clinician tokens, else None.
 
     Used by Option B panel filtering in resource_factory._search/_read.
-    The Practitioner ID comes from the fhirUser claim (e.g. "Practitioner/uuid").
+    The Practitioner ID comes from the fhirUser claim (relative or absolute URL).
 
     Option C (future — CareTeam-based access):
       Replace this simple ID lookup with a check against CareTeam resources.
@@ -186,9 +204,7 @@ def get_clinician_id(token_payload: Dict[str, Any]) -> Optional[str]:
     if "fhir-clinician" not in roles:
         return None
     fhir_user = (token_payload.get("fhirUser") or "").strip()
-    if fhir_user.startswith("Practitioner/"):
-        return fhir_user[len("Practitioner/"):]
-    return None
+    return _extract_fhir_id(fhir_user, "Practitioner")
 
 
 def get_patient_context(token_payload: Dict[str, Any]) -> Optional[str]:
@@ -206,18 +222,18 @@ def get_patient_context(token_payload: Dict[str, Any]) -> Optional[str]:
     if "fhir-clinician" in roles and has_broad:
         return None
     fhir_user = (token_payload.get("fhirUser") or "").strip()
-    if fhir_user.startswith("Patient/"):
-        return fhir_user[len("Patient/"):]
-    return None
+    return _extract_fhir_id(fhir_user, "Patient")
 
 
 def has_fhir_scope(token_payload: Dict[str, Any], method: str) -> bool:
     """Return True if the token's scopes grant access for the given HTTP method.
 
-    Recognises SMART on FHIR v2 scope patterns:
-      {context}/*.{access}          e.g. system/*.read, patient/*.write
-      {context}/{ResourceType}.{access}  e.g. user/Patient.read
-    where context ∈ {system, user, patient} and access ∈ {read, write, *}.
+    Recognises both SMART v1 and v2 scope patterns:
+      v1: {context}/{resource}.read|write|*   e.g. patient/*.read
+      v2: {context}/{resource}.{chars}        e.g. patient/Patient.rs
+          where chars are single-letter codes: r=read, s=search,
+          c=create, u=update, d=delete, *=all
+
     Write methods: POST, PUT, PATCH, DELETE.
     """
     scopes = set((token_payload.get("scope") or "").split())
@@ -226,11 +242,20 @@ def has_fhir_scope(token_payload: Dict[str, Any], method: str) -> bool:
         context, _, resource_part = scope.partition("/")
         if context not in ("system", "user", "patient"):
             continue
-        if resource_part.endswith(".*"):
+        _, _, access = resource_part.rpartition(".")
+        if not access:
+            continue
+        # SMART v1 keywords
+        if access == "*" or "*" in access:
             return True
-        if not is_write and resource_part.endswith(".read"):
+        if not is_write and access == "read":
             return True
-        if resource_part.endswith(".write"):
+        if is_write and access == "write":
+            return True
+        # SMART v2 single-char codes: r=read, s=search, c=create, u=update, d=delete
+        if not is_write and ("r" in access or "s" in access):
+            return True
+        if is_write and any(c in access for c in "cud"):
             return True
     return False
 
