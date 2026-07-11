@@ -1,5 +1,6 @@
+import json
 import os
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime, timezone
 from email.utils import formatdate
 from fastapi import HTTPException, Request
@@ -27,12 +28,51 @@ RATE_LIMIT_EXCEEDED = Counter(
 _DATE_PREFIXES = {'ge': '>=', 'le': '<=', 'gt': '>', 'lt': '<', 'eq': '=', 'ne': '!='}
 
 
+def _patient_ref(value: str) -> str:
+    """Normalize a FHIR reference search param value to include the Patient/ prefix.
+
+    Inferno sends bare IDs (e.g. 'abc-123') while stored references are
+    'Patient/abc-123'. Without normalisation the two conditions produced by
+    the compartment filter and the search hook are mutually exclusive → 0 rows.
+    """
+    if value and "/" not in value:
+        return f"Patient/{value}"
+    return value
+
+
 def _date_condition(field_expr: str, value: str) -> Tuple[str, str]:
     """Return (sql_fragment, date_value) respecting FHIR date prefix operators."""
     for prefix, op in _DATE_PREFIXES.items():
         if value.startswith(prefix):
             return (f"{field_expr} {op} ??", value[2:])
     return (f"{field_expr} = ??", value)
+
+
+def _extension_date_condition(ext_url: str, value: str) -> Tuple[str, Any]:
+    """Return (sql_fragment, values) for a date search on a FHIR extension's valueDateTime."""
+    for prefix, op in _DATE_PREFIXES.items():
+        if value.startswith(prefix):
+            return (
+                f"EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'extension', '[]'::jsonb)) ext WHERE ext->>'url' = ?? AND ext->>'valueDateTime' {op} ??)",
+                [ext_url, value[2:]]
+            )
+    return (
+        "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'extension', '[]'::jsonb)) ext WHERE ext->>'url' = ?? AND ext->>'valueDateTime' = ??)",
+        [ext_url, value]
+    )
+
+
+def _token_condition(json_path: str, value: str) -> Tuple[str, str]:
+    """Return (sql_fragment, json_value) for FHIR token search against a coding array.
+
+    Handles both 'code' and 'system|code' formats using JSONB containment (@>).
+    """
+    if '|' in value:
+        sys_part, _, code_part = value.partition('|')
+        obj = {k: v for k, v in [("system", sys_part), ("code", code_part)] if v}
+    else:
+        obj = {"code": value}
+    return (f"{json_path} @> ??::jsonb", json.dumps([obj]))
 
 
 def _fhir_issue_code(status_code: int) -> str:

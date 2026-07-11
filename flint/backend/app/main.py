@@ -747,8 +747,13 @@ class DatabaseManager:
             values.append(f"%{base_params['name']}%")
             param_idx += 1
         if 'status' in base_params:
-            conditions.append(f"status = ${param_idx}")
-            values.append(base_params['status'])
+            status_vals = [s.strip() for s in str(base_params['status']).split(',') if s.strip()]
+            if len(status_vals) == 1:
+                conditions.append(f"status = ${param_idx}")
+                values.append(status_vals[0])
+            else:
+                conditions.append(f"status = ANY(${param_idx})")
+                values.append(status_vals)
             param_idx += 1
         if 'url' in base_params:
             conditions.append(f"url = ${param_idx}")

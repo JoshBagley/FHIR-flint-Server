@@ -3,7 +3,7 @@ from typing import Dict, List, Any, Tuple
 from fastapi import HTTPException
 from app import state
 from app.capability import register_resource
-from app.fhir_utils import _date_condition
+from app.fhir_utils import _date_condition, _patient_ref
 from app.models.medications import MedicationRequest, Procedure, DiagnosticReport
 from app.routes.resource_factory import create_resource_router
 
@@ -47,7 +47,7 @@ def _medication_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any],
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
-        extra.append(("data->'subject'->>'reference' = ??", qp['patient']))
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'medication' in qp:
         extra.append((
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'medicationCodeableConcept'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
@@ -66,7 +66,7 @@ def _procedure_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tup
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
-        extra.append(("data->'subject'->>'reference' = ??", qp['patient']))
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'code' in qp:
         extra.append((
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
@@ -83,7 +83,7 @@ def _diagnostic_report_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], 
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
-        extra.append(("data->'subject'->>'reference' = ??", qp['patient']))
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'code' in qp:
         extra.append((
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",

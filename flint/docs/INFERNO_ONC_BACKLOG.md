@@ -194,6 +194,7 @@ For each clinical resource returned, Inferno checks that a `Provenance` resource
 | Patient `identifier` search returned 500 | Switched from `jsonb_array_elements` to JSONB containment (`@>`) to avoid asyncpg type error |
 | Alice missing US Core 6.1.0 must-support elements (test 2.2.12) | Added race, ethnicity, birthsex, sex, genderIdentity, tribal-affiliation, name variants, suffix, address variants with period, `deceasedDateTime`, `meta.profile` |
 | `us-core-sex` used wrong value code (`"female"`) | Changed to SNOMED code `"248152002"` (Female finding) — required binding in `us-core-sex-for-clinical-use` ValueSet |
+| `us-core-tribal-affiliation` display name wrong for code `187` | Changed display to `"Paiute-Shoshone Tribe of the Fallon Reservation and Colony, Nevada"` — validator rejects mismatched display names as errors |
 | `_revinclude=Provenance:target` not supported — `Provenance.target` is an array | Added `Provenance:target` to `_INCLUDE_REFERENCE_MAP` with EXISTS condition; fixed `_revinclude` handlers to support full condition templates |
 | No Provenance resource for alice's Patient (test 2.2.10) | Created US Core-compliant Provenance resource in DB (`agent.type=author`, `meta.profile=us-core-provenance`) |
 | SMART well-known capabilities missing `context-standalone-patient`, `permission-patient` | Added to `auth_routes.py` |

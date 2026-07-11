@@ -177,6 +177,50 @@ class AllergyIntolerance(BaseModel):
     reaction: Optional[List[Dict[str, Any]]] = None
 
 
+class CareTeam(BaseModel):
+    resourceType: Literal["CareTeam"] = "CareTeam"
+    id: Optional[str] = None
+    meta: Optional[Meta] = None
+    identifier: Optional[List[Identifier]] = None
+    status: Optional[str] = None
+    name: Optional[str] = None
+    subject: Optional[Reference] = None
+    encounter: Optional[Reference] = None
+    period: Optional[Dict[str, Any]] = None
+    participant: Optional[List[Dict[str, Any]]] = None
+    reasonCode: Optional[List[CodeableConcept]] = None
+    reasonReference: Optional[List[Reference]] = None
+    managingOrganization: Optional[List[Reference]] = None
+    note: Optional[List[Dict[str, Any]]] = None
+    extension: Optional[List[Dict[str, Any]]] = None
+
+
+class CarePlan(BaseModel):
+    resourceType: Literal["CarePlan"] = "CarePlan"
+    id: Optional[str] = None
+    meta: Optional[Meta] = None
+    text: Optional[Dict[str, Any]] = None
+    identifier: Optional[List[Identifier]] = None
+    status: Optional[str] = None
+    intent: Optional[str] = None
+    category: Optional[List[CodeableConcept]] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    subject: Optional[Reference] = None
+    encounter: Optional[Reference] = None
+    period: Optional[Dict[str, Any]] = None
+    created: Optional[str] = None
+    author: Optional[Reference] = None
+    contributor: Optional[List[Reference]] = None
+    careTeam: Optional[List[Reference]] = None
+    addresses: Optional[List[Reference]] = None
+    supportingInfo: Optional[List[Reference]] = None
+    goal: Optional[List[Reference]] = None
+    activity: Optional[List[Dict[str, Any]]] = None
+    note: Optional[List[Dict[str, Any]]] = None
+    extension: Optional[List[Dict[str, Any]]] = None
+
+
 class Immunization(BaseModel):
     resourceType: Literal["Immunization"] = "Immunization"
     id: Optional[str] = None

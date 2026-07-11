@@ -5,8 +5,8 @@ from typing import Dict, List, Any, Tuple
 from fastapi import HTTPException, Body, Request
 from app import state
 from app.capability import register_resource
-from app.fhir_utils import _date_condition
-from app.models.clinical import Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization
+from app.fhir_utils import _date_condition, _extension_date_condition, _patient_ref, _token_condition
+from app.models.clinical import Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization, CarePlan, CareTeam
 from app.routes.resource_factory import create_resource_router
 
 
@@ -111,7 +111,7 @@ def _observation_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[T
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
-        extra.append(("data->'subject'->>'reference' = ??", qp['patient']))
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'code' in qp:
         extra.append((
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
@@ -133,26 +133,35 @@ def _condition_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tup
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
-        extra.append(("data->'subject'->>'reference' = ??", qp['patient']))
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'clinical-status' in qp:
-        extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'clinicalStatus'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
-            qp['clinical-status']
-        ))
+        extra.append(_token_condition("data->'clinicalStatus'->'coding'", qp['clinical-status']))
     if 'category' in qp:
+        cat_val = qp['category']
+        if '|' in cat_val:
+            sys_part, _, code_part = cat_val.partition('|')
+            obj = {k: v for k, v in [("system", sys_part), ("code", code_part)] if v}
+        else:
+            obj = {"code": cat_val}
         extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) cat, jsonb_array_elements(COALESCE(cat->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
-            qp['category']
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) cat WHERE cat->'coding' @> ??::jsonb)",
+            json.dumps([obj])
         ))
     if 'code' in qp:
-        extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
-            qp['code']
-        ))
+        extra.append(_token_condition("data->'code'->'coding'", qp['code']))
     if 'onset-date' in qp:
         extra.append(_date_condition("data->>'onsetDateTime'", qp['onset-date']))
+    if 'abatement-date' in qp:
+        extra.append(_date_condition("data->>'abatementDateTime'", qp['abatement-date']))
     if 'recorded-date' in qp:
         extra.append(_date_condition("data->>'recordedDate'", qp['recorded-date']))
+    if 'asserted-date' in qp:
+        extra.append(_extension_date_condition(
+            "http://hl7.org/fhir/StructureDefinition/condition-assertedDate",
+            qp['asserted-date']
+        ))
+    if 'encounter' in qp:
+        extra.append(("data->'encounter'->>'reference' = ??", qp['encounter']))
     return base, extra
 
 
@@ -164,7 +173,7 @@ def _encounter_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tup
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
-        extra.append(("data->'subject'->>'reference' = ??", qp['patient']))
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'class' in qp:
         extra.append(("data->'class'->>'code' = ??", qp['class']))
     if 'date' in qp:
@@ -186,12 +195,9 @@ def _allergy_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
     if 'patient' in qp:
-        extra.append(("data->'patient'->>'reference' = ??", qp['patient']))
+        extra.append(("data->'patient'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'clinical-status' in qp:
-        extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'clinicalStatus'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
-            qp['clinical-status']
-        ))
+        extra.append(_token_condition("data->'clinicalStatus'->'coding'", qp['clinical-status']))
     if 'criticality' in qp:
         extra.append(("data->>'criticality' = ??", qp['criticality']))
     if 'code' in qp:
@@ -202,13 +208,57 @@ def _allergy_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple
     return base, extra
 
 
+def _careteam_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
+    base: Dict[str, Any] = {}
+    extra: List[Tuple[str, Any]] = []
+    if 'status' in qp:
+        base['status'] = qp['status']
+    if 'patient' in qp:
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
+    if 'role' in qp:
+        role_val = qp['role']
+        if '|' in role_val:
+            sys_part, _, code_part = role_val.partition('|')
+            obj = {k: v for k, v in [("system", sys_part), ("code", code_part)] if v}
+        else:
+            obj = {"code": role_val}
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'participant', '[]'::jsonb)) p, jsonb_array_elements(COALESCE(p->'role', '[]'::jsonb)) r WHERE r->'coding' @> ??::jsonb)",
+            json.dumps([obj])
+        ))
+    return base, extra
+
+
+def _careplan_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
+    base: Dict[str, Any] = {}
+    extra: List[Tuple[str, Any]] = []
+    if 'status' in qp:
+        base['status'] = qp['status']
+    if 'patient' in qp:
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
+    if 'category' in qp:
+        cat_val = qp['category']
+        if '|' in cat_val:
+            sys_part, _, code_part = cat_val.partition('|')
+            obj = {k: v for k, v in [("system", sys_part), ("code", code_part)] if v}
+        else:
+            obj = {"code": cat_val}
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) cat WHERE cat->'coding' @> ??::jsonb)",
+            json.dumps([obj])
+        ))
+    if 'date' in qp:
+        extra.append(_date_condition("data->'period'->>'start'", qp['date']))
+    return base, extra
+
+
 def _immunization_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
-        extra.append(("data->'patient'->>'reference' = ??", qp['patient']))
+        extra.append(("data->'patient'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'vaccine-code' in qp:
         extra.append((
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'vaccineCode'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
@@ -238,6 +288,8 @@ async def _immunization_validate(data: Dict[str, Any]) -> None:
 # ---------------------------------------------------------------------------
 
 patient_router = create_resource_router("Patient", Patient, _patient_search_hook)
+careteam_router = create_resource_router("CareTeam", CareTeam, _careteam_search_hook)
+careplan_router = create_resource_router("CarePlan", CarePlan, _careplan_search_hook)
 observation_router = create_resource_router(
     "Observation", Observation, _observation_search_hook,
     validate_hook=_observation_validate,
@@ -440,6 +492,69 @@ register_resource({
 })
 
 register_resource({
+    "type": "CareTeam",
+    "interaction": [
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
+        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
+    ],
+    "versioning": "versioned",
+    "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchInclude": ["CareTeam:subject"],
+    "searchRevInclude": ["Provenance:target"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-careteam",
+    ],
+    "searchParam": [
+        {"name": "patient", "type": "reference"},
+        {"name": "status", "type": "token"},
+        {"name": "role", "type": "token"},
+        {"name": "_count", "type": "number"},
+        {"name": "_offset", "type": "number"},
+        {"name": "_sort", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
+    ],
+})
+
+register_resource({
+    "type": "CarePlan",
+    "interaction": [
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
+        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
+    ],
+    "versioning": "versioned",
+    "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchInclude": ["CarePlan:subject"],
+    "searchRevInclude": ["Provenance:target"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-careplan",
+    ],
+    "searchParam": [
+        {"name": "patient", "type": "reference"},
+        {"name": "category", "type": "token"},
+        {"name": "status", "type": "token"},
+        {"name": "date", "type": "date"},
+        {"name": "_count", "type": "number"},
+        {"name": "_offset", "type": "number"},
+        {"name": "_sort", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
+    ],
+})
+
+register_resource({
     "type": "Observation",
     "interaction": [
         {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
@@ -495,12 +610,17 @@ register_resource({
         {"name": "code", "type": "token"},
         {"name": "status", "type": "token"},
         {"name": "onset-date", "type": "date"},
+        {"name": "abatement-date", "type": "date"},
         {"name": "recorded-date", "type": "date"},
+        {"name": "asserted-date", "type": "date"},
+        {"name": "encounter", "type": "reference"},
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
         {"name": "_include", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
     ],
+    "searchRevInclude": ["Provenance:target"],
     "operation": [
         {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
     ],
@@ -607,4 +727,4 @@ register_resource({
     ],
 })
 
-routers = [patient_router, observation_router, condition_router, encounter_router, allergy_router, immunization_router]
+routers = [patient_router, careteam_router, careplan_router, observation_router, condition_router, encounter_router, allergy_router, immunization_router]
