@@ -39,6 +39,7 @@ _INCLUDE_REFERENCE_MAP: Dict[str, Tuple[str, str]] = {
     "Condition:subject":             ("subject",       "data->'subject'->>'reference'"),
     "Condition:encounter":           ("encounter",     "data->'encounter'->>'reference'"),
     "Encounter:subject":             ("subject",       "data->'subject'->>'reference'"),
+    "MedicationDispense:subject":    ("subject",       "data->'subject'->>'reference'"),
     "AllergyIntolerance:patient":    ("patient",       "data->'patient'->>'reference'"),
     "Immunization:patient":          ("patient",       "data->'patient'->>'reference'"),
     "MedicationRequest:subject":     ("subject",       "data->'subject'->>'reference'"),
@@ -72,6 +73,8 @@ _PATIENT_COMPARTMENT: Dict[str, Tuple[Optional[str], Callable[[Dict[str, Any]], 
     "Device":             ("data->'patient'->>'reference'",        lambda r: (r.get("patient") or {}).get("reference")),
     "DocumentReference":  ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
     "Goal":               ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+    "MedicationDispense": ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+    "Specimen":           ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
 }
 
 

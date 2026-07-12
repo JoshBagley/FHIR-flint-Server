@@ -6,7 +6,7 @@ from fastapi import HTTPException, Body, Request
 from app import state
 from app.capability import register_resource
 from app.fhir_utils import _date_condition, _extension_date_condition, _patient_ref, _token_condition
-from app.models.clinical import Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization, CarePlan, CareTeam, Device, DocumentReference, Goal
+from app.models.clinical import Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization, CarePlan, CareTeam, Device, DocumentReference, Goal, Specimen
 from app.routes.resource_factory import create_resource_router
 
 
@@ -113,14 +113,17 @@ def _observation_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[T
     if 'patient' in qp:
         extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'code' in qp:
-        extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
-            qp['code']
-        ))
+        extra.append(_token_condition("data->'code'->'coding'", qp['code']))
     if 'category' in qp:
+        cat_val = qp['category']
+        if '|' in cat_val:
+            sys_part, _, code_part = cat_val.partition('|')
+            obj = {k: v for k, v in [("system", sys_part), ("code", code_part)] if v}
+        else:
+            obj = {"code": cat_val}
         extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) cat, jsonb_array_elements(COALESCE(cat->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
-            qp['category']
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) cat WHERE cat->'coding' @> ??::jsonb)",
+            json.dumps([obj])
         ))
     if 'date' in qp:
         extra.append(_date_condition("data->>'effectiveDateTime'", qp['date']))
@@ -293,7 +296,7 @@ def _immunization_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
             qp['vaccine-code']
         ))
     if 'date' in qp:
-        extra.append(("data->>'occurrenceDateTime' = ??", qp['date']))
+        extra.append(_date_condition("data->>'occurrenceDateTime'", qp['date']))
     return base, extra
 
 
@@ -595,6 +598,7 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchInclude": ["Observation:subject", "Observation:encounter"],
+    "searchRevInclude": ["Provenance:target"],
     "supportedProfile": [
         "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
     ],
@@ -918,4 +922,40 @@ register_resource({
     ],
 })
 
-routers = [patient_router, careteam_router, careplan_router, observation_router, condition_router, encounter_router, allergy_router, immunization_router, device_router, document_reference_router, goal_router]
+def _specimen_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
+    base: Dict[str, Any] = {}
+    extra: List[Tuple[str, Any]] = []
+    if 'patient' in qp:
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
+    if 'status' in qp:
+        base['status'] = qp['status']
+    return base, extra
+
+
+specimen_router = create_resource_router("Specimen", Specimen, _specimen_search_hook)
+
+register_resource({
+    "type": "Specimen",
+    "interaction": [
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
+        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
+    ],
+    "versioning": "versioned",
+    "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchParam": [
+        {"name": "patient", "type": "reference"},
+        {"name": "status", "type": "token"},
+        {"name": "_count", "type": "number"},
+        {"name": "_offset", "type": "number"},
+        {"name": "_sort", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
+    ],
+})
+
+routers = [patient_router, careteam_router, careplan_router, observation_router, condition_router, encounter_router, allergy_router, immunization_router, device_router, document_reference_router, goal_router, specimen_router]

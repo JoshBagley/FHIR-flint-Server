@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from app import state
 from app.capability import register_resource
 from app.fhir_utils import _date_condition, _patient_ref, _token_condition
-from app.models.medications import MedicationRequest, Procedure, DiagnosticReport
+from app.models.medications import MedicationRequest, Procedure, DiagnosticReport, MedicationDispense
 from app.routes.resource_factory import create_resource_router
 
 
@@ -46,7 +46,11 @@ def _medication_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any],
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
     if 'status' in qp:
-        base['status'] = qp['status']
+        vals = [v.strip() for v in qp['status'].split(',')]
+        if len(vals) == 1:
+            base['status'] = vals[0]
+        else:
+            extra.append(("status = ANY(??)", vals))
     if 'patient' in qp:
         extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'medication' in qp:
@@ -55,7 +59,11 @@ def _medication_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any],
             qp['medication']
         ))
     if 'intent' in qp:
-        extra.append(("data->>'intent' = ??", qp['intent']))
+        vals = [v.strip() for v in qp['intent'].split(',')]
+        if len(vals) == 1:
+            extra.append(("data->>'intent' = ??", vals[0]))
+        else:
+            extra.append(("data->>'intent' = ANY(??)", vals))
     if 'authoredon' in qp:
         extra.append(_date_condition("data->>'authoredOn'", qp['authoredon']))
     return base, extra
@@ -208,4 +216,56 @@ register_resource({
     ],
 })
 
-routers = [medication_request_router, procedure_router, diagnostic_report_router]
+def _medication_dispense_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
+    base: Dict[str, Any] = {}
+    extra: List[Tuple[str, Any]] = []
+    if 'status' in qp:
+        base['status'] = qp['status']
+    if 'patient' in qp:
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
+    if 'type' in qp:
+        type_vals = [v.strip() for v in qp['type'].split(',')]
+        if len(type_vals) == 1:
+            extra.append(_token_condition("data->'type'->'coding'", type_vals[0]))
+        else:
+            codes = [v.partition('|')[2] if '|' in v else v for v in type_vals]
+            extra.append((
+                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'type'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ANY(??))",
+                codes
+            ))
+    return base, extra
+
+
+medication_dispense_router = create_resource_router("MedicationDispense", MedicationDispense, _medication_dispense_search_hook)
+
+register_resource({
+    "type": "MedicationDispense",
+    "interaction": [
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
+        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
+    ],
+    "versioning": "versioned",
+    "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchRevInclude": ["Provenance:target"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationdispense",
+    ],
+    "searchParam": [
+        {"name": "patient", "type": "reference"},
+        {"name": "status", "type": "token"},
+        {"name": "type", "type": "token"},
+        {"name": "_count", "type": "number"},
+        {"name": "_offset", "type": "number"},
+        {"name": "_sort", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
+    ],
+    "operation": [
+        {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
+    ],
+})
+
+routers = [medication_request_router, procedure_router, diagnostic_report_router, medication_dispense_router]

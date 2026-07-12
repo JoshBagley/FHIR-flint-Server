@@ -110,7 +110,42 @@ WHERE id = '<uuid>' AND resource_type = 'Condition';
 
 The path is an array of string keys/integer indices. The new value must be valid JSONB (string values need `'"value"'::jsonb`).
 
-### 9. Inferno section workflow
+### 9. Direct DB seed scripts bypass Redis cache
+
+When updating seed data directly via SQL or asyncpg (not through the FastAPI layer), the backend's Redis invalidation never fires. Subsequent API search responses are served stale from Redis (120s TTL). After any direct DB seed change, flush the cache:
+
+```bash
+docker compose exec -T redis redis-cli FLUSHDB
+```
+
+This is safe in dev — it only clears cached search results, not stored FHIR resources.
+
+### 10. Blood pressure observations require LOINC `85354-9`, not `55284-4`
+
+The base FHIR `bp` profile (`http://hl7.org/fhir/StructureDefinition/bp|4.0.1`) has a `BPCode` invariant requiring exactly code `85354-9` ("Blood pressure panel with all children optional"). Using `55284-4` ("Blood pressure systolic and diastolic") produces a validation **ERROR** (not warning), failing profile conformance. This was discovered in section 2.23 when Inferno re-validated previously-returned vital signs observations against the Simple Observation profile.
+
+Always use `85354-9` for any blood pressure panel observation:
+
+```json
+"code": {
+  "coding": [{"system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel with all children optional"}],
+  "text": "Blood pressure panel with all children optional"
+}
+```
+
+### 11. Simple Observation invariant — component-only observations need dataAbsentReason
+
+The `us-core-simple-observation` invariant: `value.exists() or component.exists() or hasMember.exists() or dataAbsentReason.exists()`
+
+Blood pressure observations only have `component` entries (systolic/diastolic) and no top-level `value[x]`. While `component.exists()` technically satisfies the invariant, adding `dataAbsentReason: not-applicable` makes it explicit and avoids ambiguity:
+
+```json
+"dataAbsentReason": {
+  "coding": [{"system": "http://terminology.hl7.org/CodeSystem/data-absent-reason", "code": "not-applicable", "display": "Not Applicable"}]
+}
+```
+
+### 12. Inferno section workflow
 
 For each new section:
 1. Run cold — read errors verbatim.
@@ -204,13 +239,28 @@ curl -sv https://your-domain.com/.well-known/smart-configuration \
 |---------|--------|
 | 2.1 CapabilityStatement | ✅ Pass |
 | 2.2 Patient | ✅ Pass |
-| 2.3 Observation | ⏳ Not yet run |
-| 2.4 Care Team | ⏳ Not yet run |
-| 2.5 Care Plan | ⏳ Not yet run |
+| 2.3 AllergyIntolerance | ✅ Pass |
+| 2.4 Care Plan | ✅ Pass |
+| 2.5 Care Team | ✅ Pass |
 | 2.6 Condition (encounter-diagnosis) | ✅ Pass |
 | 2.7 Condition (problems-health-concerns) | ✅ Pass |
 | 2.8 Coverage | ✅ Pass |
-| 2.9+ Device, DiagnosticReport, Encounter, Immunization, etc. | ⏳ Not yet run |
+| 2.9 Device | ✅ Pass |
+| 2.10 DiagnosticReport (Note) | ✅ Pass |
+| 2.11 DiagnosticReport (Lab) | ✅ Pass |
+| 2.12 DocumentReference | ✅ Pass |
+| 2.13 Encounter | ✅ Pass |
+| 2.14 Goal | ✅ Pass |
+| 2.15 Immunization | ✅ Pass |
+| 2.16 Location | ✅ Pass |
+| 2.17 Medication | ✅ Pass |
+| 2.18 MedicationDispense | ✅ Pass |
+| 2.19 MedicationRequest | ✅ Pass |
+| 2.20 Observation (Clinical Result) | ✅ Pass |
+| 2.21 Observation (Lab) | ✅ Pass |
+| 2.22 Observation (Occupation) | ✅ Pass |
+| 2.23 Observation (Simple) | ⏳ In progress — fixes applied 2026-07-12 |
+| 2.24+ | ⏳ Not yet run |
 
 **What it checks:**
 Inferno queries Flint for each US Core profile resource type and validates:
@@ -272,6 +322,28 @@ Fixes applied:
   ```
   The display was initially `"Social Determinants of Health"` — corrected to `"SDOH"` via `jsonb_set` after the FHIR validator flagged it as an ERROR.
 - All conditions reference Encounter `a1b2c3d4` (same encounter as section 2.6)
+
+---
+
+#### Section 2.23 — Observation (Simple) — Fixes applied 2026-07-12, pending re-run
+
+Two failing tests:
+- **2.23.08** — Resources do not conform to `us-core-simple-observation|6.1.0`
+- **2.23.09** — `valueBoolean` and `derivedFrom` not found in returned resources (must-support)
+
+Fixes applied:
+
+1. **BP code corrected** — Both `obs-alice-bp-001` and `a9b0c1d2-e3f4-5678-a9b0-c1d2e3f45678` had LOINC `55284-4` (discouraged). Updated to `85354-9` ("Blood pressure panel with all children optional"). The `BPCode` invariant from the base `bp` profile requires this exact code — see pitfall #10 above.
+
+2. **`dataAbsentReason` added to BP observations** — Both BP observations were component-only (no top-level `value[x]`). Added `dataAbsentReason: not-applicable` to satisfy the Simple Observation invariant explicitly.
+
+3. **`derivedFrom` added to BMI** — `obs-alice-bmi-001` now references `Observation/obs-alice-height-001` and `Observation/obs-alice-weight-001` in `derivedFrom` (must-support element).
+
+4. **New survey observation seeded** — `obs-alice-food-insecurity-001`: LOINC `88124-3` ("Food insecurity risk [HVS]"), category=survey, `valueBoolean: true`, `meta.profile=us-core-simple-observation`. Satisfies the `valueBoolean` must-support element.
+
+5. **Redis flushed** — Seed script bypassed the API (direct asyncpg writes), so Redis cache was stale. Flushed with `FLUSHDB` after all DB changes.
+
+**Note:** Section 2.23 tests re-validate ALL observations returned in previous sections (vital signs, lab, etc.) against the Simple Observation profile, not just observations explicitly profiled as `us-core-simple-observation`. Any non-conforming observation from earlier sections will surface here.
 
 ---
 
@@ -360,3 +432,8 @@ For each clinical resource returned, Inferno checks that a `Provenance` resource
 | SMART v2 `.rs` scope not recognised by `has_fhir_scope` | Updated to handle single-char SMART v2 access codes |
 | Keycloak healthcheck used `curl` (not available in UBI9 image) | Replaced with bash TCP check |
 | Inferno redirect URI pointed to unexposed port 4567 | Set `INFERNO_HOST=http://localhost:8081` in Inferno docker-compose |
+| BP obs 2.23.08: ERROR `BPCode` invariant — LOINC `55284-4` not accepted | Changed both BP observations to `85354-9` ("Blood pressure panel with all children optional") — base `bp` profile requires this exact code |
+| BP obs 2.23.08: Simple Observation invariant failed (no value[x] or dataAbsentReason) | Added `dataAbsentReason: not-applicable` to both BP observations (`obs-alice-bp-001`, `a9b0c1d2-e3f4-5678-a9b0-c1d2e3f45678`) |
+| 2.23.09: `derivedFrom` not found in any returned observation | Added `derivedFrom: [height, weight]` to `obs-alice-bmi-001` |
+| 2.23.09: `valueBoolean` not found in any returned observation | Seeded `obs-alice-food-insecurity-001` (LOINC 88124-3, survey, `valueBoolean: true`, profile=us-core-simple-observation) |
+| 2.23 fixes not reflected after seed script ran — stale Redis | Flushed cache with `docker compose exec -T redis redis-cli FLUSHDB` — direct DB writes bypass API cache invalidation |

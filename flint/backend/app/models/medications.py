@@ -81,6 +81,35 @@ class Procedure(BaseModel):
     usedCode: Optional[List[CodeableConcept]] = None
 
 
+class MedicationDispense(BaseModel):
+    resourceType: Literal["MedicationDispense"] = "MedicationDispense"
+    id: Optional[str] = None
+    meta: Optional[Meta] = None
+    identifier: Optional[List[Identifier]] = None
+    status: Optional[str] = None
+    statusReasonCodeableConcept: Optional[CodeableConcept] = None
+    statusReasonReference: Optional[Reference] = None
+    category: Optional[CodeableConcept] = None
+    medicationCodeableConcept: Optional[CodeableConcept] = None
+    medicationReference: Optional[Reference] = None
+    subject: Optional[Reference] = None
+    context: Optional[Reference] = None
+    performer: Optional[List[Dict[str, Any]]] = None
+    location: Optional[Reference] = None
+    authorizingPrescription: Optional[List[Reference]] = None
+    type: Optional[CodeableConcept] = None
+    quantity: Optional[Dict[str, Any]] = None
+    daysSupply: Optional[Dict[str, Any]] = None
+    whenPrepared: Optional[str] = None
+    whenHandedOver: Optional[str] = None
+    destination: Optional[Reference] = None
+    receiver: Optional[List[Reference]] = None
+    note: Optional[List[Dict[str, Any]]] = None
+    dosageInstruction: Optional[List[Dict[str, Any]]] = None
+    substitution: Optional[Dict[str, Any]] = None
+    extension: Optional[List[Dict[str, Any]]] = None
+
+
 class DiagnosticReport(BaseModel):
     resourceType: Literal["DiagnosticReport"] = "DiagnosticReport"
     id: Optional[str] = None

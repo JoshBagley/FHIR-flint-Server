@@ -351,3 +351,22 @@ class DocumentReference(BaseModel):
     context: Optional[Dict[str, Any]] = None
     text: Optional[Dict[str, Any]] = None
     extension: Optional[List[Dict[str, Any]]] = None
+
+
+class Specimen(BaseModel):
+    resourceType: Literal["Specimen"] = "Specimen"
+    id: Optional[str] = None
+    meta: Optional[Meta] = None
+    identifier: Optional[List[Identifier]] = None
+    accessionIdentifier: Optional[Identifier] = None
+    status: Optional[str] = None
+    type: Optional[CodeableConcept] = None
+    subject: Optional[Reference] = None
+    receivedTime: Optional[str] = None
+    parent: Optional[List[Reference]] = None
+    request: Optional[List[Reference]] = None
+    collection: Optional[Dict[str, Any]] = None
+    processing: Optional[List[Dict[str, Any]]] = None
+    container: Optional[List[Dict[str, Any]]] = None
+    condition: Optional[List[CodeableConcept]] = None
+    note: Optional[List[Dict[str, Any]]] = None
