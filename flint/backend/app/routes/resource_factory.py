@@ -68,6 +68,10 @@ _PATIENT_COMPARTMENT: Dict[str, Tuple[Optional[str], Callable[[Dict[str, Any]], 
     "DiagnosticReport":   ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
     "CarePlan":           ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
     "CareTeam":           ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+    "Coverage":           ("data->'beneficiary'->>'reference'",    lambda r: (r.get("beneficiary") or {}).get("reference")),
+    "Device":             ("data->'patient'->>'reference'",        lambda r: (r.get("patient") or {}).get("reference")),
+    "DocumentReference":  ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+    "Goal":               ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
 }
 
 

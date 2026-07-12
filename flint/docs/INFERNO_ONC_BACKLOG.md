@@ -18,6 +18,109 @@ Once deployed:
 
 ---
 
+## Common Pitfalls (lessons from active testing)
+
+### 1. Always include `Coding.display` — look it up, don't omit it
+
+Always include `display` on every `Coding`. Omitting it limits UI rendering and client functionality. The FHIR validator treats a present-but-wrong display as an **ERROR** that blocks conformance — the solution is to verify, not omit.
+
+**Lookup pattern:** `https://tx.fhir.org/r4/CodeSystem/$lookup?system=<system>&code=<code>&_format=json` — extract the `valueString` for the `display` parameter. For SNOMED, also verify the concept is what you think it is (e.g. 360129009 is "Cardiac pacemaker lead", not the device — 14106009 is "Cardiac pacemaker").
+
+Before writing any `Coding.display` in seed data, look up the exact canonical display. Examples that burned us:
+
+| System | Code | Wrong | Correct |
+|--------|------|-------|---------|
+| `http://hl7.org/fhir/us/core/CodeSystem/us-core-category` | `sdoh` | `"Social Determinants of Health"` | `"SDOH"` |
+| `http://terminology.hl7.org/CodeSystem/v3-TribalEntityUS` | `187` | (any abbreviation) | `"Paiute-Shoshone Tribe of the Fallon Reservation and Colony, Nevada"` |
+
+Rule: if the profile validator returns `"Wrong Display Name '...' for <system>#<code>. Valid display is '...'"` — update the display, it's not optional.
+
+### 2. The `screening-assessment` category slice uses `us-core-category`, not `us-core-tags`
+
+US Core 6.1.0 Condition Problems/Health Concerns has a `screening-assessment` must-support category slice. The correct binding is:
+
+```json
+{
+  "system": "http://hl7.org/fhir/us/core/CodeSystem/us-core-category",
+  "code": "sdoh",
+  "display": "SDOH"
+}
+```
+
+Other valid codes in this system: `functional-status`, `disability-status`, `cognitive-status`.
+
+Do NOT use `http://hl7.org/fhir/us/core/CodeSystem/us-core-tags` with code `screening-assessment` — that system does not exist for this purpose.
+
+### 3. Two separate Condition profiles with different category requirements
+
+| Profile | Category system | Category code |
+|---------|----------------|--------------|
+| `us-core-condition-encounter-diagnosis` | `http://terminology.hl7.org/CodeSystem/condition-category` | `encounter-diagnosis` |
+| `us-core-condition-problems-health-concerns` | `http://terminology.hl7.org/CodeSystem/condition-category` | `problem-list-item` |
+
+Problems/health-concerns resources also need a **second** `category` entry for the `screening-assessment` slice (see above).
+
+### 4. `http://example.org/` system URLs are rejected as errors
+
+The FHIR validator treats any `identifier.system` (or similar URI field) from the `http://example.org/` domain as a hard ERROR that blocks profile conformance. Use a domain that looks real, e.g. `https://flinthealthsystem.org/coverage/member-id`. The warning about a code "not in the value set" for extensible bindings is a warning only and does not block conformance.
+
+### 5. Resource types in patient compartment must be registered in `_PATIENT_COMPARTMENT`
+
+Every resource type accessible via a patient-scoped SMART token needs an entry in `_PATIENT_COMPARTMENT` in `resource_factory.py`. Without it, the token's patient filter is skipped and the resource is either inaccessible or returns all records. Coverage uses `beneficiary` instead of `subject`:
+
+```python
+"Coverage": ("data->'beneficiary'->>'reference'", lambda r: (r.get("beneficiary") or {}).get("reference")),
+```
+
+After adding a new entry, rebuild the backend: `docker compose up -d --build backend`.
+
+### 6. `fhir_resources` table schema — correct column names
+
+```
+id          uuid
+resource_type text
+data        jsonb    ← all FHIR content lives here
+status      text
+updated_at  timestamp   ← NOT "last_updated"
+version     varchar     ← NOT "version_id"
+created_at  timestamp
+```
+
+Verify with: `docker compose exec postgres psql -U flint -d flint -c '\d fhir_resources'`
+
+### 7. Piping SQL files into Docker on Windows
+
+`docker compose exec postgres psql -f /tmp/seed.sql` resolves `/tmp` to the Windows temp dir, not the container. Use stdin instead:
+
+```bash
+docker compose exec -T postgres psql -U flint -d flint < seed_file.sql
+```
+
+The `-T` flag disables pseudo-TTY allocation (required for stdin piping).
+
+### 8. Surgical JSON updates with `jsonb_set`
+
+To update a single field in a stored FHIR resource without rewriting the whole blob:
+
+```sql
+UPDATE fhir_resources SET
+  data = jsonb_set(data, '{category,1,coding,0,display}', '"SDOH"'::jsonb)
+WHERE id = '<uuid>' AND resource_type = 'Condition';
+```
+
+The path is an array of string keys/integer indices. The new value must be valid JSONB (string values need `'"value"'::jsonb`).
+
+### 9. Inferno section workflow
+
+For each new section:
+1. Run cold — read errors verbatim.
+2. **Check seed data first** (meta.profile, display names, category systems, must-support elements).
+3. **Check search hooks second** (`routes/clinical.py` / `routes/medications.py` / etc.).
+4. If code changed: `docker compose up -d --build backend`, then re-run.
+5. If only seed data changed: re-run immediately (no rebuild needed).
+
+---
+
 ## Open Items
 
 ---
@@ -94,8 +197,20 @@ curl -sv https://your-domain.com/.well-known/smart-configuration \
 ### ONC-003 — US Core Resource Validation
 
 **Inferno Tests:** 2.x — *US Core Patient, Observation, Condition, Encounter, etc.*
-**Status:** Section 2.1 (CapabilityStatement) ✅ · Section 2.2 (Patient) ✅ fixed, pending re-run · Sections 2.3+ not yet run
+**Status:** See per-section table below
 **Severity:** Required for ONC certification
+
+| Section | Status |
+|---------|--------|
+| 2.1 CapabilityStatement | ✅ Pass |
+| 2.2 Patient | ✅ Pass |
+| 2.3 Observation | ⏳ Not yet run |
+| 2.4 Care Team | ⏳ Not yet run |
+| 2.5 Care Plan | ⏳ Not yet run |
+| 2.6 Condition (encounter-diagnosis) | ✅ Pass |
+| 2.7 Condition (problems-health-concerns) | ✅ Pass |
+| 2.8 Coverage | ✅ Pass |
+| 2.9+ Device, DiagnosticReport, Encounter, Immunization, etc. | ⏳ Not yet run |
 
 **What it checks:**
 Inferno queries Flint for each US Core profile resource type and validates:
@@ -128,18 +243,49 @@ Fixes applied:
 
 ---
 
+#### Section 2.6 — Condition (Encounter Diagnosis) ✅ Pass
+
+All 2.6.x tests pass. Fixes applied:
+- Wired `category`, `clinical-status`, `code`, `onset-date`, `abatement-date`, `recorded-date`, `asserted-date`, `encounter` search params in `_condition_search_hook` in `routes/clinical.py`
+- `category` uses EXISTS + JSONB containment on `data->'category'` array (not simple equality)
+- `asserted-date` queries the `condition-assertedDate` extension via `_extension_date_condition()`
+- Seeded Encounter `a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890` (status=finished, class=AMB, type=SNOMED 185349003, subject=alice)
+- Seeded active condition `d4e5f6a7` (I10 Essential hypertension) + updated `b1c2d3e4` (E11.9 resolved, with abatementDateTime, encounter ref)
+- All conditions declare `meta.profile = us-core-condition-encounter-diagnosis`
+
+---
+
+#### Section 2.7 — Condition (Problems/Health Concerns) — Fixed, pending re-run
+
+Fixes applied:
+- Seeded two problems-health-concerns conditions for alice:
+  - `e5f6a7b8` — F32.9 Major depressive disorder, active
+  - `c2d3e4f5` — J06.9 Acute upper respiratory infection, resolved (with abatementDateTime)
+- Both declare `meta.profile = us-core-condition-problems-health-concerns` and `category[0] = problem-list-item`
+- `screening-assessment` must-support slice satisfied by `category[1]`:
+  ```json
+  {
+    "system": "http://hl7.org/fhir/us/core/CodeSystem/us-core-category",
+    "code": "sdoh",
+    "display": "SDOH"
+  }
+  ```
+  The display was initially `"Social Determinants of Health"` — corrected to `"SDOH"` via `jsonb_set` after the FHIR validator flagged it as an ERROR.
+- All conditions reference Encounter `a1b2c3d4` (same encounter as section 2.6)
+
+---
+
 #### Section 2.3+ — Remaining Resource Types (not yet run)
 
-Known gaps to address before running:
-- `Observation.category` must be `laboratory` (system: `http://terminology.hl7.org/CodeSystem/observation-category`) on lab observations; `meta.profile` must declare the specific US Core Observation profile (e.g. `us-core-observation-lab`)
-- `Condition.clinicalStatus` must be populated (required by US Core); `meta.profile` pointing to correct Condition profile
-- `MedicationRequest.requester` must be populated
-- `AllergyIntolerance.clinicalStatus` or `verificationStatus` must be present
-- All resources should declare `meta.profile` with the US Core v6.1.0 profile URL
-- Seed data for alice must include resources for all tested types (Observation, Condition, Encounter, AllergyIntolerance, Immunization, MedicationRequest, Procedure, DiagnosticReport)
+Known gaps to address before running each section:
+- **All types:** `meta.profile` with the correct US Core v6.1.0 profile URL; a Provenance resource per clinical resource
+- **Observation (2.3):** `category=laboratory` (system: `http://terminology.hl7.org/CodeSystem/observation-category`); `meta.profile` must be the specific US Core Observation profile (e.g. `us-core-observation-lab`)
+- **AllergyIntolerance:** `clinicalStatus` or `verificationStatus` required
+- **MedicationRequest:** `requester` required
+- **Encounter (2.11):** alice has Encounter `a1b2c3d4` seeded — verify all must-support elements before running
 
 **How to test:**
-Run Section 2.3 onward in Inferno with alice's patient-scoped SMART token. Work through failures one section at a time.
+Run each section in Inferno with alice's patient-scoped SMART token. Check the Common Pitfalls section at the top of this file before starting each one.
 
 ---
 
@@ -197,6 +343,14 @@ For each clinical resource returned, Inferno checks that a `Provenance` resource
 | `us-core-tribal-affiliation` display name wrong for code `187` | Changed display to `"Paiute-Shoshone Tribe of the Fallon Reservation and Colony, Nevada"` — validator rejects mismatched display names as errors |
 | `_revinclude=Provenance:target` not supported — `Provenance.target` is an array | Added `Provenance:target` to `_INCLUDE_REFERENCE_MAP` with EXISTS condition; fixed `_revinclude` handlers to support full condition templates |
 | No Provenance resource for alice's Patient (test 2.2.10) | Created US Core-compliant Provenance resource in DB (`agent.type=author`, `meta.profile=us-core-provenance`) |
+| Condition 2.6: category/clinical-status/code search returned 0 results | Rewrote category search to use EXISTS + JSONB containment on `data->'category'` array; `clinical-status` uses `_token_condition` on `data->'clinicalStatus'->'coding'` |
+| Condition 2.6: `asserted-date` search not wired | Added `_extension_date_condition("http://hl7.org/fhir/StructureDefinition/condition-assertedDate", ...)` to `_condition_search_hook` |
+| Condition 2.6: no Encounter reference or active/resolved pair for alice | Seeded Encounter `a1b2c3d4` + active condition `d4e5f6a7` (I10) + updated `b1c2d3e4` (E11.9 resolved with abatementDateTime) |
+| Condition 2.7: `screening-assessment` slice not found (test 2.7.14) | Added `category[1]` with system `us-core-category` / code `sdoh` to both problems-health-concerns conditions |
+| Condition 2.7: validator ERROR wrong display `"Social Determinants of Health"` (test 2.7.13) | Fixed to canonical display `"SDOH"` via `jsonb_set(data, '{category,1,coding,0,display}', '"SDOH"'::jsonb)` |
+| Coverage 2.8: no Coverage resources returned for alice (all 2.8.x tests) | Added `Coverage` to `_PATIENT_COMPARTMENT` in `resource_factory.py` (path: `data->'beneficiary'->>'reference'`); applied `_patient_ref()` in `_coverage_search_hook`; seeded Coverage + Provenance |
+| Coverage 2.8: `identifier:memberid` slice not found (test 2.8.05) | Added `identifier[0]` with `type.coding[0] = {system: v2-0203, code: MB, display: "Member Number"}` |
+| Coverage 2.8: validator ERROR `identifier.system` uses `http://example.org/` domain (test 2.8.04) | Changed to `https://flinthealthsystem.org/coverage/member-id` — example.org URLs are explicitly rejected by the FHIR validator |
 | SMART well-known capabilities missing `context-standalone-patient`, `permission-patient` | Added to `auth_routes.py` |
 | Token response missing `patient` and `fhirUser` claims | Token proxy (`/auth/token-proxy`) promotes JWT claims into response body |
 | Token response missing `Cache-Control: no-store` | Added to token proxy response headers |

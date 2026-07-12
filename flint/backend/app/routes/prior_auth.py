@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 
 from app import state
 from app.capability import register_resource
-from app.fhir_utils import _date_condition
+from app.fhir_utils import _date_condition, _patient_ref
 from app.models.prior_auth import (
     Claim, ClaimResponse, Coverage, Questionnaire, QuestionnaireResponse, ServiceRequest,
 )
@@ -102,7 +102,7 @@ def _coverage_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tupl
         base["identifier"] = qp["identifier"]
     if "patient" in qp or "beneficiary" in qp:
         val = qp.get("patient") or qp.get("beneficiary")
-        extra.append(("data->'beneficiary'->>'reference' = ??", val))
+        extra.append(("data->'beneficiary'->>'reference' = ??", _patient_ref(val)))
     if "subscriber" in qp:
         extra.append(("data->'subscriber'->>'reference' = ??", qp["subscriber"]))
     if "payor" in qp:

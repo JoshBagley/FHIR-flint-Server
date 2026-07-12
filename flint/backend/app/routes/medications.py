@@ -1,9 +1,10 @@
+import json
 from typing import Dict, List, Any, Tuple
 
 from fastapi import HTTPException
 from app import state
 from app.capability import register_resource
-from app.fhir_utils import _date_condition, _patient_ref
+from app.fhir_utils import _date_condition, _patient_ref, _token_condition
 from app.models.medications import MedicationRequest, Procedure, DiagnosticReport
 from app.routes.resource_factory import create_resource_router
 
@@ -85,14 +86,17 @@ def _diagnostic_report_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], 
     if 'patient' in qp:
         extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'code' in qp:
-        extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
-            qp['code']
-        ))
+        extra.append(_token_condition("data->'code'->'coding'", qp['code']))
     if 'category' in qp:
+        cat_val = qp['category']
+        if '|' in cat_val:
+            sys_part, _, code_part = cat_val.partition('|')
+            obj = {k: v for k, v in [("system", sys_part), ("code", code_part)] if v}
+        else:
+            obj = {"code": cat_val}
         extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) cat, jsonb_array_elements(COALESCE(cat->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
-            qp['category']
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) cat WHERE cat->'coding' @> ??::jsonb)",
+            json.dumps([obj])
         ))
     if 'date' in qp:
         extra.append(_date_condition("data->>'effectiveDateTime'", qp['date']))
@@ -182,6 +186,7 @@ register_resource({
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
     "searchInclude": ["DiagnosticReport:subject", "DiagnosticReport:encounter"],
+    "searchRevInclude": ["Provenance:target"],
     "supportedProfile": [
         "http://hl7.org/fhir/us/core/StructureDefinition/us-core-diagnosticreport-lab",
         "http://hl7.org/fhir/us/core/StructureDefinition/us-core-diagnosticreport-note",
@@ -196,6 +201,7 @@ register_resource({
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
         {"name": "_include", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
     ],
     "operation": [
         {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},

@@ -254,3 +254,100 @@ class Immunization(BaseModel):
     fundingSource: Optional[CodeableConcept] = None
     reaction: Optional[List[Dict[str, Any]]] = None
     protocolApplied: Optional[List[Dict[str, Any]]] = None
+
+
+class DeviceUdiCarrier(BaseModel):
+    deviceIdentifier: Optional[str] = None
+    issuer: Optional[str] = None
+    jurisdiction: Optional[str] = None
+    carrierAIDC: Optional[str] = None
+    carrierHRF: Optional[str] = None
+    entryType: Optional[str] = None
+
+
+class Device(BaseModel):
+    resourceType: Literal["Device"] = "Device"
+    id: Optional[str] = None
+    meta: Optional[Meta] = None
+    identifier: Optional[List[Identifier]] = None
+    udiCarrier: Optional[List[DeviceUdiCarrier]] = None
+    status: Optional[str] = None
+    distinctIdentifier: Optional[str] = None
+    manufacturer: Optional[str] = None
+    manufactureDate: Optional[str] = None
+    expirationDate: Optional[str] = None
+    lotNumber: Optional[str] = None
+    serialNumber: Optional[str] = None
+    deviceName: Optional[List[Dict[str, Any]]] = None
+    modelNumber: Optional[str] = None
+    type: Optional[CodeableConcept] = None
+    patient: Optional[Reference] = None
+    note: Optional[List[Dict[str, Any]]] = None
+    extension: Optional[List[Dict[str, Any]]] = None
+    text: Optional[Dict[str, Any]] = None
+
+
+class GoalTarget(BaseModel):
+    measure: Optional[CodeableConcept] = None
+    detailQuantity: Optional[Dict[str, Any]] = None
+    detailRange: Optional[Dict[str, Any]] = None
+    detailCodeableConcept: Optional[CodeableConcept] = None
+    detailString: Optional[str] = None
+    detailBoolean: Optional[bool] = None
+    detailInteger: Optional[int] = None
+    detailRatio: Optional[Dict[str, Any]] = None
+    dueDate: Optional[str] = None
+    dueDuration: Optional[Dict[str, Any]] = None
+
+
+class Goal(BaseModel):
+    resourceType: Literal["Goal"] = "Goal"
+    id: Optional[str] = None
+    meta: Optional[Meta] = None
+    identifier: Optional[List[Identifier]] = None
+    lifecycleStatus: Optional[str] = None
+    achievementStatus: Optional[CodeableConcept] = None
+    category: Optional[List[CodeableConcept]] = None
+    priority: Optional[CodeableConcept] = None
+    description: Optional[CodeableConcept] = None
+    subject: Optional[Reference] = None
+    startDate: Optional[str] = None
+    startCodeableConcept: Optional[CodeableConcept] = None
+    target: Optional[List[GoalTarget]] = None
+    statusDate: Optional[str] = None
+    statusReason: Optional[str] = None
+    expressedBy: Optional[Reference] = None
+    addresses: Optional[List[Reference]] = None
+    note: Optional[List[Dict[str, Any]]] = None
+    outcomeCode: Optional[List[CodeableConcept]] = None
+    outcomeReference: Optional[List[Reference]] = None
+    extension: Optional[List[Dict[str, Any]]] = None
+
+
+class DocumentReferenceContent(BaseModel):
+    attachment: Dict[str, Any]
+    format: Optional[Coding] = None
+
+
+class DocumentReference(BaseModel):
+    resourceType: Literal["DocumentReference"] = "DocumentReference"
+    id: Optional[str] = None
+    meta: Optional[Meta] = None
+    masterIdentifier: Optional[Identifier] = None
+    identifier: Optional[List[Identifier]] = None
+    status: Optional[str] = None
+    docStatus: Optional[str] = None
+    type: Optional[CodeableConcept] = None
+    category: Optional[List[CodeableConcept]] = None
+    subject: Optional[Reference] = None
+    date: Optional[str] = None
+    author: Optional[List[Reference]] = None
+    authenticator: Optional[Reference] = None
+    custodian: Optional[Reference] = None
+    relatesTo: Optional[List[Dict[str, Any]]] = None
+    description: Optional[str] = None
+    securityLabel: Optional[List[CodeableConcept]] = None
+    content: Optional[List[DocumentReferenceContent]] = None
+    context: Optional[Dict[str, Any]] = None
+    text: Optional[Dict[str, Any]] = None
+    extension: Optional[List[Dict[str, Any]]] = None
