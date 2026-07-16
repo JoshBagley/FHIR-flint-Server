@@ -1,4 +1,4 @@
-{
+﻿{
   "realm": "fhir",
   "enabled": true,
   "displayName": "Flint FHIR",
@@ -144,7 +144,7 @@
     },
     {
       "name": "offline_access",
-      "description": "Offline access — allows refresh tokens",
+      "description": "Offline access â€” allows refresh tokens",
       "protocol": "openid-connect",
       "attributes": {
         "include.in.token.scope": "true",
@@ -386,7 +386,7 @@
         }
       ],
       "attributes": {
-        "fhirUser": ["http://host.docker.internal/Patient/3e7c75f4-d87c-4648-bff5-89a3c5adbdb1"],
+        "fhirUser": ["http://localhost/Patient/3e7c75f4-d87c-4648-bff5-89a3c5adbdb1"],
         "patient_id": ["3e7c75f4-d87c-4648-bff5-89a3c5adbdb1"]
       },
       "realmRoles": [
@@ -409,7 +409,7 @@
         }
       ],
       "attributes": {
-        "fhirUser": ["http://host.docker.internal/Practitioner/2c419e4d-0f6c-458b-b6a5-2eda3b3a9d6a"],
+        "fhirUser": ["http://localhost/Practitioner/2c419e4d-0f6c-458b-b6a5-2eda3b3a9d6a"],
         "patient_id": ["99015722-38a0-42dd-af3b-1474a22fd71d"]
       },
       "realmRoles": [
@@ -432,7 +432,7 @@
         }
       ],
       "attributes": {
-        "fhirUser": ["http://host.docker.internal/Practitioner/2c419e4d-0f6c-458b-b6a5-2eda3b3a9d6a"],
+        "fhirUser": ["http://localhost/Practitioner/2c419e4d-0f6c-458b-b6a5-2eda3b3a9d6a"],
         "patient_id": ["99015722-38a0-42dd-af3b-1474a22fd71d"]
       },
       "realmRoles": [
@@ -440,5 +440,18 @@
         "offline_access"
       ]
     }
-  ]
+  ],
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"fhirUser\",\"displayName\":\"FHIR User Reference\",\"permissions\":{\"view\":[\"admin\"],\"edit\":[\"admin\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+          ]
+        }
+      }
+    ]
+  }
 }

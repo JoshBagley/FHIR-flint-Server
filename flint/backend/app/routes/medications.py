@@ -73,16 +73,13 @@ def _procedure_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tup
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
     if 'status' in qp:
-        base['status'] = qp['status']
+        extra.append(("data->>'status' = ??", qp['status']))
     if 'patient' in qp:
         extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'code' in qp:
-        extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
-            qp['code']
-        ))
+        extra.append(_token_condition("data->'code'->'coding'", qp['code']))
     if 'date' in qp:
-        extra.append(("data->>'performedDateTime' = ??", qp['date']))
+        extra.append(_date_condition("data->>'performedDateTime'", qp['date']))
     return base, extra
 
 

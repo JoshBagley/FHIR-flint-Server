@@ -43,8 +43,8 @@ function Section({ title, items, empty, renderItem }: {
 
 export default function PatientPortalPage() {
   const { fhirUser } = useAuth();
-  const patientId = typeof fhirUser === 'string' && fhirUser.startsWith('Patient/')
-    ? fhirUser.slice(8)
+  const patientId = typeof fhirUser === 'string'
+    ? (fhirUser.match(/Patient\/([^/]+)$/)?.[1] ?? null)
     : null;
 
   const [patient, setPatient] = useState<FhirResource | null>(null);
@@ -100,8 +100,8 @@ export default function PatientPortalPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
         <div className="mt-1 flex gap-4 text-sm text-gray-500">
-          {patient?.birthDate && <span>Born: {patient.birthDate as string}</span>}
-          {patient?.gender && <span className="capitalize">Gender: {patient.gender as string}</span>}
+          {!!patient?.birthDate && <span>Born: {patient.birthDate as string}</span>}
+          {!!patient?.gender && <span className="capitalize">Gender: {patient.gender as string}</span>}
         </div>
       </div>
 
@@ -113,8 +113,7 @@ export default function PatientPortalPage() {
           <div className="flex justify-between text-sm">
             <span className="text-gray-800">{codeDisplay(c.code)}</span>
             <span className="text-gray-400">
-              {codeDisplay((c.clinicalStatus as Record<string, unknown> | undefined)?.coding?.[0] as unknown
-                ?? c.clinicalStatus)}
+              {codeDisplay(c.clinicalStatus)}
             </span>
           </div>
         )}

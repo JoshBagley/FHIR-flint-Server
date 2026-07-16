@@ -24,6 +24,7 @@ start-full:
 
 rebuild:
 	docker compose up -d --build backend frontend
+	docker compose restart nginx
 
 stop:
 	docker compose --profile smart --profile observability --profile tools --profile admin down
