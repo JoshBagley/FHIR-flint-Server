@@ -52,7 +52,15 @@ export default function LoginGate() {
             </button>
           </div>
         ) : (
-          <p className="text-slate-500 text-sm animate-pulse">Redirecting to sign-in…</p>
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-slate-500 text-sm animate-pulse">Redirecting to sign-in…</p>
+            <button
+              onClick={login}
+              className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              Sign in
+            </button>
+          </div>
         )}
       </BrandedScreen>
     );

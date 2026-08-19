@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 
 from app import state
 from app.capability import register_resource
-from app.fhir_utils import _date_condition, _patient_ref
+from app.fhir_utils import _date_condition, _patient_ref, _token_condition
 from app.models.prior_auth import (
     Claim, ClaimResponse, Coverage, Questionnaire, QuestionnaireResponse, ServiceRequest,
 )
@@ -50,13 +50,13 @@ def _questionnaire_response_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, A
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
     if "status" in qp:
-        base["status"] = qp["status"]
+        extra.append(("data->>'status' = ??", qp["status"]))
     if "questionnaire" in qp:
         extra.append(("data->>'questionnaire' = ??", qp["questionnaire"]))
     if "patient" in qp:
-        extra.append(("data->'subject'->>'reference' = ??", qp["patient"]))
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp["patient"])))
     if "subject" in qp:
-        extra.append(("data->'subject'->>'reference' = ??", qp["subject"]))
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp["subject"])))
     if "encounter" in qp:
         extra.append(("data->'encounter'->>'reference' = ??", qp["encounter"]))
     if "author" in qp:
@@ -142,12 +142,12 @@ def _service_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], Li
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
     if "status" in qp:
-        base["status"] = qp["status"]
+        extra.append(("data->>'status' = ??", qp["status"]))
     if "identifier" in qp:
         base["identifier"] = qp["identifier"]
     if "patient" in qp or "subject" in qp:
         val = qp.get("patient") or qp.get("subject")
-        extra.append(("data->'subject'->>'reference' = ??", val))
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(val)))
     if "encounter" in qp:
         extra.append(("data->'encounter'->>'reference' = ??", qp["encounter"]))
     if "requester" in qp:
@@ -161,11 +161,24 @@ def _service_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], Li
     if "intent" in qp:
         extra.append(("data->>'intent' = ??", qp["intent"]))
     if "category" in qp:
-        extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) c "
-            "WHERE c->>'text' = ??)",
-            qp["category"],
-        ))
+        cat_val = qp["category"]
+        if '|' in cat_val:
+            sys_part, _, code_part = cat_val.partition('|')
+            extra.append((
+                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) c, "
+                "jsonb_array_elements(COALESCE(c->'coding', '[]'::jsonb)) cod "
+                "WHERE cod->>'system' = ?? AND cod->>'code' = ??)",
+                [sys_part, code_part],
+            ))
+        else:
+            extra.append((
+                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) c, "
+                "jsonb_array_elements(COALESCE(c->'coding', '[]'::jsonb)) cod "
+                "WHERE cod->>'code' = ??)",
+                cat_val,
+            ))
+    if "code" in qp:
+        extra.append(_token_condition("data->'code'->'coding'", qp["code"]))
     if "authored" in qp:
         extra.append(_date_condition("data->>'authoredOn'", qp["authored"]))
     return base, extra
@@ -366,6 +379,7 @@ register_resource({
         "QuestionnaireResponse:subject",
         "QuestionnaireResponse:encounter",
     ],
+    "searchRevInclude": ["Provenance:target"],
     "searchParam": [
         {"name": "questionnaire", "type": "reference"},
         {"name": "patient", "type": "reference"},
@@ -378,6 +392,7 @@ register_resource({
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
         {"name": "_include", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
     ],
     "operation": [
         {"name": "validate", "definition": "http://hl7.org/fhir/OperationDefinition/Resource-validate"},
@@ -500,6 +515,7 @@ register_resource({
         "ServiceRequest:requester",
         "ServiceRequest:performer",
     ],
+    "searchRevInclude": ["Provenance:target"],
     "searchParam": [
         {"name": "patient", "type": "reference"},
         {"name": "subject", "type": "reference"},
@@ -509,12 +525,14 @@ register_resource({
         {"name": "status", "type": "token"},
         {"name": "intent", "type": "token"},
         {"name": "category", "type": "token"},
+        {"name": "code", "type": "token"},
         {"name": "authored", "type": "date"},
         {"name": "identifier", "type": "token"},
         {"name": "_count", "type": "number"},
         {"name": "_offset", "type": "number"},
         {"name": "_sort", "type": "string"},
         {"name": "_include", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
     ],
 })
 

@@ -75,6 +75,7 @@ _PATIENT_COMPARTMENT: Dict[str, Tuple[Optional[str], Callable[[Dict[str, Any]], 
     "Goal":               ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
     "MedicationDispense": ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
     "Specimen":           ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+    "ServiceRequest":     ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
 }
 
 
@@ -601,6 +602,10 @@ def create_resource_router(
             base_params, extra_pairs = search_hook(dict(request.query_params))
         extra_pairs = list(extra_pairs) + _build_has_conditions(rt, dict(request.query_params)) + _build_chained_conditions(rt, dict(request.query_params))
 
+        _id_val = request.query_params.get("_id")
+        if _id_val:
+            extra_pairs.append(("data->>'id' = ??", _id_val))
+
         # Patient-context filtering: restrict results to the token's patient
         patient_id = getattr(request.state, "fhir_patient_id", None)
         if patient_id and rt in _PATIENT_COMPARTMENT:
@@ -740,6 +745,10 @@ def create_resource_router(
         if search_hook:
             base_params, extra_pairs = search_hook(merged)
         extra_pairs = list(extra_pairs) + _build_has_conditions(rt, merged) + _build_chained_conditions(rt, merged)
+
+        _id_val = merged.get("_id")
+        if _id_val:
+            extra_pairs.append(("data->>'id' = ??", _id_val))
 
         _count = int(merged.get("_count", 20))
         _offset = int(merged.get("_offset", 0))

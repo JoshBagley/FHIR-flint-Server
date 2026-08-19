@@ -9,7 +9,9 @@ def _organization_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
     if 'name' in qp:
-        base['name'] = qp['name']
+        # FHIR string search is prefix (starts-with), not contains — prevents cross-matches
+        # like "General Hospital" matching "MASSACHUSETTS GENERAL HOSPITAL"
+        extra.append(("data->>'name' ILIKE ??", f"{qp['name']}%"))
     if 'identifier' in qp:
         base['identifier'] = qp['identifier']
     if 'type' in qp:
@@ -20,9 +22,20 @@ def _organization_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
     if 'active' in qp:
         extra.append(("data->>'active' = ??", qp['active']))
     if 'address' in qp:
+        # FHIR string search is prefix (starts-with) per field, not contains on full text.
+        # Checking each field separately avoids "WEST SPRINGFIELD" matching "Springfield"
+        # (concatenated it contains the term, but city doesn't start with it).
+        # Excludes 'line' so street names like "75 SPRINGFIELD RD" don't create false matches.
+        addr_val = f"{qp['address'].lower()}%"
         extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'address', '[]'::jsonb)) a WHERE lower(a::text) LIKE ??)",
-            f"%{qp['address'].lower()}%"
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'address', '[]'::jsonb)) a "
+            "WHERE lower(COALESCE(a->>'city','')) LIKE ?? "
+            "OR lower(COALESCE(a->>'state','')) LIKE ?? "
+            "OR lower(COALESCE(a->>'postalCode','')) LIKE ?? "
+            "OR lower(COALESCE(a->>'country','')) LIKE ?? "
+            "OR lower(COALESCE(a->>'district','')) LIKE ?? "
+            "OR lower(COALESCE(a->>'text','')) LIKE ??)",
+            [addr_val] * 6,
         ))
     return base, extra
 
@@ -33,7 +46,16 @@ def _practitioner_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
     if '_id' in qp:
         extra.append(("data->>'id' = ??", qp['_id']))
     if 'name' in qp:
-        base['name'] = qp['name']
+        # FHIR name search: prefix match on family, given, or text — searches JSONB array directly
+        # (the name DB column is not populated for Practitioners seeded via direct SQL)
+        name_val = f"{qp['name'].lower()}%"
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'name', '[]'::jsonb)) n "
+            "WHERE lower(COALESCE(n->>'family','')) LIKE ?? "
+            "OR lower(COALESCE(n->>'text','')) LIKE ?? "
+            "OR EXISTS (SELECT 1 FROM jsonb_array_elements_text(COALESCE(n->'given', '[]'::jsonb)) g WHERE lower(g) LIKE ??))",
+            [name_val] * 3,
+        ))
     if 'family' in qp:
         extra.append((
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'name', '[]'::jsonb)) n WHERE n->>'family' ILIKE ??)",
@@ -45,10 +67,19 @@ def _practitioner_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
             f"%{qp['given']}%"
         ))
     if 'identifier' in qp:
-        extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) id WHERE id->>'value' = ??)",
-            qp['identifier']
-        ))
+        ident = qp['identifier']
+        if '|' in ident:
+            sys_part, _, val_part = ident.partition('|')
+            extra.append((
+                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) ident "
+                "WHERE ident->>'system' = ?? AND ident->>'value' = ??)",
+                [sys_part, val_part],
+            ))
+        else:
+            extra.append((
+                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) ident WHERE ident->>'value' = ??)",
+                ident,
+            ))
     if 'gender' in qp:
         extra.append(("data->>'gender' = ??", qp['gender']))
     return base, extra

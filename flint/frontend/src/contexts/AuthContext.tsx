@@ -71,13 +71,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetch('/.well-known/smart-configuration')
       .then(r => r.json() as Promise<SmartConfig>)
       .then(cfg => { setSmartConfig(cfg); setLoading(false); })
-      .catch(() => { setSmartConfig(null); setLoading(false); });
+      .catch(() => { setSmartConfig({ auth_required: true, token_endpoint: '' }); setLoading(false); });
 
     // Restore display name from userinfo if a token is already stored (page reload)
     const existingToken = getToken();
     if (existingToken) {
       fetch('/auth/userinfo', { headers: { Authorization: `Bearer ${existingToken}` } })
-        .then(r => r.ok ? r.json() : null)
+        .then(r => {
+          if (r.status === 401 || r.status === 403) {
+            clearToken();
+            setTokenState(null);
+            return null;
+          }
+          return r.ok ? r.json() : null;
+        })
         .then((info: Record<string, unknown> | null) => {
           if (info) { const n = nameFromClaims(info); if (n) setUsername(n); }
         })
@@ -86,7 +93,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async () => {
-    if (!smartConfig?.authorization_endpoint) return;
+    let config = smartConfig;
+    if (!config?.authorization_endpoint) {
+      try {
+        const r = await fetch('/.well-known/smart-configuration');
+        if (r.ok) { config = await r.json() as SmartConfig; setSmartConfig(config); }
+      } catch { /* backend not ready */ }
+    }
+    if (!config || !config.authorization_endpoint) return;
     const verifier = generateCodeVerifier();
     const challenge = await generateCodeChallenge(verifier);
     setVerifier(verifier);
@@ -99,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       code_challenge: challenge,
       code_challenge_method: 'S256',
     });
-    window.location.href = `${smartConfig.authorization_endpoint}?${params}`;
+    window.location.href = `${config.authorization_endpoint}?${params}`;
   };
 
   const handleCallback = async (code: string) => {
