@@ -4,6 +4,61 @@ Tracked issues discovered during local Inferno US Core v6.1.0 testing that requi
 
 ---
 
+## How to Run Inferno Locally
+
+Inferno runs as a Docker container (separate stack — not part of Flint). The key problem: Inferno's backend makes server-side HTTP calls (OIDC well-known fetch, token exchange, token refresh) that must reach Nginx/Flint from *inside* the Inferno container. Using `localhost` fails because that's the Inferno container itself. Using `host.docker.internal` may fail on Windows if the firewall blocks port 80 on the LAN IP.
+
+**The reliable approach: join Inferno to the Flint Docker network** so it can reach Nginx by service name.
+
+### Step 1 — One-time hosts file entry (Windows)
+
+Add `nginx` as an alias for localhost so your **browser** can open redirect URLs that contain `nginx` in the hostname (Inferno redirects there after login):
+
+1. Open Notepad as Administrator
+2. Open `C:\Windows\System32\drivers\etc\hosts`
+3. Add this line: `127.0.0.1 nginx`
+4. Save and close
+
+You only need to do this once.
+
+### Step 2 — Start Inferno on the Flint network
+
+```bash
+docker run -p 8081:4567 --network flint-network infernocommunity/fhir-test-kit
+# then open http://localhost:8081
+```
+
+The `--network flint-network` flag puts Inferno on the same bridge network as Flint. From inside the Inferno container, `nginx` resolves to the Flint Nginx container.
+
+### Step 3 — Inferno connection settings
+
+| Setting | Value |
+|---------|-------|
+| FHIR Server URL | `http://nginx` |
+| SMART App Launch Version | STU2 |
+| Client ID | `flint-app` |
+| PKCE Code Challenge Method | S256 |
+| Requested Scopes | `openid fhirUser offline_access launch/patient patient/*.read patient/*.write patient/Patient.rs patient/Observation.rs patient/Condition.rs patient/Encounter.rs patient/AllergyIntolerance.rs patient/Immunization.rs patient/MedicationRequest.rs patient/Procedure.rs patient/DiagnosticReport.rs patient/Coverage.rs patient/DocumentReference.rs` |
+
+**How the redirect works:**
+- Inferno sends the browser to `http://nginx/realms/fhir/protocol/openid-connect/auth` (the authorization endpoint). The hosts file entry `127.0.0.1 nginx` lets your browser resolve `nginx` → Nginx → Keycloak login page.
+- After login, Keycloak redirects the browser back to `http://localhost:8081/...` (Inferno's own callback URL — already registered in Keycloak's `redirectUris`). The hosts file is not needed for this step.
+- Inferno then exchanges the code for a token by calling `http://nginx/auth/token-proxy` server-side, from inside the container, which reaches Nginx directly via the Docker network.
+
+The SMART well-known config, OIDC metadata, and all tokens use the `Host` header dynamically — so `nginx` flows consistently through every Inferno-server-side call.
+
+**Expected local test results:**
+
+| Test | Expected locally | Reason |
+|------|-----------------|--------|
+| 1.3.2.01 TLS on authorize endpoint | Skip (not fail) | HTTP-only dev — expected |
+| 1.3.2.04 TLS on token endpoint | Skip (not fail) | HTTP-only dev — expected |
+| 1.3.3.02 OIDC well-known | ✅ Pass | Fixed 2026-09-01 |
+| 1.3.4.01 Token refresh | ✅ Pass | Fixed 2026-09-01 |
+| All 2.x US Core tests | ✅ Pass | No TLS dependency |
+
+---
+
 ## How to Run Inferno Against Production
 
 Once deployed:
@@ -170,7 +225,7 @@ For each new section:
 Inferno attempts a TLS handshake against the `authorization_endpoint` URL returned in the SMART well-known config. The endpoint must respond on `https://` — HTTP is rejected outright.
 
 **Why it fails locally:**
-The authorization endpoint is `http://host.docker.internal:8080/realms/fhir/protocol/openid-connect/auth`. Port 8080 is plain HTTP with no TLS.
+The authorization endpoint is `http://localhost/realms/fhir/protocol/openid-connect/auth` — plain HTTP on port 80. Inferno skips (not fails) the TLS check when TLS is unavailable, so this does not block local testing.
 
 **How to fix in production:**
 1. Ensure Keycloak is accessible only via the nginx reverse proxy (do not expose port 8080 publicly)
@@ -211,7 +266,7 @@ curl -sv https://your-domain.com/.well-known/smart-configuration \
 Inferno verifies that the `token_endpoint` in the SMART well-known config uses `https://` and that a valid TLS handshake completes.
 
 **Why it fails locally:**
-The token endpoint is `http://host.docker.internal/auth/token-proxy`, which is plain HTTP on port 80.
+The token endpoint is `http://localhost/auth/token-proxy` — plain HTTP on port 80. Inferno skips (not fails) the TLS check locally, so this does not block local testing.
 
 **How to fix in production:**
 The fix is the same as ONC-001 — TLS termination at nginx. Once nginx serves HTTPS on port 443 and `BASE_URL=https://your-domain.com` is set, the token proxy URL advertised in the well-known config becomes:
@@ -259,8 +314,8 @@ curl -sv https://your-domain.com/.well-known/smart-configuration \
 | 2.20 Observation (Clinical Result) | ✅ Pass |
 | 2.21 Observation (Lab) | ✅ Pass |
 | 2.22 Observation (Occupation) | ✅ Pass |
-| 2.23 Observation (Simple) | ⏳ In progress — fixes applied 2026-07-12 |
-| 2.24+ | ⏳ Not yet run |
+| 2.23 Observation (Simple) | ✅ Pass — fixes applied 2026-07-12 |
+| 2.24–2.39 | ⏳ Fixes applied per git history — update this table as each section confirms pass |
 
 **What it checks:**
 Inferno queries Flint for each US Core profile resource type and validates:
@@ -437,3 +492,6 @@ For each clinical resource returned, Inferno checks that a `Provenance` resource
 | 2.23.09: `derivedFrom` not found in any returned observation | Added `derivedFrom: [height, weight]` to `obs-alice-bmi-001` |
 | 2.23.09: `valueBoolean` not found in any returned observation | Seeded `obs-alice-food-insecurity-001` (LOINC 88124-3, survey, `valueBoolean: true`, profile=us-core-simple-observation) |
 | 2.23 fixes not reflected after seed script ran — stale Redis | Flushed cache with `docker compose exec -T redis redis-cli FLUSHDB` — direct DB writes bypass API cache invalidation |
+| 1.3.3.02: OIDC well-known fetch fails — "Connection refused to localhost:80" from Inferno Docker | `issuer` and all Keycloak URLs in SMART config made dynamic (derived from request `Host` header + realm path extracted from `OIDC_ISSUER_URL`). Use `http://host.docker.internal` as FHIR URL in Inferno. Fixed in `auth_routes.py` 2026-09-01 |
+| 1.3.4.01: Token refresh returns 400 | Three fixes: (1) token proxy now forwards `X-Forwarded-Host` to Keycloak so issuer context matches proxy hostname; (2) `refresh_token` added to `grant_types_supported` in SMART config; (3) `KC_HOSTNAME` removed from docker-compose so Keycloak derives hostname dynamically. Fixed 2026-09-01 |
+| SMART capabilities missing `sso-openid-connect`, `permission-offline`, `permission-user` | Added all three to capabilities list in `auth_routes.py`. `sso-openid-connect` is required for 1.3.3.x OpenID Connect tests; `permission-offline` signals offline_access / refresh token support. Fixed 2026-09-01 |

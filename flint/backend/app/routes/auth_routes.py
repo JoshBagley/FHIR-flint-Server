@@ -16,6 +16,7 @@ GET  /auth/.well-known/smart-configuration
 import base64
 import json
 import os
+from urllib.parse import urlparse
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -36,8 +37,11 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 well_known_router = APIRouter(tags=["Authentication"])
 
 _BASE_URL = os.environ.get("BASE_URL", "")
-# Browser-facing OIDC URL (may differ from OIDC_ISSUER_URL which is Docker-internal)
-_OIDC_PUBLIC_URL = os.environ.get("OIDC_PUBLIC_ISSUER_URL", "").rstrip("/") or OIDC_ISSUER_URL
+
+# Realm path extracted from the internal OIDC issuer URL (e.g. "/realms/fhir").
+# Used to build public Keycloak URLs dynamically from the request origin, so
+# Inferno's Docker backend and the browser see consistently reachable URLs.
+_REALM_PATH = urlparse(OIDC_ISSUER_URL).path.rstrip("/") if OIDC_ISSUER_URL else ""
 
 
 @router.post("/token", summary="Obtain a Bearer token (built-in JWT)")
@@ -113,7 +117,9 @@ async def smart_configuration(request: Request):
         "token_endpoint": token_endpoint,
         "token_endpoint_auth_methods_supported": ["client_secret_post", "none"],
         "grant_types_supported": (
-            ["authorization_code", "client_credentials"] if OIDC_ISSUER_URL else ["password", "client_credentials"]
+            ["authorization_code", "refresh_token", "client_credentials"]
+            if OIDC_ISSUER_URL
+            else ["password", "client_credentials"]
         ),
         "scopes_supported": [
             "openid", "profile", "fhirUser", "offline_access",
@@ -128,18 +134,26 @@ async def smart_configuration(request: Request):
             "client-public",
             "client-confidential-symmetric",
             "context-standalone-patient",
+            "sso-openid-connect",
+            "permission-offline",
             "permission-v2",
             "permission-patient",
+            "permission-user",
         ],
         "code_challenge_methods_supported": ["S256"],
         "auth_required": ENABLE_AUTH,
     }
     if OIDC_ISSUER_URL:
-        doc["issuer"] = _OIDC_PUBLIC_URL
-        doc["authorization_endpoint"] = f"{_OIDC_PUBLIC_URL}/protocol/openid-connect/auth"
-        doc["jwks_uri"] = f"{_OIDC_PUBLIC_URL}/protocol/openid-connect/certs"
-        doc["userinfo_endpoint"] = f"{_OIDC_PUBLIC_URL}/protocol/openid-connect/userinfo"
-        doc["end_session_endpoint"] = f"{_OIDC_PUBLIC_URL}/protocol/openid-connect/logout"
+        # Build Keycloak public URLs dynamically from the request origin so that
+        # both browser (localhost) and Inferno Docker (host.docker.internal) get
+        # URLs they can actually reach.  The realm path comes from the internal
+        # OIDC_ISSUER_URL (e.g. "/realms/fhir").
+        kc_base = f"{request_origin}{_REALM_PATH}"
+        doc["issuer"] = kc_base
+        doc["authorization_endpoint"] = f"{kc_base}/protocol/openid-connect/auth"
+        doc["jwks_uri"] = f"{kc_base}/protocol/openid-connect/certs"
+        doc["userinfo_endpoint"] = f"{kc_base}/protocol/openid-connect/userinfo"
+        doc["end_session_endpoint"] = f"{kc_base}/protocol/openid-connect/logout"
     elif ENABLE_AUTH:
         doc["issuer"] = base
         doc["jwks_uri"] = f"{base}/auth/.well-known/jwks.json"
@@ -160,12 +174,18 @@ async def token_proxy(request: Request):
     form_data = await request.form()
     kc_token_url = f"{OIDC_ISSUER_URL}/protocol/openid-connect/token"
 
+    # Forward the public hostname so Keycloak uses the correct issuer context
+    # when KC_HOSTNAME is not fixed (tokens must have iss matching the proxy hostname).
+    public_host = request.headers.get("host", "localhost")
+    proxy_headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-Forwarded-Host": public_host,
+        "X-Forwarded-Proto": request.url.scheme,
+        "X-Forwarded-Port": "80",
+    }
+
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            kc_token_url,
-            data=dict(form_data),
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
+        resp = await client.post(kc_token_url, data=dict(form_data), headers=proxy_headers)
 
     _TOKEN_HEADERS = {"Cache-Control": "no-store", "Pragma": "no-cache"}
 
