@@ -50,7 +50,11 @@ def _questionnaire_response_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, A
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
     if "status" in qp:
-        extra.append(("data->>'status' = ??", qp["status"]))
+        statuses = [s.strip() for s in qp["status"].split(",")]
+        if len(statuses) == 1:
+            extra.append(("data->>'status' = ??", statuses[0]))
+        else:
+            extra.append(("data->>'status' = ANY(??)", statuses))
     if "questionnaire" in qp:
         extra.append(("data->>'questionnaire' = ??", qp["questionnaire"]))
     if "patient" in qp:
@@ -142,7 +146,11 @@ def _service_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], Li
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
     if "status" in qp:
-        extra.append(("data->>'status' = ??", qp["status"]))
+        statuses = [s.strip() for s in qp["status"].split(",")]
+        if len(statuses) == 1:
+            extra.append(("data->>'status' = ??", statuses[0]))
+        else:
+            extra.append(("data->>'status' = ANY(??)", statuses))
     if "identifier" in qp:
         base["identifier"] = qp["identifier"]
     if "patient" in qp or "subject" in qp:

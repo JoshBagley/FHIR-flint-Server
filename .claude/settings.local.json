@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(docker exec inferno-testing-worker-1 ruby -e \"require 'sequel'; DB = Sequel.sqlite\\('/home/app/data/inferno.db'\\); puts DB[:test_runs].where\\(id: '120eb407-a175-46bc-a3f1-a7b657645cdc'\\).select\\(:id, :status, :result\\).first.inspect\" 2>&1)",
+      "PowerShell(docker exec inferno-testing-inferno-1 bash -c \"find / -name 'inferno.db' -maxdepth 6 2>/dev/null\")",
+      "PowerShell(docker exec inferno-testing-inferno-1 bash -c \"find /opt/inferno -name 'metadata.yml' | xargs grep -l 'practitioner_role' 2>/dev/null\")",
+      "PowerShell(docker exec inferno-testing-inferno-1 bash -c \"cat /opt/inferno/lib/us_core_test_kit/generated/v6.1.0/practitioner_role/metadata.yml\")",
+      "PowerShell(docker exec inferno-testing-inferno-1 bash -c \"cat /opt/inferno/lib/us_core_test_kit/generated/v6.1.0/head_circumference_percentile/metadata.yml\" 2>&1)",
+      "PowerShell(docker exec inferno-testing-inferno-1 bash -c \"cat /opt/inferno/lib/us_core_test_kit/generated/v6.1.0/questionnaire_response/questionnaire_response_patient_status_search_test.rb\")",
+      "PowerShell(docker exec inferno-testing-inferno-1 bash -c \"grep -rn 'Could not find' /opt/inferno/lib/us_core_test_kit/search_test.rb | head -20\")",
+      "PowerShell(docker exec inferno-testing-inferno-1 bash -c \"sed -n '390,420p' /opt/inferno/lib/us_core_test_kit/search_test.rb\")",
+      "PowerShell(docker exec inferno-testing-inferno-1 bash -c \"sed -n '360,410p' /opt/inferno/lib/us_core_test_kit/search_test.rb\")",
+      "Bash(docker compose *)",
+      "Bash(curl -s \"http://localhost/Endpoint/endpoint-flint-fhir-r4\" -H \"Accept: application/fhir+json\")",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('resourceType'\\), d.get\\('id'\\), d.get\\('status'\\)\\)\")",
+      "Bash(curl -s \"http://localhost:8000/Endpoint/endpoint-flint-fhir-r4\" -H \"Accept: application/fhir+json\")",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('resourceType'\\), d.get\\('id'\\)\\)\")",
+      "Bash(python -c \"import sys,json; d=json.loads\\(sys.stdin.read\\(\\).strip\\(\\)\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
+      "Bash(curl -s \"http://localhost/Coverage?patient=3e7c75f4-d87c-4648-bff5-89a3c5adbdb1&_include=Coverage:payor\")",
+      "Bash(python3 -c ' *)"
+    ],
+    "additionalDirectories": [
+      "\\dev"
+    ]
+  }
+}

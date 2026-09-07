@@ -6,7 +6,7 @@ from fastapi import HTTPException, Body, Request
 from app import state
 from app.capability import register_resource
 from app.fhir_utils import _date_condition, _extension_date_condition, _patient_ref, _token_condition
-from app.models.clinical import Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization, CarePlan, CareTeam, Device, DocumentReference, Goal, Specimen
+from app.models.clinical import Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization, CarePlan, CareTeam, Device, DocumentReference, Goal, Specimen, Provenance, RelatedPerson
 from app.routes.resource_factory import create_resource_router
 
 
@@ -496,6 +496,7 @@ register_resource({
         "Observation:subject", "Condition:subject", "Encounter:subject",
         "AllergyIntolerance:patient", "Immunization:patient",
         "MedicationRequest:subject", "Procedure:subject", "DiagnosticReport:subject",
+        "Provenance:target",
     ],
     "searchParam": [
         {"name": "_id", "type": "token"},
@@ -670,7 +671,7 @@ register_resource({
     "conditionalCreate": True,
     "conditionalUpdate": True,
     "conditionalDelete": "multiple",
-    "searchInclude": ["Encounter:subject"],
+    "searchInclude": ["Encounter:subject", "Encounter:service-provider"],
     "supportedProfile": [
         "http://hl7.org/fhir/us/core/StructureDefinition/us-core-encounter",
     ],
@@ -958,4 +959,82 @@ register_resource({
     ],
 })
 
-routers = [patient_router, careteam_router, careplan_router, observation_router, condition_router, encounter_router, allergy_router, immunization_router, device_router, document_reference_router, goal_router, specimen_router]
+def _provenance_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
+    base: Dict[str, Any] = {}
+    extra: List[Tuple[str, Any]] = []
+    if 'patient' in qp:
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'target', '[]'::jsonb)) t WHERE t->>'reference' = ??)",
+            _patient_ref(qp['patient'])
+        ))
+    if 'target' in qp:
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'target', '[]'::jsonb)) t WHERE t->>'reference' = ??)",
+            qp['target']
+        ))
+    return base, extra
+
+
+provenance_router = create_resource_router("Provenance", Provenance, _provenance_search_hook)
+
+register_resource({
+    "type": "Provenance",
+    "interaction": [
+        {"code": "read"}, {"code": "search-type"},
+    ],
+    "searchParam": [
+        {"name": "patient", "type": "reference"},
+        {"name": "target", "type": "reference"},
+        {"name": "_count", "type": "number"},
+        {"name": "_offset", "type": "number"},
+        {"name": "_sort", "type": "string"},
+    ],
+})
+
+def _related_person_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
+    base: Dict[str, Any] = {}
+    extra: List[Tuple[str, Any]] = []
+    if 'patient' in qp:
+        extra.append(("data->'patient'->>'reference' = ??", _patient_ref(qp['patient'])))
+    if '_id' in qp:
+        extra.append(("id::text = ??", qp['_id']))
+    if 'name' in qp:
+        extra.append((
+            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'name', '[]'::jsonb)) n "
+            "WHERE n->>'family' ILIKE ?? OR EXISTS ("
+            "SELECT 1 FROM jsonb_array_elements_text(COALESCE(n->'given', '[]'::jsonb)) g WHERE g ILIKE ??))",
+            f"%{qp['name']}%"
+        ))
+    return base, extra
+
+
+related_person_router = create_resource_router("RelatedPerson", RelatedPerson, _related_person_search_hook)
+
+register_resource({
+    "type": "RelatedPerson",
+    "interaction": [
+        {"code": "read"}, {"code": "create"}, {"code": "update"}, {"code": "patch"},
+        {"code": "delete"}, {"code": "search-type"}, {"code": "history-instance"},
+        {"code": "history-type"},
+    ],
+    "versioning": "versioned",
+    "readHistory": True,
+    "conditionalCreate": True,
+    "conditionalUpdate": True,
+    "conditionalDelete": "multiple",
+    "searchRevInclude": ["Provenance:target"],
+    "supportedProfile": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-relatedperson",
+    ],
+    "searchParam": [
+        {"name": "_id", "type": "token"},
+        {"name": "patient", "type": "reference"},
+        {"name": "name", "type": "string"},
+        {"name": "_count", "type": "number"},
+        {"name": "_offset", "type": "number"},
+        {"name": "_sort", "type": "string"},
+        {"name": "_revinclude", "type": "string"},
+    ],
+})
+
+routers = [patient_router, careteam_router, careplan_router, observation_router, condition_router, encounter_router, allergy_router, immunization_router, device_router, document_reference_router, goal_router, specimen_router, provenance_router, related_person_router]

@@ -1,7 +1,8 @@
+import json
 from typing import Dict, List, Any, Tuple
 
 from app.capability import register_resource
-from app.models.administrative import Organization, Practitioner, PractitionerRole, Location
+from app.models.administrative import Endpoint, Organization, Practitioner, PractitionerRole, Location
 from app.routes.resource_factory import create_resource_router
 
 
@@ -98,10 +99,21 @@ def _practitioner_role_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], 
             qp['role']
         ))
     if 'specialty' in qp:
-        extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'specialty', '[]'::jsonb)) t, jsonb_array_elements(COALESCE(t->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
-            qp['specialty']
-        ))
+        spec_val = qp['specialty']
+        if '|' in spec_val:
+            sys_part, _, code_part = spec_val.partition('|')
+            obj = {k: v for k, v in [("system", sys_part), ("code", code_part)] if v}
+            extra.append((
+                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'specialty', '[]'::jsonb)) t, "
+                "jsonb_array_elements(COALESCE(t->'coding', '[]'::jsonb)) c WHERE c @> ??::jsonb)",
+                json.dumps(obj)
+            ))
+        else:
+            extra.append((
+                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'specialty', '[]'::jsonb)) t, "
+                "jsonb_array_elements(COALESCE(t->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+                spec_val
+            ))
     return base, extra
 
 
@@ -270,4 +282,30 @@ register_resource({
     ],
 })
 
-routers = [organization_router, practitioner_router, practitioner_role_router, location_router]
+def _endpoint_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
+    base: Dict[str, Any] = {}
+    extra: List[Tuple[str, Any]] = []
+    if 'status' in qp:
+        base['status'] = qp['status']
+    if 'organization' in qp:
+        extra.append(("data->'managingOrganization'->>'reference' = ??", qp['organization']))
+    return base, extra
+
+
+endpoint_router = create_resource_router("Endpoint", Endpoint, _endpoint_search_hook)
+
+register_resource({
+    "type": "Endpoint",
+    "interaction": [
+        {"code": "read"}, {"code": "create"}, {"code": "update"},
+        {"code": "delete"}, {"code": "search-type"},
+    ],
+    "versioning": "versioned",
+    "searchParam": [
+        {"name": "status", "type": "token"},
+        {"name": "organization", "type": "reference"},
+        {"name": "_count", "type": "number"},
+    ],
+})
+
+routers = [organization_router, practitioner_router, practitioner_role_router, location_router, endpoint_router]

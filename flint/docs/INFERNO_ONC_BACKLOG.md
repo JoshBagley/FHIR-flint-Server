@@ -6,13 +6,15 @@ Tracked issues discovered during local Inferno US Core v6.1.0 testing that requi
 
 ## How to Run Inferno Locally
 
-Inferno runs as a Docker container (separate stack — not part of Flint). The key problem: Inferno's backend makes server-side HTTP calls (OIDC well-known fetch, token exchange, token refresh) that must reach Nginx/Flint from *inside* the Inferno container. Using `localhost` fails because that's the Inferno container itself. Using `host.docker.internal` may fail on Windows if the firewall blocks port 80 on the LAN IP.
+Inferno runs as its own Docker Compose stack (separate from Flint). The key problem: Inferno's backend makes server-side HTTP calls (OIDC well-known fetch, token exchange, token refresh) that must reach Flint's Nginx from *inside* the Inferno containers. Using `localhost` fails (that's the container itself). Using `host.docker.internal` fails on Windows if the firewall blocks port 80 on the LAN IP.
 
-**The reliable approach: join Inferno to the Flint Docker network** so it can reach Nginx by service name.
+**The reliable approach: attach the Inferno containers to the Flint Docker network** so they can reach Nginx by service name.
+
+The actual Docker network name is `flint_flint-network` (Docker Compose prefixes it with the project directory name `flint`).
 
 ### Step 1 — One-time hosts file entry (Windows)
 
-Add `nginx` as an alias for localhost so your **browser** can open redirect URLs that contain `nginx` in the hostname (Inferno redirects there after login):
+Add `nginx` as an alias for localhost so your **browser** can open the Keycloak authorization page, which Inferno redirects to at `http://nginx/realms/fhir/...`:
 
 1. Open Notepad as Administrator
 2. Open `C:\Windows\System32\drivers\etc\hosts`
@@ -21,14 +23,23 @@ Add `nginx` as an alias for localhost so your **browser** can open redirect URLs
 
 You only need to do this once.
 
-### Step 2 — Start Inferno on the Flint network
+### Step 2 — Start your Inferno stack, then attach it to the Flint network
+
+After starting your Inferno Compose stack (it runs on port 8081 by default), connect the two containers that make outbound HTTP calls:
 
 ```bash
-docker run -p 8081:4567 --network flint-network infernocommunity/fhir-test-kit
-# then open http://localhost:8081
+docker network connect flint_flint-network inferno-testing-inferno-1
+docker network connect flint_flint-network inferno-testing-worker-1
 ```
 
-The `--network flint-network` flag puts Inferno on the same bridge network as Flint. From inside the Inferno container, `nginx` resolves to the Flint Nginx container.
+Verify connectivity before running tests:
+
+```bash
+docker exec inferno-testing-inferno-1 curl -sf http://nginx/health
+# should print: healthy
+```
+
+> **Note:** These connections are not persistent. Re-run after any restart of the Inferno stack or Flint.
 
 ### Step 3 — Inferno connection settings
 
@@ -38,7 +49,7 @@ The `--network flint-network` flag puts Inferno on the same bridge network as Fl
 | SMART App Launch Version | STU2 |
 | Client ID | `flint-app` |
 | PKCE Code Challenge Method | S256 |
-| Requested Scopes | `openid fhirUser offline_access launch/patient patient/*.read patient/*.write patient/Patient.rs patient/Observation.rs patient/Condition.rs patient/Encounter.rs patient/AllergyIntolerance.rs patient/Immunization.rs patient/MedicationRequest.rs patient/Procedure.rs patient/DiagnosticReport.rs patient/Coverage.rs patient/DocumentReference.rs` |
+| Requested Scopes | `` |openid fhirUser offline_access launch/patient patient/Patient.rs patient/AllergyIntolerance.rs patient/CarePlan.rs patient/CareTeam.rs patient/Condition.rs patient/Coverage.rs patient/Device.rs patient/DiagnosticReport.rs patient/DocumentReference.rs patient/Encounter.rs patient/Goal.rs patient/Immunization.rs patient/Location.rs patient/MedicationDispense.rs patient/MedicationRequest.rs patient/Observation.rs patient/Organization.rs patient/Practitioner.rs patient/PractitionerRole.rs patient/Procedure.rs patient/Provenance.rs patient/QuestionnaireResponse.rs patient/RelatedPerson.rs patient/ServiceRequest.rs patient/Specimen.rs
 
 **How the redirect works:**
 - Inferno sends the browser to `http://nginx/realms/fhir/protocol/openid-connect/auth` (the authorization endpoint). The hosts file entry `127.0.0.1 nginx` lets your browser resolve `nginx` → Nginx → Keycloak login page.
@@ -46,6 +57,10 @@ The `--network flint-network` flag puts Inferno on the same bridge network as Fl
 - Inferno then exchanges the code for a token by calling `http://nginx/auth/token-proxy` server-side, from inside the container, which reaches Nginx directly via the Docker network.
 
 The SMART well-known config, OIDC metadata, and all tokens use the `Host` header dynamically — so `nginx` flows consistently through every Inferno-server-side call.
+
+> **Do not use wildcard scopes** (`patient/*.read`, `patient/*.write`, `patient/*.rs`) in the Inferno scope configuration. Keycloak accepts them at the token endpoint but rejects them at the authorization endpoint with "Invalid parameter value for: scope". Use only the explicit granular scopes listed above.
+
+> **"We are sorry... Client not found" during SMART tests is expected**: Inferno runs a negative test that deliberately sends an authorization request using Alice's Patient UUID as the `client_id` (verifying the server rejects unknown clients). Keycloak correctly rejects it. This error page appearing briefly in your browser is normal for that test step — just proceed.
 
 **Expected local test results:**
 

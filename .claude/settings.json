@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(docker exec inferno-testing-inferno-1 grep -rn \"def from_contents\" /usr/local/bundle/gems/fhir_models-4.3.0/)",
+      "PowerShell(docker exec inferno-testing-inferno-1 ls /usr/local/bundle/gems/)",
+      "PowerShell(grep fhir_models)",
+      "PowerShell(docker exec inferno-testing-inferno-1 grep -n \"def store_request\\\\b\" /usr/local/bundle/gems/inferno_core-1.4.2/lib/inferno/dsl/request_storage.rb)",
+      "PowerShell(docker exec inferno-testing-inferno-1 sed -n '1,80p' /usr/local/bundle/gems/inferno_core-1.4.2/lib/inferno/dsl/request_storage.rb)",
+      "PowerShell(docker exec inferno-testing-inferno-1 curl -s -X POST \"http://172.18.0.3:3500/validate\" -H \"Content-Type: application/json\" --data-binary \"@/tmp/val_body2.json\" -o /tmp/val_resp_outcomes.json)",
+      "PowerShell(docker cp inferno-testing-inferno-1:/tmp/val_resp_outcomes.json C:\\\\temp\\\\val_resp_outcomes.json)",
+      "PowerShell(docker compose -f C:\\\\Users\\\\JoshB\\\\OneDrive\\\\Documents-OneDrive\\\\GitHub\\\\FHIR-Server\\\\flint\\\\docker-compose.yml exec postgres psql -U flint -d flint -c $sql)",
+      "PowerShell($sql = \"SELECT id, data->'performer' as performer FROM fhir_resources WHERE resource_type='DiagnosticReport' ORDER BY id\")",
+      "PowerShell(docker exec inferno-testing-worker-1 ps aux 2>&1)",
+      "PowerShell(docker exec inferno-testing-worker-1 sh -c \"nc -zv redis 6379 2>&1\")",
+      "PowerShell(docker exec inferno-testing-worker-1 sh -c \"ruby -e \\\\\"require 'socket'; s = TCPSocket.new\\('redis', 6379\\); s.puts 'PING'; puts s.gets; s.close\\\\\"\")"
+    ]
+  }
+}

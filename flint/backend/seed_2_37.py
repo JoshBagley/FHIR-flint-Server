@@ -68,24 +68,21 @@ NORMAL = {
     }
 }
 
-# Absent observation — covers dataAbsentReason
+# Second observation at a different date — enables date-range search tests and avoids
+# mandatory-element violations (value[x].value/unit/system/code are mandatory in this profile)
 ABSENT = {
     **COMMON,
     "id": ABSENT_ID,
     "text": {
         "status": "generated",
-        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Head circumference percentile not performed</div>"
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Head circumference percentile: 55%</div>"
     },
     "effectiveDateTime": "2024-02-01T08:00:00Z",
-    "dataAbsentReason": {
-        "coding": [
-            {
-                "system": "http://terminology.hl7.org/CodeSystem/data-absent-reason",
-                "code": "not-performed",
-                "display": "Not Performed"
-            }
-        ],
-        "text": "Not Performed"
+    "valueQuantity": {
+        "value": 55,
+        "unit": "%",
+        "system": "http://unitsofmeasure.org",
+        "code": "%"
     }
 }
 

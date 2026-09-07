@@ -50,6 +50,8 @@ _INCLUDE_REFERENCE_MAP: Dict[str, Tuple[str, str]] = {
     "DiagnosticReport:encounter":    ("encounter",     "data->'encounter'->>'reference'"),
     "PractitionerRole:practitioner": ("practitioner",  "data->'practitioner'->>'reference'"),
     "PractitionerRole:organization": ("organization",  "data->'organization'->>'reference'"),
+    "Coverage:payor":                ("payor",          "data->'payor'->0->>'reference'"),
+    "Encounter:service-provider":    ("serviceProvider","data->'serviceProvider'->>'reference'"),
     # Provenance.target is an array — sql_path is a full condition template (contains ??)
     "Provenance:target": ("target", "EXISTS (SELECT 1 FROM jsonb_array_elements(data->'target') t WHERE t->>'reference' = ANY(??))"),
 }
@@ -76,6 +78,7 @@ _PATIENT_COMPARTMENT: Dict[str, Tuple[Optional[str], Callable[[Dict[str, Any]], 
     "MedicationDispense": ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
     "Specimen":           ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
     "ServiceRequest":     ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
+    "RelatedPerson":      ("data->'patient'->>'reference'",        lambda r: (r.get("patient") or {}).get("reference")),
 }
 
 
@@ -169,6 +172,7 @@ _CHAIN_TARGET_CONDITION: Dict[Tuple[str, str], Tuple[str, Callable[[str], str]]]
     ("Encounter",    "status"):     ("tgt.data->>'status' = ??",    lambda v: v),
     ("Practitioner", "name"):       ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'name', '[]'::jsonb)) n WHERE n->>'family' ILIKE ?? OR n->>'text' ILIKE ??)", lambda v: f"%{v}%"),
     ("Practitioner", "family"):     ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'name', '[]'::jsonb)) n WHERE n->>'family' ILIKE ??)", lambda v: f"%{v}%"),
+    ("Practitioner", "identifier"): ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'identifier', '[]'::jsonb)) id WHERE id->>'value' = ??)", lambda v: v),
     ("Organization", "name"):       ("tgt.data->>'name' ILIKE ??",  lambda v: f"%{v}%"),
 }
 
@@ -691,9 +695,15 @@ def create_resource_router(
                 py_field = ref_info[0]
                 seen: set = set()
                 for r in results:
-                    ref_obj = r.get(py_field, {})
+                    ref_obj = r.get(py_field)
                     if isinstance(ref_obj, dict):
-                        ref_str = ref_obj.get("reference", "")
+                        ref_items = [ref_obj]
+                    elif isinstance(ref_obj, list):
+                        ref_items = [item for item in ref_obj if isinstance(item, dict)]
+                    else:
+                        ref_items = []
+                    for ref_item in ref_items:
+                        ref_str = ref_item.get("reference", "")
                         if ref_str:
                             rid = ref_str.split("/")[-1]
                             if rid and rid not in seen:

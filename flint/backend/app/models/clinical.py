@@ -370,3 +370,41 @@ class Specimen(BaseModel):
     container: Optional[List[Dict[str, Any]]] = None
     condition: Optional[List[CodeableConcept]] = None
     note: Optional[List[Dict[str, Any]]] = None
+
+
+class RelatedPerson(BaseModel):
+    resourceType: Literal["RelatedPerson"] = "RelatedPerson"
+    id: Optional[str] = None
+    meta: Optional[Meta] = None
+    identifier: Optional[List[Identifier]] = None
+    active: Optional[bool] = None
+    patient: Optional[Reference] = None
+    relationship: Optional[List[CodeableConcept]] = None
+    name: Optional[List[HumanName]] = None
+    telecom: Optional[List[ContactPoint]] = None
+    gender: Optional[str] = None
+    birthDate: Optional[str] = None
+    address: Optional[List[Address]] = None
+    photo: Optional[List[Dict[str, Any]]] = None
+    period: Optional[Dict[str, Any]] = None
+    communication: Optional[List[Dict[str, Any]]] = None
+    extension: Optional[List[Dict[str, Any]]] = None
+    text: Optional[Dict[str, Any]] = None
+
+
+class Provenance(BaseModel):
+    resourceType: Literal["Provenance"] = "Provenance"
+    id: Optional[str] = None
+    meta: Optional[Meta] = None
+    text: Optional[Dict[str, Any]] = None
+    target: Optional[List[Reference]] = None
+    occurredPeriod: Optional[Dict[str, Any]] = None
+    occurredDateTime: Optional[str] = None
+    recorded: Optional[str] = None
+    policy: Optional[List[str]] = None
+    location: Optional[Reference] = None
+    reason: Optional[List[Dict[str, Any]]] = None
+    activity: Optional[Dict[str, Any]] = None
+    agent: Optional[List[Dict[str, Any]]] = None
+    entity: Optional[List[Dict[str, Any]]] = None
+    signature: Optional[List[Dict[str, Any]]] = None

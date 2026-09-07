@@ -57,6 +57,23 @@ class PractitionerRole(BaseModel):
     endpoint: Optional[List[Reference]] = None
 
 
+class Endpoint(BaseModel):
+    resourceType: Literal["Endpoint"] = "Endpoint"
+    id: Optional[str] = None
+    meta: Optional[Meta] = None
+    identifier: Optional[List[Identifier]] = None
+    status: Optional[str] = None
+    connectionType: Optional[Coding] = None
+    name: Optional[str] = None
+    managingOrganization: Optional[Reference] = None
+    contact: Optional[List[ContactPoint]] = None
+    period: Optional[Dict[str, Any]] = None
+    payloadType: Optional[List[CodeableConcept]] = None
+    payloadMimeType: Optional[List[str]] = None
+    address: Optional[str] = None
+    header: Optional[List[str]] = None
+
+
 class Location(BaseModel):
     resourceType: Literal["Location"] = "Location"
     id: Optional[str] = None

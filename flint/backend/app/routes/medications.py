@@ -73,7 +73,11 @@ def _procedure_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tup
     base: Dict[str, Any] = {}
     extra: List[Tuple[str, Any]] = []
     if 'status' in qp:
-        extra.append(("data->>'status' = ??", qp['status']))
+        statuses = [s.strip() for s in qp['status'].split(',')]
+        if len(statuses) == 1:
+            extra.append(("data->>'status' = ??", statuses[0]))
+        else:
+            extra.append(("data->>'status' = ANY(??)", statuses))
     if 'patient' in qp:
         extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'code' in qp:
