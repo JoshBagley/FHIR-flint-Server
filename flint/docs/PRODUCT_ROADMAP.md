@@ -2,7 +2,7 @@
 
 This document tracks the gaps between Flint's current capabilities and a commercially viable, conformant FHIR R4 server. It is the authoritative source for implementation priorities. Update checkboxes as work is completed.
 
-**Last updated:** 2026-07-10
+**Last updated:** 2026-09-07
 **Analysis basis:** Gap analysis vs HAPI FHIR, Azure Health Data Services, Google Cloud Healthcare API, Medplum, and Smile CDR.
 
 ---
@@ -28,7 +28,7 @@ Flint currently supports **22 of 145 FHIR R4 resource types**: `ValueSet`, `Code
 - ~~Bulk Data Export~~ (completed P2.4)
 - Advanced search modifiers (`_has`, chained params, `_filter`) — in progress P2.2
 - US Core must-support enforcement — in progress P2.6
-- ONC Inferno test suite — pending (next gate)
+- ~~ONC Inferno test suite~~ (completed P2.6 — 2026-09-07, all US Core v6.1.0 sections passing)
 
 ---
 
@@ -250,7 +250,7 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 - [x] Define SMART scopes: `patient/*.read`, `user/*.read`, `system/*.read` — full scope set on Keycloak realm
 - [x] Enforce scopes on resource access in route middleware — `require_access` in `auth.py`; three roles: `fhir-patient`, `fhir-clinician`, `fhir-admin`
 - [x] Register SMART in CapabilityStatement `rest.security` block
-- [ ] Test with Inferno SMART on FHIR test suite — **next gate**
+- [x] Test with Inferno SMART on FHIR test suite — all 1.x SMART sections pass locally (2026-09-07)
 
 **Implementation notes:** Keycloak 24.0 realm `fhir` configured in `keycloak/flint-realm.json`. Public client `flint-app` (PKCE), confidential backend client `flint-backend` (`client_credentials`). Custom login theme at `keycloak/themes/flint/`. Seed users: alice/alice123, dr-jones/jones123, admin/admin123. Clinician panel filtering (Option B) via `Patient.generalPractitioner`.
 
@@ -322,8 +322,8 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 - [x] Add `supportedProfile` array to Patient CapabilityStatement entry (populated after import)
 - [x] Create `migration/import_us_core_v6.py` — downloads US Core v6.1.0 package from packages.fhir.org and imports all StructureDefinitions
 - [x] Implement all US Core v6.1.0 SHALL search parameters (16 gaps across 8 resource types): `_id`/`telecom` on Patient; `date` on Observation/DiagnosticReport; `_id`/`date`/`identifier`/`type` on Encounter; `authoredon` on MedicationRequest; `_id` on Practitioner; `address` on Organization; `address`/`address-city`/`address-postalcode`/`address-state`/`organization` on Location. FHIR date prefix operators (`ge`, `le`, `gt`, `lt`) implemented via `_date_condition` helper in `fhir_utils.py`. SHOULD params `onset-date`/`recorded-date` on Condition also added.
-- [ ] Implement must-support enforcement for US Core Patient, Observation (Lab), Condition, AllergyIntolerance, Immunization, Encounter, MedicationRequest
-- [ ] Pass Inferno US Core test suite (ONC certification prerequisite)
+- [ ] Implement must-support enforcement for US Core Patient, Observation (Lab), Condition, AllergyIntolerance, Immunization, Encounter, MedicationRequest (server-side rejection of non-conformant resources — deferred)
+- [x] Pass Inferno US Core test suite (ONC certification prerequisite) — all sections 2.1–2.50 pass locally (2026-09-07)
 - [x] Update CapabilityStatement `supportedProfile` entries after running the import script — all 13 clinical/admin/medication resource types now declare their US Core v6.1.0 profile URLs statically; no import run required
 
 **Why it matters:** US Core conformance is required for ONC Health IT Certification and for EHR integration with Cerner, Epic, and Meditech (all require US Core from their app partners).
@@ -345,6 +345,70 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 - [x] Implement `GET /{type}/_history` (type-level history): all changes for one resource type
 - [x] Return as `Bundle` with `type: history`, paginated with `_count` and `_since`
 - [x] Register in CapabilityStatement under `interaction[type=history-system]` and `interaction[type=history-type]`
+
+---
+
+## Phase 2.9 — Code Review, QA & Security Hardening ⚡ HIGH PRIORITY
+
+Full code review and security audit before any production deployment or commercial use. Run all scans in CI on every PR.
+
+### P2.9.1 — Static Analysis & Linting
+
+- [ ] Run `ruff` (lint + format) and `mypy` (type checking) on entire `backend/` — fix all errors, enforce in CI
+- [ ] Run `bandit -r backend/` — Python security linter (SQL injection, shell injection, hardcoded secrets, weak crypto); fix all HIGH/MEDIUM findings
+- [ ] Run `npm audit --audit-level=moderate` in `frontend/` — fix all moderate+ vulnerabilities
+- [ ] Run `eslint` with security plugin (`eslint-plugin-security`) on `frontend/src/`
+- [ ] Enforce both linters as required CI gates (no merge on failure)
+
+### P2.9.2 — Dependency Vulnerability Scanning
+
+- [ ] Run `pip-audit` on `backend/requirements.txt` — identify CVEs in pinned packages; upgrade or mitigate
+- [ ] Run `npm audit` on `frontend/package.json` — fix or document all critical/high CVEs
+- [ ] Pin all dependency versions (no unpinned `>=` ranges in `requirements.txt`)
+- [ ] Add Dependabot or Renovate to automate weekly dependency PRs
+
+### P2.9.3 — Container Image Scanning
+
+- [ ] Run `trivy image` on all Docker images (`backend`, `frontend`, `nginx`) — fix all CRITICAL/HIGH OS-layer CVEs
+- [ ] Run `docker scout cves` as alternative or complement
+- [ ] Integrate Trivy scan into CI pipeline (fail build on CRITICAL findings)
+- [ ] Pin base images to digest (`python:3.12-slim@sha256:...`) to prevent supply-chain drift
+
+### P2.9.4 — Secrets & Credential Scanning
+
+- [ ] Run `detect-secrets scan .` or `truffleHog filesystem .` — ensure no API keys, passwords, or tokens committed to repo
+- [ ] Audit `.env.example` files — confirm no real credentials present
+- [ ] Add `detect-secrets` pre-commit hook to prevent future secret commits
+- [ ] Verify Keycloak admin credentials are not hardcoded anywhere in source (only in `.env` / environment)
+
+### P2.9.5 — OWASP Top 10 Review
+
+- [ ] **Injection (A03):** Audit all asyncpg queries — verify every parameter uses `$N` placeholders, no f-string SQL construction
+- [ ] **Broken Authentication (A07):** Review JWT validation path (`auth.py`) — confirm algorithm whitelist, issuer check, expiry enforcement; test with expired/tampered tokens
+- [ ] **Sensitive Data Exposure (A02):** Confirm PHI is never logged at INFO level (check `backend/` log calls); confirm Redis cache entries don't persist sensitive resources beyond TTL
+- [ ] **SSRF (A10):** Audit all outbound HTTP calls (`external_cs.py`, `auth.py` JWKS fetch, `ai_assist.py`) — ensure URLs come from config, not user input
+- [ ] **XSS (A03):** Audit React frontend — confirm no `dangerouslySetInnerHTML`; confirm API responses are not reflected into DOM without sanitization
+- [ ] **Security Misconfiguration (A05):** Confirm CORS `allow_origins` is not `["*"]` in production config; confirm debug endpoints are disabled in prod
+- [ ] **Broken Access Control (A01):** Verify clinician panel filter cannot be bypassed by crafting a JWT with a different `fhirUser` claim; verify patient cannot access another patient's resources
+- [ ] Write one test per finding that would have caught it — add to `pytest` suite
+
+### P2.9.6 — FHIR-Specific Security Review
+
+- [ ] Verify `_revinclude` and `_include` cannot be used to pull resources outside the patient's compartment
+- [ ] Verify Bulk Export (`$export`) enforces SMART `system/*.read` scope — patient-scoped tokens must not trigger system export
+- [ ] Verify `DELETE /{type}/{id}` is gated behind `fhir-admin` role — clinicians and patients cannot delete records
+- [ ] Verify audit log (`audit_log` table) cannot be modified via API — read-only from the FHIR layer
+- [ ] Verify `POST /admin/users/*` endpoints require `fhir-admin` role and are not accessible with a patient or clinician token
+
+### P2.9.7 — Backend Test Coverage
+
+- [ ] Run `pytest --cov=app --cov-report=term-missing` — measure current coverage baseline
+- [ ] Add integration tests for every auth middleware path (no token, expired token, wrong role, patient token on admin endpoint)
+- [ ] Add integration tests for all search parameter combinations used by Inferno (regression guard)
+- [ ] Add integration tests for Bundle batch + transaction (commit, rollback, `urn:uuid:` resolution)
+- [ ] Target ≥ 70% line coverage on `routes/` and `app/` modules
+
+**Why it matters:** Flint handles PHI. Any SQL injection or access control bypass in a healthcare FHIR server is a HIPAA breach event. This work is a prerequisite for any production deployment or commercial use, and directly supports ONC certification evidence requirements.
 
 ---
 
@@ -504,7 +568,7 @@ Capabilities that would make Flint meaningfully better than existing commercial 
 | AI Integration | **Embedded** | **Extended** | None | Separate | Separate | Bots |
 | Observability | **Included** | **Included** | Manual | Azure Monitor | Cloud Ops | Manual |
 | Batch / Transaction | **Yes** | ✓ | Yes | Yes | Yes | Yes |
-| US Core Conformance | Partial (P2.6) | Inferno pass | Yes | Yes | Yes | Yes (ONC) |
+| US Core Conformance | **Inferno pass (local)** | Inferno pass (prod) | Yes | Yes | Yes | Yes (ONC) |
 | Advanced Search (`_has`) | No | P2.2 | Yes | Yes | Yes | Yes |
 | CDA / HL7 v2 Ingest | No | P3.6/P3.7 | Plugin | Converter | Converter | None |
 | Multi-tenancy | No | P3.1 | Partitioning | Native | Native | Native |
@@ -520,9 +584,11 @@ To qualify for ONC Health IT Certification (§170.315), Flint would need to comp
 - [x] **P1.1–P1.6** — Patient, Observation, Condition, AllergyIntolerance, Encounter, Immunization ✓
 - [x] **P2.1** — SMART on FHIR v2 ✓ (Keycloak 24, §170.315(g)(10))
 - [x] **P2.5** — `$validate` with US Core profile checking ✓ (delegates to tx.fhir.org)
-- [ ] **P2.6** — US Core v6 must-support enforcement + Inferno test pass
-- [ ] **P2.2** — `_has` and chained search params (required by several Inferno test cases)
-- [ ] Pass Inferno ONC test suite locally, then at https://inferno.healthit.gov
+- [x] **P2.6** — Inferno US Core test suite pass ✓ (2026-09-07, all 2.1–2.50 sections pass locally)
+- [ ] **P2.6** — US Core v6 must-support enforcement (server-side rejection — not yet implemented, deferred)
+- [ ] **P2.2** — `_has` and chained search params (required for production Inferno run at healthit.gov)
+- [x] Pass Inferno ONC test suite locally (2026-09-07)
+- [ ] Pass Inferno ONC test suite at https://inferno.healthit.gov (requires production TLS deployment)
 
 ### Running Inferno Locally
 
@@ -566,6 +632,90 @@ Point Inferno at `http://host.docker.internal` (or your host IP) so it can reach
 - [ ] FHIR extension URL `http://flint.local/StructureDefinition/source` is not resolvable; should register a real `StructureDefinition` resource at that URL or change to a URL the server can serve
 - [ ] Elasticsearch index mapping has no explicit `@timestamp` field; Loki queries and time-series searches may behave unexpectedly
 - [ ] Redis AOF persistence is configured but `appendfsync everysec` can lose up to 1 second of cache on crash — acceptable for a cache, but document the trade-off
+
+---
+
+## Deployment Options — Docker vs. Non-Containerized
+
+Flint does not have to run in Docker. Docker Compose is the development default, but every component can run outside containers.
+
+### What Docker is doing for you
+
+| Service | Docker role | Non-container equivalent |
+|---|---|---|
+| `backend` | Runs FastAPI via `uvicorn` | `uvicorn app.main:app --host 0.0.0.0 --port 8000` on any Python 3.12 host |
+| `frontend` | Vite dev server (dev) or static files (prod) | `npm run build` → static files on any CDN / S3 / Nginx |
+| `postgres` | PostgreSQL 15 | Any PostgreSQL 15+ instance (RDS, Azure DB, Cloud SQL, bare-metal) |
+| `redis` | Redis 7 | Any Redis 7+ instance (ElastiCache, Redis Cloud, Azure Cache, bare-metal) |
+| `elasticsearch` | ES 8.11 | Any ES 8.x instance (Elastic Cloud, OpenSearch Service, bare-metal) |
+| `nginx` | Reverse proxy + TLS termination | Any Nginx, Apache, Caddy, AWS ALB, Azure Application Gateway |
+| `keycloak` | OIDC / SMART auth provider | Auth0, Okta, Azure AD B2C, AWS Cognito, or Keycloak on a VM — anything that issues OIDC JWTs |
+
+### Option 1 — Traditional VM (no containers)
+
+Install dependencies directly on Ubuntu/RHEL:
+
+```bash
+# Python 3.12 + backend deps
+apt install python3.12 python3.12-venv
+python3.12 -m venv venv && source venv/bin/activate
+pip install -r flint/backend/requirements.txt
+uvicorn app.main:app --workers 4 --host 0.0.0.0 --port 8000
+
+# Frontend build (run once; serve static output via Nginx)
+cd flint/frontend && npm ci && npm run build
+# Copy dist/ to Nginx web root
+
+# PostgreSQL, Redis, Elasticsearch installed via apt/yum or managed cloud services
+# Keycloak: download keycloak-24.zip, configure realm, run standalone.sh
+```
+
+Use `systemd` service units for process supervision (auto-restart on crash).
+
+**Best for:** Single-tenant on-premise hospital deployment, air-gapped environments, or situations where Docker is not permitted by IT policy.
+
+### Option 2 — Cloud-Native Managed Services (recommended for SaaS)
+
+Replace every infrastructure component with a managed equivalent — only the application code runs on your compute:
+
+| Component | AWS | Azure | GCP |
+|---|---|---|---|
+| Backend (FastAPI) | ECS Fargate / App Runner / Lambda | Container Apps / App Service | Cloud Run |
+| PostgreSQL | RDS for PostgreSQL | Azure Database for PostgreSQL | Cloud SQL |
+| Redis | ElastiCache Serverless | Azure Cache for Redis | Memorystore |
+| Elasticsearch | OpenSearch Service | Elastic on Azure Marketplace | Elastic on GCP |
+| Auth (Keycloak replacement) | Cognito | Azure AD B2C | Firebase Auth / Identity Platform |
+| Frontend | S3 + CloudFront | Static Web Apps | Firebase Hosting |
+| TLS / Proxy | ALB | Application Gateway | Cloud Load Balancing |
+
+The backend reads all service addresses from environment variables (`DATABASE_URL`, `REDIS_URL`, `ELASTICSEARCH_HOSTS`, `OIDC_ISSUER_URL`) — swapping cloud endpoints requires only `.env` changes, no code changes.
+
+**Keycloak replacement note:** Replacing Keycloak with Auth0/Cognito/Azure AD requires that the new provider issues OIDC tokens with the SMART claims (`patient`, `fhirUser`, `launch/patient`). Standard enterprise IdPs support custom claims but need configuration. Keycloak is the easiest path for full SMART on FHIR v2 compliance today.
+
+**Best for:** Multi-tenant SaaS, elastic scaling, no ops team to manage infrastructure.
+
+### Option 3 — PaaS (Heroku, Railway, Render)
+
+These platforms accept a `Dockerfile` or `Procfile` and abstract the container runtime away from you. You push code; the platform builds and runs it.
+
+```
+# Procfile (Railway / Heroku)
+web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+Add-ons (Heroku Postgres, Redis Cloud, Elastic Cloud) supply the backing services. The frontend deploys as a static site.
+
+**Limitation:** Keycloak is too heavy for hobby-tier PaaS. Use Auth0 or an external OIDC provider.
+
+### Option 4 — Kubernetes (containerized but not Docker Compose)
+
+The same Docker images used in development deploy to Kubernetes (EKS, AKS, GKE) with Helm charts or Kustomize manifests. This is containerized but operationally very different from Docker Compose — proper for high-availability production.
+
+**Best for:** Large-scale multi-tenant SaaS or healthcare cloud platforms with existing k8s infrastructure.
+
+### What genuinely requires containers or VMs
+
+Elasticsearch does not have a serverless-tier that supports the custom index settings Flint uses (nested object limit, GIN-equivalent). You need either a managed ES instance (Elastic Cloud) or a VM-hosted one. Lambda/serverless-only environments won't work for ES.
 
 ---
 

@@ -224,6 +224,69 @@ For each new section:
 4. If code changed: `docker compose up -d --build backend`, then re-run.
 5. If only seed data changed: re-run immediately (no rebuild needed).
 
+### 13. Verify LOINC codes exist in LOINC 2.82
+
+The HL7 validator uses **LOINC 2.82**. Codes not present in that version fail as ERROR (not warning). Never assume a code is valid because it looks plausible. Verify using NLM ClinicalTables:
+
+```
+https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?terms=<code>&sf=LOINC_NUM&df=LOINC_NUM,LONG_COMMON_NAME
+```
+
+If `result[3]` is an empty array, the code does not exist in LOINC 2.82. This also gives you the correct `LONG_COMMON_NAME` to use as the `display`. Known invalid codes encountered: `57828-0`, `57243-2`.
+
+### 14. obs-6 + dataAbsentReason: the two-observation split
+
+FHIR constraint **obs-6**: `dataAbsentReason SHALL only be present if Observation.value[x] is not present`.
+
+`_valueString` (the JSON null form of `valueString`) IS treated as value[x] presence. Having both `_valueString` and `dataAbsentReason` in the same observation violates obs-6.
+
+Inferno 2.50 runs two separate DAR checks that cannot both be satisfied by a single valid observation:
+- **2.50.01** — checks for the string `"http://hl7.org/fhir/StructureDefinition/data-absent-reason"` in the raw JSON (extension URL presence)
+- **2.50.02** — checks for a `Coding` with `code == 'unknown'` AND `system == 'http://terminology.hl7.org/CodeSystem/data-absent-reason'` (dataAbsentReason.coding)
+
+**Solution: two observations with the same category (e.g. `functional-status`):**
+- Observation A: `dataAbsentReason.coding` (code=unknown, system=data-absent-reason) — no `_valueString` → satisfies 2.50.02; obs-6 compliant
+- Observation B: `"_valueString": {"extension": [{"url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason", "valueCode": "unknown"}]}` — no `dataAbsentReason` → satisfies 2.50.01; obs-6 compliant
+
+Both observations must share a category that's searched during the 2.50 test group (e.g. `functional-status`) so both appear in scratch.
+
+### 15. Inferno stale session scratch — restart container + session after seed changes
+
+Inferno caches resource search results in its session "scratch" store during search steps. Validation sub-tests reuse this cached data. Re-running only a validation sub-test (not the full group) validates **old data** even if the DB is now correct.
+
+**Symptoms:** Inferno still reports an invalid LOINC code or wrong display after you've fixed it in the DB and flushed Redis.
+
+**Fix:** Restart the Inferno container completely, start a fresh Inferno test session, then rerun the **entire test group** (not just the failing sub-test) from scratch. Mid-run partial failures (e.g. reference resolution tests) may be transient — complete the full run before diagnosing individual failures.
+
+```bash
+docker restart inferno-testing-inferno-1
+# Then open Inferno UI → new session → run full group
+```
+
+### 16. HL7 v3 display lookup via tx.fhir.org
+
+For HL7 v3 code systems (v3-ParticipationType, v3-ActCode, etc.), the canonical display is not always intuitive. Look it up before writing seed data:
+
+```
+https://tx.fhir.org/r4/CodeSystem/$lookup?system=http://terminology.hl7.org/CodeSystem/v3-ParticipationType&code=PART&_format=json
+```
+
+Extract the `valueString` for the parameter named `display`. Known example that burned us:
+
+| System | Code | Wrong | Correct |
+|--------|------|-------|---------|
+| `v3-ParticipationType` | `PART` | `"Participant"` or `"participant"` | `"Participation"` |
+
+### 17. 2.48 DocumentReference type tracking — don't change type codes
+
+Inferno section 2.48 verifies that the server returns all `DocumentReference.type` codes it advertised during the 2.12 discovery search (stored in session scratch). If you change a type code in seed data after 2.12 has already run, 2.48 will fail with:
+
+```
+Could not find these DocumentReference types: <old-code>
+```
+
+**The correct fix:** Keep the original code, correct only the `display` field to match what LOINC 2.82 actually says for that code. Example: `11526-1` display is `"Pathology study"` (NOT `"Chemistry studies (set)"` which is 18719-5).
+
 ---
 
 ## Open Items
