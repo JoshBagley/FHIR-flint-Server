@@ -381,7 +381,7 @@
       "credentials": [
         {
           "type": "password",
-          "value": "alice123",
+          "value": "Alice123",
           "temporary": false
         }
       ],
@@ -404,7 +404,7 @@
       "credentials": [
         {
           "type": "password",
-          "value": "jones123",
+          "value": "Jones123",
           "temporary": false
         }
       ],
@@ -427,7 +427,7 @@
       "credentials": [
         {
           "type": "password",
-          "value": "admin123",
+          "value": "Admin123",
           "temporary": false
         }
       ],

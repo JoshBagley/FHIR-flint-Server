@@ -12,7 +12,22 @@
       "PowerShell($sql = \"SELECT id, data->'performer' as performer FROM fhir_resources WHERE resource_type='DiagnosticReport' ORDER BY id\")",
       "PowerShell(docker exec inferno-testing-worker-1 ps aux 2>&1)",
       "PowerShell(docker exec inferno-testing-worker-1 sh -c \"nc -zv redis 6379 2>&1\")",
-      "PowerShell(docker exec inferno-testing-worker-1 sh -c \"ruby -e \\\\\"require 'socket'; s = TCPSocket.new\\('redis', 6379\\); s.puts 'PING'; puts s.gets; s.close\\\\\"\")"
+      "PowerShell(docker exec inferno-testing-worker-1 sh -c \"ruby -e \\\\\"require 'socket'; s = TCPSocket.new\\('redis', 6379\\); s.puts 'PING'; puts s.gets; s.close\\\\\"\")",
+      "Bash(python3 -c 'import sys,json; [print\\(u[\"username\"], u.get\\(\"email\",\"\"\\)\\) for u in json.load\\(sys.stdin\\)]')",
+      "Bash(curl -s -X POST \"http://localhost:8080/realms/fhir/protocol/openid-connect/token\" --data-urlencode \"client_id=flint-backend\" --data-urlencode \"client_secret=flint-backend-secret\" --data-urlencode \"grant_type=password\" --data-urlencode \"username=admin\" --data-urlencode \"password=Admin1234!\" --data-urlencode \"scope=openid user/*.write\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(list\\(d.keys\\(\\)\\)[:3]\\)\")",
+      "Bash(python3 -c 'import sys,json; c=json.load\\(sys.stdin\\); print\\(\"directAccess:\", c.get\\(\"directAccessGrantsEnabled\"\\), \"standardFlow:\", c.get\\(\"standardFlowEnabled\"\\)\\)')",
+      "Bash(python3 -c 'import sys,json; c=json.load\\(sys.stdin\\); print\\(\"directAccess:\", c.get\\(\"directAccessGrantsEnabled\"\\), \"public:\", c.get\\(\"publicClient\"\\)\\)')",
+      "Bash(python3 -c 'import sys,json; u=json.load\\(sys.stdin\\)[0]; print\\(\"email:\", u.get\\(\"email\",\"\"\\), \"enabled:\", u.get\\(\"enabled\"\\)\\)')",
+      "Bash(python3 -c 'import sys,json; [print\\(u[\"username\"], \"|\", u.get\\(\"email\",\"\"\\)\\) for u in json.load\\(sys.stdin\\)]')",
+      "Bash(curl -s -X POST http://localhost:8080/realms/fhir/protocol/openid-connect/token --data-urlencode client_id=flint-app --data-urlencode grant_type=password --data-urlencode username=admin --data-urlencode password=__TRACKED_VAR__ --data-urlencode scope=openid)",
+      "Bash(curl -s -X POST \"http://localhost:8080/realms/fhir/protocol/openid-connect/token\" --data-urlencode \"client_id=flint-app\" --data-urlencode \"grant_type=password\" --data-urlencode \"username=admin\" --data-urlencode \"password=admin123\" --data-urlencode \"scope=openid\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('OK:', d.get\\('resourceType'\\), d.get\\('id'\\), '| active:', d.get\\('active'\\)\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('resourceType'\\), d.get\\('total'\\), list\\(d.keys\\(\\)\\)\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d\\)\")",
+      "Bash(curl -s -X POST \"http://localhost:8080/realms/fhir/protocol/openid-connect/token\" --data-urlencode \"client_id=flint-app\" --data-urlencode \"grant_type=password\" --data-urlencode \"username=admin\" --data-urlencode \"password=admin123\" --data-urlencode \"scope=openid user/*.read user/*.write\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('scope','N/A'\\)[:100] if 'access_token' in d else d\\)\")",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

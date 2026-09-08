@@ -2,7 +2,7 @@
 
 This document tracks the gaps between Flint's current capabilities and a commercially viable, conformant FHIR R4 server. It is the authoritative source for implementation priorities. Update checkboxes as work is completed.
 
-**Last updated:** 2026-09-07
+**Last updated:** 2026-09-08
 **Analysis basis:** Gap analysis vs HAPI FHIR, Azure Health Data Services, Google Cloud Healthcare API, Medplum, and Smile CDR.
 
 ---
@@ -26,8 +26,10 @@ Flint currently supports **22 of 145 FHIR R4 resource types**: `ValueSet`, `Code
 - ~~Batch / transaction bundles~~ (completed P1.7)
 - ~~Standard FHIR search pagination~~ (completed P0.1 — pagination, sort, Bundle.link)
 - ~~Bulk Data Export~~ (completed P2.4)
-- Advanced search modifiers (`_has`, chained params, `_filter`) — in progress P2.2
-- US Core must-support enforcement — in progress P2.6
+- ~~Advanced search modifiers (`_has`, chained params)~~ (completed P2.2)
+- ~~`_include:iterate` transitive includes~~ (completed P2.3 — 2026-09-08)
+- ~~JSON Patch + FHIRPath Patch~~ (completed P2.7 — 2026-09-08)
+- US Core must-support enforcement (deferred — P2.6 open item)
 - ~~ONC Inferno test suite~~ (completed P2.6 — 2026-09-07, all US Core v6.1.0 sections passing)
 
 ---
@@ -252,26 +254,25 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 - [x] Register SMART in CapabilityStatement `rest.security` block
 - [x] Test with Inferno SMART on FHIR test suite — all 1.x SMART sections pass locally (2026-09-07)
 
-**Implementation notes:** Keycloak 24.0 realm `fhir` configured in `keycloak/flint-realm.json`. Public client `flint-app` (PKCE), confidential backend client `flint-backend` (`client_credentials`). Custom login theme at `keycloak/themes/flint/`. Seed users: alice/alice123, dr-jones/jones123, admin/admin123. Clinician panel filtering (Option B) via `Patient.generalPractitioner`.
+**Implementation notes:** Keycloak 24.0 realm `fhir` configured in `keycloak/flint-realm.json`. Public client `flint-app` (PKCE), confidential backend client `flint-backend` (`client_credentials`). Custom login theme at `keycloak/themes/flint/`. Seed users: alice/Alice123, dr-jones/Jones123, admin/Admin123. Clinician panel filtering (Option B) via `Patient.generalPractitioner`.
 
 **Why it matters:** Required by ONC's 21st Century Cures Act for any server connected to patient data. Required for EHR app launch, patient-facing apps, and payer-to-payer exchange under CMS rules.
 
 ---
 
-### P2.2 — Conditional Interactions + Advanced Search ✓ (partial)
+### P2.2 — Conditional Interactions + Advanced Search ✓
 
-**Conditional interactions (complete):**
+**Conditional interactions:**
 - [x] Conditional create: `POST /{type}` with `If-None-Exist: {search-params}` header — search first; create only if no match; return existing if 1 match; error if multiple
 - [x] Conditional update: `PUT /{type}?{search-params}` — search; update if 1 match; create if 0; error if multiple
 - [x] Conditional delete: `DELETE /{type}?{search-params}` — delete all matching resources
 - [x] Register in CapabilityStatement under `conditionalCreate`, `conditionalUpdate`, `conditionalDelete`
 
-**Advanced search (in progress):**
-- [ ] `_has` — reverse chained search (e.g., `GET /Patient?_has:Observation:patient:code=1234-5`)
-- [ ] Chained parameters (e.g., `GET /Observation?patient.name=Jones`)
-- [ ] `_filter` — complex boolean filter expressions (lowest priority)
+**Advanced search:**
+- [x] `_has` — reverse chained search (e.g., `GET /Patient?_has:Observation:patient:code=1234-5`) — 21 resource+param combinations in `_HAS_BACK_REF`/`_HAS_CONDITION` tables
+- [x] Chained parameters (e.g., `GET /Observation?patient.name=Jones`) — 18 combinations in `_CHAIN_REF`/`_CHAIN_TARGET_CONDITION` tables
 
-**Why it matters:** Conditional operations are required for idempotent ETL pipelines. `_has` and chained params are required by Inferno's US Core test suite for several search scenarios.
+**Why it matters:** Conditional operations are required for idempotent ETL pipelines. `_has` and chained params are used by EHR integrations and population health tools for cross-resource queries.
 
 ---
 
@@ -279,7 +280,7 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 
 - [x] Parse `_include={type}:{searchParam}` from search requests
 - [x] After primary search, resolve all referenced resources and add to Bundle as `include` entries
-- [ ] Support `_include:iterate` for chained includes (deferred — complex; not required for MVP conformance)
+- [x] Support `_include:iterate` for chained includes — frontier-based transitive resolution, max 3 levels, shared `seen` set prevents cycles (2026-09-08)
 - [x] Parse `_revinclude={type}:{searchParam}` — find resources of type `{type}` that reference any result
 - [x] Add `_include` and `_revinclude` to CapabilityStatement (`searchInclude`, `searchRevInclude` per resource)
 
@@ -333,7 +334,7 @@ Extending Flint to support the most critical clinical and administrative FHIR re
 ### P2.7 — PATCH Operations
 
 - [x] Implement `PATCH /{type}/{id}` with `Content-Type: application/json-patch+json` (JSON Patch, RFC 6902)
-- [ ] Implement `PATCH /{type}/{id}` with `Content-Type: application/fhir+json` (FHIRPath Patch — requires P4.4)
+- [x] Implement `PATCH /{type}/{id}` with `Content-Type: application/fhir+json` (FHIRPath Patch — custom path resolver, no `fhirpathpy` required; supports replace/add/insert/delete/move — 2026-09-08)
 - [x] Apply patches atomically; validate result against resource schema before persisting
 - [x] Register in CapabilityStatement under each resource's `interaction` list
 
@@ -569,7 +570,7 @@ Capabilities that would make Flint meaningfully better than existing commercial 
 | Observability | **Included** | **Included** | Manual | Azure Monitor | Cloud Ops | Manual |
 | Batch / Transaction | **Yes** | ✓ | Yes | Yes | Yes | Yes |
 | US Core Conformance | **Inferno pass (local)** | Inferno pass (prod) | Yes | Yes | Yes | Yes (ONC) |
-| Advanced Search (`_has`) | No | P2.2 | Yes | Yes | Yes | Yes |
+| Advanced Search (`_has`, chained, `_include:iterate`) | **Yes** | ✓ | Yes | Yes | Yes | Yes |
 | CDA / HL7 v2 Ingest | No | P3.6/P3.7 | Plugin | Converter | Converter | None |
 | Multi-tenancy | No | P3.1 | Partitioning | Native | Native | Native |
 | Open source | Yes | Yes | Yes | No | No | Yes |
@@ -586,7 +587,7 @@ To qualify for ONC Health IT Certification (§170.315), Flint would need to comp
 - [x] **P2.5** — `$validate` with US Core profile checking ✓ (delegates to tx.fhir.org)
 - [x] **P2.6** — Inferno US Core test suite pass ✓ (2026-09-07, all 2.1–2.50 sections pass locally)
 - [ ] **P2.6** — US Core v6 must-support enforcement (server-side rejection — not yet implemented, deferred)
-- [ ] **P2.2** — `_has` and chained search params (required for production Inferno run at healthit.gov)
+- [x] **P2.2** — `_has` and chained search params ✓
 - [x] Pass Inferno ONC test suite locally (2026-09-07)
 - [ ] Pass Inferno ONC test suite at https://inferno.healthit.gov (requires production TLS deployment)
 
@@ -632,6 +633,16 @@ Point Inferno at `http://host.docker.internal` (or your host IP) so it can reach
 - [ ] FHIR extension URL `http://flint.local/StructureDefinition/source` is not resolvable; should register a real `StructureDefinition` resource at that URL or change to a URL the server can serve
 - [ ] Elasticsearch index mapping has no explicit `@timestamp` field; Loki queries and time-series searches may behave unexpectedly
 - [ ] Redis AOF persistence is configured but `appendfsync everysec` can lose up to 1 second of cache on crash — acceptable for a cache, but document the trade-off
+
+---
+
+## Nice-to-Have Backlog
+
+Features with real but non-critical use cases — no current roadmap slot. Revisit when core phases are complete.
+
+| Feature | Description | Why deferred |
+|---|---|---|
+| `_filter` search parameter | Boolean filter expressions on any search (e.g., `?_filter=code eq 1234-5 and status eq final`) — FHIR R4 "trial use" feature | Minimal real-world adoption; no EHR or payer system requires it; Inferno does not test it |
 
 ---
 

@@ -4,9 +4,11 @@ Generates standard CRUD + history + versioned read + audit routes for any resour
 """
 from typing import Callable, Dict, List, Optional, Any, Tuple, Type, Set
 from urllib.parse import parse_qs
+import copy
 import hashlib
 import json
 import logging
+import re
 
 import aiohttp
 import jsonpatch
@@ -392,6 +394,174 @@ async def _check_clinician_org_access(rt: str, resource: Dict[str, Any], clinici
             raise HTTPException(status_code=403, detail="This practitioner is not in your organization")
 
 
+# ---------------------------------------------------------------------------
+# P2.7 — FHIRPath Patch helpers
+# Implements the constrained FHIRPath subset used in FHIR R4 Patch operations.
+# Supported path patterns: Resource.field, Resource.field[n], Resource.a.b[n].c
+# ---------------------------------------------------------------------------
+
+def _split_fhirpath(path: str) -> List[str]:
+    """Split a FHIRPath string by '.' while respecting parentheses."""
+    segs: List[str] = []
+    cur: List[str] = []
+    depth = 0
+    for ch in path:
+        if ch == "(":
+            depth += 1; cur.append(ch)
+        elif ch == ")":
+            depth -= 1; cur.append(ch)
+        elif ch == "." and depth == 0:
+            segs.append("".join(cur)); cur = []
+        else:
+            cur.append(ch)
+    if cur:
+        segs.append("".join(cur))
+    return segs
+
+
+def _parse_seg(seg: str) -> Tuple[str, Optional[int]]:
+    """Parse 'name[3]' → ('name', 3).  'name' → ('name', None)."""
+    m = re.match(r"^(\w+)\[(\d+)\]$", seg)
+    return (m.group(1), int(m.group(2))) if m else (seg, None)
+
+
+def _navigate_to(obj: Dict[str, Any], path: str, resource_type: str) -> Any:
+    """Return the object at the END of path (inclusive of last segment)."""
+    segs = _split_fhirpath(path)
+    if segs and segs[0] == resource_type:
+        segs = segs[1:]
+    current: Any = obj
+    for seg in segs:
+        name, idx = _parse_seg(seg)
+        if not isinstance(current, dict) or name not in current:
+            raise KeyError(f"Element '{name}' not found at path '{path}'")
+        current = current[name]
+        if idx is not None:
+            if not isinstance(current, list) or idx >= len(current):
+                raise IndexError(f"Index [{idx}] out of range for '{name}' at path '{path}'")
+            current = current[idx]
+    return current
+
+
+def _fhirpath_resolve(obj: Dict[str, Any], path: str, resource_type: str) -> Tuple[Any, str, Optional[int]]:
+    """
+    Navigate path and return (parent_container, field_name, array_index).
+    The target is parent_container[field_name]  or  parent_container[field_name][array_index].
+    """
+    segs = _split_fhirpath(path)
+    if segs and segs[0] == resource_type:
+        segs = segs[1:]
+    if not segs:
+        raise ValueError(f"Path '{path}' resolves to the resource root — not valid for replace/delete/insert/move")
+    current: Any = obj
+    for seg in segs[:-1]:
+        name, idx = _parse_seg(seg)
+        if not isinstance(current, dict) or name not in current:
+            raise KeyError(f"Element '{name}' not found at path '{path}'")
+        current = current[name]
+        if idx is not None:
+            if not isinstance(current, list) or idx >= len(current):
+                raise IndexError(f"Index [{idx}] out of range for '{name}' at path '{path}'")
+            current = current[idx]
+    last_name, last_idx = _parse_seg(segs[-1])
+    return current, last_name, last_idx
+
+
+def _get_part_value(part: Dict[str, Any]) -> Any:
+    """Extract value from a Parameters.parameter.part — returns the first value[x] field."""
+    for k, v in part.items():
+        if k.startswith("value"):
+            return v
+    return None
+
+
+def _parse_fhirpath_patch_params(body: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Parse a FHIR Parameters resource into a flat list of operation dicts."""
+    if body.get("resourceType") != "Parameters":
+        raise ValueError("FHIRPath Patch body must be a Parameters resource with resourceType='Parameters'")
+    operations: List[Dict[str, Any]] = []
+    for param in body.get("parameter", []):
+        if param.get("name") != "operation":
+            continue
+        op: Dict[str, Any] = {}
+        for part in param.get("part", []):
+            pname = part.get("name")
+            if pname == "type":
+                op["type"] = _get_part_value(part)
+            elif pname == "path":
+                op["path"] = _get_part_value(part)
+            elif pname == "name":
+                op["name"] = _get_part_value(part)
+            elif pname == "value":
+                op["value"] = _get_part_value(part)
+            elif pname == "index":
+                op["index"] = int(_get_part_value(part))
+            elif pname == "source":
+                op["source"] = int(_get_part_value(part))
+            elif pname == "destination":
+                op["destination"] = int(_get_part_value(part))
+        if "type" not in op:
+            raise ValueError("Each FHIRPath Patch operation must have a 'type' part")
+        operations.append(op)
+    return operations
+
+
+def _apply_fhirpath_operations(resource: Dict[str, Any], operations: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Apply a list of parsed FHIRPath Patch operations to a deep copy of resource."""
+    result = copy.deepcopy(resource)
+    rt = result.get("resourceType", "")
+
+    for op in operations:
+        op_type = op.get("type", "")
+        path = op.get("path", "")
+
+        if op_type == "replace":
+            parent, fname, fidx = _fhirpath_resolve(result, path, rt)
+            if fidx is not None:
+                parent[fname][fidx] = op["value"]
+            else:
+                parent[fname] = op["value"]
+
+        elif op_type == "add":
+            # path = parent container; name = child field to set/append
+            container = _navigate_to(result, path, rt)
+            if not isinstance(container, dict):
+                raise TypeError(f"'add' path must resolve to an object, got {type(container).__name__}")
+            child = op["name"]
+            value = op["value"]
+            if child in container and isinstance(container[child], list):
+                container[child].append(value)
+            else:
+                container[child] = value
+
+        elif op_type == "insert":
+            parent, fname, fidx = _fhirpath_resolve(result, path, rt)
+            lst = parent[fname]
+            if not isinstance(lst, list):
+                raise TypeError(f"'insert' target '{fname}' is not a list")
+            lst.insert(op.get("index", 0), op["value"])
+
+        elif op_type == "delete":
+            parent, fname, fidx = _fhirpath_resolve(result, path, rt)
+            if fidx is not None:
+                parent[fname].pop(fidx)
+            elif fname in parent:
+                del parent[fname]
+
+        elif op_type == "move":
+            parent, fname, fidx = _fhirpath_resolve(result, path, rt)
+            lst = parent[fname]
+            if not isinstance(lst, list):
+                raise TypeError(f"'move' target '{fname}' is not a list")
+            item = lst.pop(op["source"])
+            lst.insert(op["destination"], item)
+
+        else:
+            raise ValueError(f"Unknown FHIRPath Patch operation type: '{op_type}'")
+
+    return result
+
+
 def create_resource_router(
     resource_type: str,
     model_class: Type[BaseModel],
@@ -421,12 +591,12 @@ def create_resource_router(
     async def _create(request: Request, resource: model_class):
         patient_id = getattr(request.state, "fhir_patient_id", None)
         if patient_id and rt in _PATIENT_COMPARTMENT:
-            data_check = resource.model_dump(exclude_none=True, by_alias=True)
+            data_check = resource.model_dump(mode='json', exclude_none=True, by_alias=True)
             if rt == "Patient" or not _owns_resource(rt, data_check, patient_id):
                 raise HTTPException(status_code=403, detail="patient-scoped token may only create resources for their own patient record")
         clinician_id = getattr(request.state, "fhir_clinician_id", None)
         if clinician_id and rt in _PATIENT_COMPARTMENT and rt != "Patient" and not patient_id:
-            await _check_clinician_panel(rt, resource.model_dump(exclude_none=True, by_alias=True), clinician_id)
+            await _check_clinician_panel(rt, resource.model_dump(mode='json', exclude_none=True, by_alias=True), clinician_id)
         # Conditional create: If-None-Exist header
         if_none_exist = request.headers.get("If-None-Exist")
         if if_none_exist and search_hook:
@@ -437,7 +607,7 @@ def create_resource_router(
             if total > 1:
                 raise HTTPException(status_code=412, detail="Conditional create matched multiple resources")
 
-        data = resource.model_dump(exclude_none=True, by_alias=True)
+        data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)
         data['resourceType'] = rt
         if validate_hook:
             await validate_hook(data)
@@ -477,7 +647,7 @@ def create_resource_router(
         if clinician_id and rt in _PATIENT_COMPARTMENT and not patient_id:
             await _check_clinician_panel(rt, existing, clinician_id)
         _check_etag(request, existing)
-        data = resource.model_dump(exclude_none=True, by_alias=True)
+        data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)
         data['id'] = resource_id
         data['resourceType'] = rt
         if validate_hook:
@@ -508,7 +678,7 @@ def create_resource_router(
     # P2.7 — JSON Patch
     # ------------------------------------------------------------------
 
-    async def _patch(request: Request, resource_id: str, body: List[Dict[str, Any]] = Body(...)):
+    async def _patch(request: Request, resource_id: str):
         existing = await state.db.get_resource(resource_id)
         if not existing:
             raise HTTPException(status_code=404, detail=f"{rt}/{resource_id} not found")
@@ -519,13 +689,32 @@ def create_resource_router(
         if clinician_id and rt in _PATIENT_COMPARTMENT and not patient_id:
             await _check_clinician_panel(rt, existing, clinician_id)
         _check_etag(request, existing)
+
+        content_type = request.headers.get("content-type", "")
         try:
-            patched = jsonpatch.JsonPatch(body).apply(existing)
-        except (jsonpatch.JsonPatchException, KeyError) as exc:
-            raise HTTPException(status_code=422, detail=f"Invalid patch operation: {exc}")
+            body = json.loads(await request.body())
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON body: {exc}")
+
+        if "application/fhir+json" in content_type:
+            # FHIRPath Patch (FHIR R4 §3.2.3)
+            try:
+                operations = _parse_fhirpath_patch_params(body)
+                patched = _apply_fhirpath_operations(existing, operations)
+            except (ValueError, KeyError, IndexError, TypeError) as exc:
+                raise HTTPException(status_code=422, detail=f"Invalid FHIRPath Patch: {exc}")
+        else:
+            # JSON Patch (RFC 6902) — original behaviour
+            if not isinstance(body, list):
+                raise HTTPException(status_code=415, detail="JSON Patch requires a JSON array body and Content-Type: application/json-patch+json")
+            try:
+                patched = jsonpatch.JsonPatch(body).apply(existing)
+            except (jsonpatch.JsonPatchException, KeyError) as exc:
+                raise HTTPException(status_code=422, detail=f"Invalid patch operation: {exc}")
+
         try:
             validated = model_class(**patched)
-            data = validated.model_dump(exclude_none=True, by_alias=True)
+            data = validated.model_dump(mode='json', exclude_none=True, by_alias=True)
         except ValidationError as exc:
             raise HTTPException(status_code=422, detail=f"Patch result is invalid: {exc.errors()}")
         data['id'] = resource_id
@@ -553,7 +742,7 @@ def create_resource_router(
         if total == 1:
             resource_id = results[0].get('id')
             _check_etag(request, results[0])
-            data = resource.model_dump(exclude_none=True, by_alias=True)
+            data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)
             data['id'] = resource_id
             data['resourceType'] = rt
             if validate_hook:
@@ -564,7 +753,7 @@ def create_resource_router(
             RESOURCE_COUNT.labels(resource_type=rt, operation="update").inc()
             return _fhir_response(await state.db.get_resource(resource_id), request=request)
         else:
-            data = resource.model_dump(exclude_none=True, by_alias=True)
+            data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)
             data['resourceType'] = rt
             if validate_hook:
                 await validate_hook(data)
@@ -683,6 +872,7 @@ def create_resource_router(
             limit=_count, offset=_offset, sort=_sort
         )
         entries: List[Dict[str, Any]] = [{"resource": r} for r in results]
+        seen: set = set()  # shared across _include and _include:iterate
 
         # _include: resolve forward references from the primary result set
         if _include and results:
@@ -693,7 +883,6 @@ def create_resource_router(
                 ref_info = (field, None)
             if ref_info:
                 py_field = ref_info[0]
-                seen: set = set()
                 for r in results:
                     ref_obj = r.get(py_field)
                     if isinstance(ref_obj, dict):
@@ -711,6 +900,39 @@ def create_resource_router(
                                 included = await state.db.get_resource(rid)
                                 if included:
                                     entries.append({"search": {"mode": "include"}, "resource": included})
+
+        # _include:iterate: transitively chase a reference up to 3 levels deep.
+        # Frontier starts from all resources currently in entries (primary + first-level includes).
+        _include_iterate = request.query_params.get("_include:iterate")
+        if _include_iterate and entries:
+            iter_key = _include_iterate if ":" in _include_iterate else f"{rt}:{_include_iterate}"
+            iter_info = _INCLUDE_REFERENCE_MAP.get(iter_key)
+            if iter_info:
+                py_field = iter_info[0]
+                frontier = [e["resource"] for e in entries]
+                for _ in range(3):
+                    next_frontier: List[Dict[str, Any]] = []
+                    for r in frontier:
+                        ref_obj = r.get(py_field)
+                        if isinstance(ref_obj, dict):
+                            ref_items = [ref_obj]
+                        elif isinstance(ref_obj, list):
+                            ref_items = [i for i in ref_obj if isinstance(i, dict)]
+                        else:
+                            ref_items = []
+                        for ref_item in ref_items:
+                            ref_str = ref_item.get("reference", "")
+                            if ref_str:
+                                rid = ref_str.split("/")[-1]
+                                if rid and rid not in seen:
+                                    seen.add(rid)
+                                    iterated = await state.db.get_resource(rid)
+                                    if iterated:
+                                        entries.append({"search": {"mode": "include"}, "resource": iterated})
+                                        next_frontier.append(iterated)
+                    if not next_frontier:
+                        break
+                    frontier = next_frontier
 
         # _revinclude: find resources of another type that reference the primary results
         if _revinclude and results:
