@@ -27,7 +27,13 @@
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d\\)\")",
       "Bash(curl -s -X POST \"http://localhost:8080/realms/fhir/protocol/openid-connect/token\" --data-urlencode \"client_id=flint-app\" --data-urlencode \"grant_type=password\" --data-urlencode \"username=admin\" --data-urlencode \"password=admin123\" --data-urlencode \"scope=openid user/*.read user/*.write\")",
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('scope','N/A'\\)[:100] if 'access_token' in d else d\\)\")",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(pip install *)",
+      "Bash(python3 -m ruff check app/ --output-format=concise)",
+      "Bash(python3 -m bandit -r app/ -ll --format txt)",
+      "Bash(python3 -m pip_audit -r requirements.txt --format columns)",
+      "Bash(npm audit *)",
+      "Bash(python3 -m bandit -r app/ --severity-level high --format txt)"
     ]
   }
 }

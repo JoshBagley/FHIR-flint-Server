@@ -5,7 +5,7 @@ Operation: POST /Claim/$submit  (PASRequestBundle → PASResponseBundle)
 """
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
@@ -14,7 +14,12 @@ from app import state
 from app.capability import register_resource
 from app.fhir_utils import _date_condition, _patient_ref, _token_condition
 from app.models.prior_auth import (
-    Claim, ClaimResponse, Coverage, Questionnaire, QuestionnaireResponse, ServiceRequest,
+    Claim,
+    ClaimResponse,
+    Coverage,
+    Questionnaire,
+    QuestionnaireResponse,
+    ServiceRequest,
 )
 from app.routes.bundle import _after_write, _create_raw
 from app.routes.resource_factory import create_resource_router
@@ -28,9 +33,9 @@ def _now() -> str:
 # Search hooks
 # ---------------------------------------------------------------------------
 
-def _questionnaire_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _questionnaire_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if "url" in qp:
         base["url"] = qp["url"]
     if "status" in qp:
@@ -46,9 +51,9 @@ def _questionnaire_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List
     return base, extra
 
 
-def _questionnaire_response_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _questionnaire_response_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if "status" in qp:
         statuses = [s.strip() for s in qp["status"].split(",")]
         if len(statuses) == 1:
@@ -70,9 +75,9 @@ def _questionnaire_response_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, A
     return base, extra
 
 
-def _claim_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _claim_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if "status" in qp:
         base["status"] = qp["status"]
     if "identifier" in qp:
@@ -89,30 +94,30 @@ def _claim_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[s
         extra.append(("data->'insurer'->>'reference' = ??", qp["insurer"]))
     if "encounter" in qp:
         extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'item', '[]'::jsonb)) it, "
+            ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'item', '[]'::jsonb)) it, "
             "jsonb_array_elements(COALESCE(it->'encounter', '[]'::jsonb)) enc "
-            "WHERE enc->>'reference' = ??)",
+            "WHERE enc->>'reference' = ??)"),
             qp["encounter"],
         ))
     return base, extra
 
 
-def _coverage_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _coverage_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if "status" in qp:
         base["status"] = qp["status"]
     if "identifier" in qp:
         base["identifier"] = qp["identifier"]
     if "patient" in qp or "beneficiary" in qp:
         val = qp.get("patient") or qp.get("beneficiary")
-        extra.append(("data->'beneficiary'->>'reference' = ??", _patient_ref(val)))
+        extra.append(("data->'beneficiary'->>'reference' = ??", _patient_ref(val or "")))
     if "subscriber" in qp:
         extra.append(("data->'subscriber'->>'reference' = ??", qp["subscriber"]))
     if "payor" in qp:
         extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'payor', '[]'::jsonb)) p "
-            "WHERE p->>'reference' = ??)",
+            ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'payor', '[]'::jsonb)) p "
+            "WHERE p->>'reference' = ??)"),
             qp["payor"],
         ))
     if "type" in qp:
@@ -120,9 +125,9 @@ def _coverage_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tupl
     return base, extra
 
 
-def _claim_response_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _claim_response_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if "status" in qp:
         base["status"] = qp["status"]
     if "identifier" in qp:
@@ -142,9 +147,9 @@ def _claim_response_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], Lis
     return base, extra
 
 
-def _service_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _service_request_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if "status" in qp:
         statuses = [s.strip() for s in qp["status"].split(",")]
         if len(statuses) == 1:
@@ -155,15 +160,15 @@ def _service_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], Li
         base["identifier"] = qp["identifier"]
     if "patient" in qp or "subject" in qp:
         val = qp.get("patient") or qp.get("subject")
-        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(val)))
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(val or "")))
     if "encounter" in qp:
         extra.append(("data->'encounter'->>'reference' = ??", qp["encounter"]))
     if "requester" in qp:
         extra.append(("data->'requester'->>'reference' = ??", qp["requester"]))
     if "performer" in qp:
         extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'performer', '[]'::jsonb)) p "
-            "WHERE p->>'reference' = ??)",
+            ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'performer', '[]'::jsonb)) p "
+            "WHERE p->>'reference' = ??)"),
             qp["performer"],
         ))
     if "intent" in qp:
@@ -173,16 +178,16 @@ def _service_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], Li
         if '|' in cat_val:
             sys_part, _, code_part = cat_val.partition('|')
             extra.append((
-                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) c, "
+                ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) c, "
                 "jsonb_array_elements(COALESCE(c->'coding', '[]'::jsonb)) cod "
-                "WHERE cod->>'system' = ?? AND cod->>'code' = ??)",
+                "WHERE cod->>'system' = ?? AND cod->>'code' = ??)"),
                 [sys_part, code_part],
             ))
         else:
             extra.append((
-                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) c, "
+                ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'category', '[]'::jsonb)) c, "
                 "jsonb_array_elements(COALESCE(c->'coding', '[]'::jsonb)) cod "
-                "WHERE cod->>'code' = ??)",
+                "WHERE cod->>'code' = ??)"),
                 cat_val,
             ))
     if "code" in qp:
@@ -255,7 +260,7 @@ async def claim_submit(request: Request):
     """PAS prior authorization submission — accepts PASRequestBundle, returns PASResponseBundle."""
     try:
         body = await request.json()
-    except Exception:
+    except Exception:  # noqa: BLE001
         return JSONResponse(status_code=400, content={
             "resourceType": "OperationOutcome",
             "issue": [{"severity": "error", "code": "invalid", "diagnostics": "Invalid JSON body"}],
@@ -268,10 +273,10 @@ async def claim_submit(request: Request):
                        "diagnostics": "Request body must be a Bundle (PASRequestBundle)"}],
         })
 
-    entries: List[Dict[str, Any]] = body.get("entry", [])
+    entries: list[dict[str, Any]] = body.get("entry", [])
 
     # Locate the Claim resource within the bundle
-    claim_resource: Dict[str, Any] = {}
+    claim_resource: dict[str, Any] = {}
     for entry in entries:
         r = entry.get("resource", {})
         if r.get("resourceType") == "Claim":
@@ -294,11 +299,11 @@ async def claim_submit(request: Request):
 
     # Store all bundle resources atomically, then generate a ClaimResponse
     now = _now()
-    post_actions: List[Tuple] = []
+    post_actions: list[tuple] = []
     claim_id: str = ""
-    cr_data: Dict[str, Any] = {}
+    cr_data: dict[str, Any] = {}
 
-    async with state.db.pool.acquire() as conn:
+    async with state.db.pool.acquire() as conn:  # noqa: SIM117
         async with conn.transaction():
             for entry in entries:
                 resource = dict(entry.get("resource", {}))

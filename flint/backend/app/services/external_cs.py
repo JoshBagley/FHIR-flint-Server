@@ -10,11 +10,11 @@ Provides unified search and lookup across standard SDOs:
   - VSAC         (NLM VSAC FHIR — UMLS_API_KEY)
 """
 
-import os
+import asyncio
 import base64  # still used by _vsac_auth_header
 import logging
-import asyncio
-from typing import Optional
+import os
+from typing import Any
 
 import aiohttp
 import yarl
@@ -87,7 +87,7 @@ SYSTEMS: dict = {
 def list_systems() -> list:
     """Return all systems with availability flag based on configured env vars."""
     result = []
-    for sys_id, info in SYSTEMS.items():
+    for info in SYSTEMS.values():
         available = True
         if info.get("requires_key"):
             available = all(os.getenv(var, "") for var in info.get("key_vars", []))
@@ -102,7 +102,7 @@ def list_systems() -> list:
 _TIMEOUT = aiohttp.ClientTimeout(total=15)
 
 
-async def _get(session: aiohttp.ClientSession, url: str, **kwargs) -> dict | list:
+async def _get(session: aiohttp.ClientSession, url: str, **kwargs) -> Any:
     async with session.get(url, timeout=_TIMEOUT, **kwargs) as resp:
         resp.raise_for_status()
         return await resp.json(content_type=None)
@@ -138,7 +138,7 @@ async def search_snomed(query: str, limit: int) -> list:
     return results
 
 
-async def lookup_snomed(code: str) -> Optional[dict]:
+async def lookup_snomed(code: str) -> dict | None:
     url = f"{_TX_FHIR}/CodeSystem/$lookup"
     params = {"system": "http://snomed.info/sct", "code": code, "_format": "json"}
     async with aiohttp.ClientSession() as session:
@@ -181,7 +181,7 @@ async def search_icd10cm(query: str, limit: int) -> list:
     return results
 
 
-async def lookup_icd10cm(code: str) -> Optional[dict]:
+async def lookup_icd10cm(code: str) -> dict | None:
     url = "https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search"
     params = {"sf": "code,name", "terms": code, "maxList": 5}
     async with aiohttp.ClientSession() as session:
@@ -232,7 +232,7 @@ _LOINC_FHIR = "https://fhir.loinc.org"
 _NLM_LOINC = "https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search"
 
 
-def _loinc_auth_header() -> Optional[str]:
+def _loinc_auth_header() -> str | None:
     u = os.getenv("LOINC_USERNAME", "")
     p = os.getenv("LOINC_PASSWORD", "")
     if u and p:
@@ -276,7 +276,7 @@ async def search_loinc(query: str, limit: int) -> list:
         ]
 
 
-async def lookup_loinc(code: str) -> Optional[dict]:
+async def lookup_loinc(code: str) -> dict | None:
     auth = _loinc_auth_header()
     if auth:
         # fhir.loinc.org $lookup
@@ -295,7 +295,7 @@ async def lookup_loinc(code: str) -> Optional[dict]:
         return None
     else:
         # Fallback: NLM ClinicalTables
-        params = {"terms": code, "maxList": 5, "df": "LOINC_NUM,LONG_COMMON_NAME"}
+        params = {"terms": code, "maxList": "5", "df": "LOINC_NUM,LONG_COMMON_NAME"}
         async with aiohttp.ClientSession() as session:
             data = await _get(session, _NLM_LOINC, params=params)
         for pair in (data[3] if len(data) > 3 and data[3] else []):
@@ -378,7 +378,7 @@ async def search_hl7v2(system_url: str, query: str, limit: int) -> list:
     return results
 
 
-async def lookup_hl7v2(system_url: str, code: str) -> Optional[dict]:
+async def lookup_hl7v2(system_url: str, code: str) -> dict | None:
     """Lookup a single code in an HL7 v2 table via tx.fhir.org $lookup."""
     url = f"{_TX_FHIR}/CodeSystem/$lookup"
     params = {"system": system_url, "code": code, "_format": "json"}
@@ -421,7 +421,7 @@ async def subsumes_snomed(codeA: str, codeB: str) -> str:
     return outcome
 
 
-async def subsumes_loinc(codeA: str, codeB: str) -> Optional[str]:
+async def subsumes_loinc(codeA: str, codeB: str) -> str | None:
     """
     Check subsumption between two LOINC codes via fhir.loinc.org.
 
@@ -472,8 +472,8 @@ async def expand_snomed_ecl(ecl: str, filter_text: str, count: int) -> list:
     if m:
         vs_url = f"http://snomed.info/sct?fhir_vs=isa/{m.group(1)}"
     # ^{refsetId}  → refset/{id}
-    elif re.match(r'^\^(\d+)\s*$', ecl):
-        refset_id = re.match(r'^\^(\d+)\s*$', ecl).group(1)
+    elif m2 := re.match(r'^\^(\d+)\s*$', ecl):
+        refset_id = m2.group(1)
         vs_url = f"http://snomed.info/sct?fhir_vs=refset/{refset_id}"
     # Plain concept ID — single concept
     elif re.match(r'^\d+\s*$', ecl):
@@ -494,7 +494,7 @@ async def expand_snomed_ecl(ecl: str, filter_text: str, count: int) -> list:
     # decode '%3F' back to '?' — which would cause tx.fhir.org to misparse the
     # SNOMED implicit ValueSet URL (splitting the query string at the second '?').
     request_url = f"{_TX_FHIR}/ValueSet/$expand?{urlencode(qs_params)}"
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession() as session:  # noqa: SIM117
         async with session.get(yarl.URL(request_url, encoded=True), timeout=_TIMEOUT) as resp:
             if not resp.ok:
                 body = await resp.text()
@@ -503,7 +503,7 @@ async def expand_snomed_ecl(ecl: str, filter_text: str, count: int) -> list:
                     import json as _json
                     oo = _json.loads(body)
                     diag = oo.get("issue", [{}])[0].get("diagnostics", body[:300])
-                except Exception:
+                except Exception:  # noqa: BLE001
                     diag = body[:300]
                 raise aiohttp.ClientResponseError(
                     resp.request_info, resp.history,
@@ -547,8 +547,8 @@ async def expand_snomed_ecl_us(ecl: str, filter_text: str, count: int) -> list:
     m = re.match(r'^<{1,2}(\d+)\s*$', ecl)
     if m:
         vs_url_us = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=isa/{m.group(1)}"
-    elif re.match(r'^\^(\d+)\s*$', ecl):
-        refset_id = re.match(r'^\^(\d+)\s*$', ecl).group(1)
+    elif m2 := re.match(r'^\^(\d+)\s*$', ecl):
+        refset_id = m2.group(1)
         vs_url_us = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=refset/{refset_id}"
     elif re.match(r'^\d+\s*$', ecl):
         vs_url_us = f"http://snomed.info/sct/{_SNOMED_US_MODULE}?fhir_vs=isa/{ecl}"
@@ -564,26 +564,25 @@ async def expand_snomed_ecl_us(ecl: str, filter_text: str, count: int) -> list:
         if filter_text:
             qs_params.append(("filter", filter_text))
         request_url = f"{_TX_FHIR}/ValueSet/$expand?{urlencode(qs_params)}"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                yarl.URL(request_url, encoded=True), timeout=_TIMEOUT
-            ) as resp:
-                if resp.status in (404, 422):
-                    return [], False
-                if not resp.ok:
-                    body = await resp.text()
-                    try:
-                        import json as _json
-                        oo = _json.loads(body)
-                        diag = oo.get("issue", [{}])[0].get("diagnostics", body[:300])
-                    except Exception:
-                        diag = body[:300]
-                    raise aiohttp.ClientResponseError(
-                        resp.request_info, resp.history,
-                        status=resp.status, message=diag,
-                    )
-                data = await resp.json(content_type=None)
-                return data.get("expansion", {}).get("contains", []), True
+        async with aiohttp.ClientSession() as session, session.get(
+            yarl.URL(request_url, encoded=True), timeout=_TIMEOUT
+        ) as resp:
+            if resp.status in (404, 422):
+                return [], False
+            if not resp.ok:
+                body = await resp.text()
+                try:
+                    import json as _json
+                    oo = _json.loads(body)
+                    diag = oo.get("issue", [{}])[0].get("diagnostics", body[:300])
+                except Exception:  # noqa: BLE001
+                    diag = body[:300]
+                raise aiohttp.ClientResponseError(
+                    resp.request_info, resp.history,
+                    status=resp.status, message=diag,
+                )
+            data = await resp.json(content_type=None)
+            return data.get("expansion", {}).get("contains", []), True
 
     # Try US Edition first; fall back to International if module not available.
     contains, us_available = await _try_expand(vs_url_us)
@@ -636,20 +635,20 @@ async def get_snomed_children(concept_id: str, edition: str = "international") -
 
     _SNOMED_BASE = "http://snomed.info/sct"
 
-    async def _expand_ecl(system_base: str, ecl_expr: str, limit: int = 200) -> Optional[list]:
+    async def _expand_ecl(system_base: str, ecl_expr: str, limit: int = 200) -> list | None:
         """Expand an ECL expression and return the contains list, or None on error."""
         vs_url = f"{system_base}?fhir_vs=ecl/{ecl_expr}"
         qs = urlencode([("url", vs_url), ("count", limit), ("_format", "json")])
         request_url = f"{_TX_FHIR}/ValueSet/$expand?{qs}"
         try:
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession() as session:  # noqa: SIM117
                 async with session.get(yarl.URL(request_url, encoded=True), timeout=_TIMEOUT) as resp:
                     if resp.status in (400, 404, 422):
                         return None
                     resp.raise_for_status()
                     data = await resp.json(content_type=None)
                     return data.get("expansion", {}).get("contains", [])
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning("SNOMED ECL expand [%s / %s]: %s", ecl_expr, concept_id, exc)
             return None
 
@@ -658,7 +657,7 @@ async def get_snomed_children(concept_id: str, edition: str = "international") -
         qs = urlencode([("system", system), ("code", concept_id), ("_format", "json")])
         request_url = f"{_TX_FHIR}/CodeSystem/$lookup?{qs}"
         try:
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession() as session:  # noqa: SIM117
                 async with session.get(yarl.URL(request_url, encoded=True), timeout=_TIMEOUT) as resp:
                     if resp.status >= 400:
                         return ""
@@ -667,7 +666,7 @@ async def get_snomed_children(concept_id: str, edition: str = "international") -
                     for p in data.get("parameter", []):
                         if p.get("name") == "display":
                             return p.get("valueString", "")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
         return ""
 
@@ -698,7 +697,7 @@ async def get_snomed_children(concept_id: str, edition: str = "international") -
         raise ValueError(f"SNOMED concept '{concept_id}' not found or hierarchy not available on tx.fhir.org")
 
     children = [{"code": c["code"], "display": c.get("display", "")} for c in children_raw]
-    parent: Optional[dict] = None
+    parent: dict | None = None
     if parents_raw:
         p = parents_raw[0]
         parent = {"code": p["code"], "display": p.get("display", "")}
@@ -714,7 +713,7 @@ async def get_snomed_children(concept_id: str, edition: str = "international") -
     }
 
 
-async def lookup_loinc_with_properties(code: str, properties: list) -> Optional[dict]:
+async def lookup_loinc_with_properties(code: str, properties: list) -> dict | None:
     """
     Lookup a LOINC code and return requested properties (e.g. parent, child, COMPONENT).
     Uses fhir.loinc.org when credentials are configured (full hierarchy including parent/child).
@@ -727,7 +726,7 @@ async def lookup_loinc_with_properties(code: str, properties: list) -> Optional[
         for prop in properties:
             param_list.append(("property", prop))
         headers = {"Authorization": auth, "Accept": "application/fhir+json"}
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession() as session:  # noqa: SIM117
             async with session.get(f"{_LOINC_FHIR}/CodeSystem/$lookup", headers=headers,
                                    params=param_list, timeout=_TIMEOUT) as resp:
                 resp.raise_for_status()
@@ -777,7 +776,7 @@ async def lookup_loinc_with_properties(code: str, properties: list) -> Optional[
     return None
 
 
-async def lookup_by_system_url(system_url: str, code: str) -> Optional[dict]:
+async def lookup_by_system_url(system_url: str, code: str) -> dict | None:
     """
     Lookup a code using the full system URL.
 
@@ -787,7 +786,7 @@ async def lookup_by_system_url(system_url: str, code: str) -> Optional[dict]:
     """
     try:
         return await lookup_hl7v2(system_url, code)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning("HL7 terminology lookup failed [%s/%s]: %s", system_url, code, e)
         return None
 
@@ -817,17 +816,17 @@ async def search(system_id: str, query: str, limit: int = 20) -> list:
         return []
     try:
         return await fn(query, limit)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning("SDO search failed [%s]: %s", system_id, e)
         return []
 
 
-async def lookup(system_id: str, code: str) -> Optional[dict]:
+async def lookup(system_id: str, code: str) -> dict | None:
     fn = _LOOKUP_FNS.get(system_id)
     if not fn:
         return None
     try:
         return await fn(code)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning("SDO lookup failed [%s/%s]: %s", system_id, code, e)
         return None

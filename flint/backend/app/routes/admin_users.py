@@ -13,16 +13,22 @@ import asyncio
 import logging
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from app import state
-from app.auth import require_access
+from app.auth import get_roles, require_access
 
 logger = logging.getLogger(__name__)
+
+
+def _check_admin_role(payload: dict[str, Any] | None) -> None:
+    """Raise 403 if the caller is authenticated but lacks fhir-admin role."""
+    if payload is not None and "fhir-admin" not in get_roles(payload):
+        raise HTTPException(status_code=403, detail="Admin user management requires fhir-admin role")
 
 # ---------------------------------------------------------------------------
 # Keycloak admin config — derived from OIDC_ISSUER_URL
@@ -43,7 +49,7 @@ def _parse_kc() -> tuple[str, str]:
 _KC_BASE, _KC_REALM = _parse_kc()
 _KC_ADMIN = f"{_KC_BASE}/admin/realms/{_KC_REALM}"
 
-_token_cache: Dict[str, Any] = {}
+_token_cache: dict[str, Any] = {}
 
 router = APIRouter(prefix="/admin", tags=["Admin Users"], dependencies=[Depends(require_access)])
 
@@ -97,7 +103,7 @@ def _kc_id_from_location(location: str) -> str:
 # Audit logging helpers
 # ---------------------------------------------------------------------------
 
-def _actor(payload: Optional[Dict[str, Any]]) -> str:
+def _actor(payload: dict[str, Any] | None) -> str:
     """Extract a human-readable actor string from the JWT payload."""
     if not payload:
         return "api-key"
@@ -122,19 +128,23 @@ async def _log_identity_event(kc_id: str, action: str, actor: str, summary: str)
 # ---------------------------------------------------------------------------
 
 @router.get("/users")
-async def list_users(search: Optional[str] = Query(None)):
+async def list_users(
+    search: str | None = Query(None),
+    payload: dict[str, Any] | None = Depends(require_access),  # noqa: B008
+):
     """List all realm users enriched with FHIR roles and fhirUser attribute."""
+    _check_admin_role(payload)
     qs = f"/users?max=200{'&search=' + search if search else ''}"
-    users: List[Dict] = await _kc_get(qs)
+    users: list[dict] = await _kc_get(qs)
 
-    async def _enrich(user: Dict) -> Dict:
+    async def _enrich(user: dict) -> dict:
         try:
             mappings = await _kc_get(f"/users/{user['id']}/role-mappings/realm")
             roles = [r["name"] for r in mappings if r["name"].startswith("fhir-")]
-        except Exception:
+        except Exception:  # noqa: BLE001
             roles = []
         attrs = user.get("attributes") or {}
-        fhir_user_list: List[str] = attrs.get("fhirUser") or []
+        fhir_user_list: list[str] = attrs.get("fhirUser") or []
         return {
             "id": user["id"],
             "username": user.get("username"),
@@ -164,9 +174,10 @@ class CreateAdminRequest(BaseModel):
 @router.post("/users/admin", status_code=201)
 async def create_admin(
     req: CreateAdminRequest,
-    payload: Optional[Dict[str, Any]] = Depends(require_access),
+    payload: dict[str, Any] | None = Depends(require_access),  # noqa: B008
 ):
     """Create a Keycloak account with fhir-admin role. No FHIR resource is created."""
+    _check_admin_role(payload)
     kc_resp = await _kc("POST", "/users", json={
         "username": req.username,
         "email": req.email,
@@ -201,19 +212,20 @@ class CreateClinicianRequest(BaseModel):
     email: str
     username: str
     password: str
-    prefix: Optional[str] = None
-    gender: Optional[str] = None
-    organization_id: Optional[str] = None
-    specialty: Optional[str] = None
+    prefix: str | None = None
+    gender: str | None = None
+    organization_id: str | None = None
+    specialty: str | None = None
 
 
 @router.post("/users/clinician", status_code=201)
 async def create_clinician(
     req: CreateClinicianRequest,
-    payload: Optional[Dict[str, Any]] = Depends(require_access),
+    payload: dict[str, Any] | None = Depends(require_access),  # noqa: B008
 ):
     """Create a Practitioner resource + Keycloak account + optional PractitionerRole."""
-    name_entry: Dict[str, Any] = {
+    _check_admin_role(payload)
+    name_entry: dict[str, Any] = {
         "use": "official",
         "family": req.lastName,
         "given": [req.firstName],
@@ -221,7 +233,7 @@ async def create_clinician(
     if req.prefix:
         name_entry["prefix"] = [req.prefix]
 
-    prac_data: Dict[str, Any] = {
+    prac_data: dict[str, Any] = {
         "resourceType": "Practitioner",
         "active": True,
         "name": [name_entry],
@@ -251,7 +263,7 @@ async def create_clinician(
 
     if req.organization_id:
         display = " ".join(filter(None, [req.prefix, req.firstName, req.lastName]))
-        pr: Dict[str, Any] = {
+        pr: dict[str, Any] = {
             "resourceType": "PractitionerRole",
             "active": True,
             "practitioner": {"reference": fhir_ref, "display": display},
@@ -279,23 +291,24 @@ class CreatePatientRequest(BaseModel):
     email: str
     username: str
     temporaryPassword: str = "ChangeMe123!"
-    birthDate: Optional[str] = None
-    gender: Optional[str] = None
-    phone: Optional[str] = None
-    generalPractitioner: Optional[str] = None
+    birthDate: str | None = None
+    gender: str | None = None
+    phone: str | None = None
+    generalPractitioner: str | None = None
 
 
 @router.post("/users/patient", status_code=201)
 async def create_patient_account(
     req: CreatePatientRequest,
-    payload: Optional[Dict[str, Any]] = Depends(require_access),
+    payload: dict[str, Any] | None = Depends(require_access),  # noqa: B008
 ):
     """Create a Patient resource + Keycloak portal account."""
+    _check_admin_role(payload)
     telecom = [{"system": "email", "value": req.email}]
     if req.phone:
         telecom.append({"system": "phone", "value": req.phone})
 
-    patient_data: Dict[str, Any] = {
+    patient_data: dict[str, Any] = {
         "resourceType": "Patient",
         "active": True,
         "name": [{"use": "official", "family": req.lastName, "given": [req.firstName]}],
@@ -348,9 +361,10 @@ class UpdateStatusRequest(BaseModel):
 async def update_user_status(
     kc_id: str,
     req: UpdateStatusRequest,
-    payload: Optional[Dict[str, Any]] = Depends(require_access),
+    payload: dict[str, Any] | None = Depends(require_access),  # noqa: B008
 ):
     """Activate or deactivate a Keycloak user."""
+    _check_admin_role(payload)
     user = await _kc_get(f"/users/{kc_id}")
     user["enabled"] = req.enabled
     resp = await _kc("PUT", f"/users/{kc_id}", json=user)

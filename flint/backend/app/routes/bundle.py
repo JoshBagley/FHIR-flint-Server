@@ -11,7 +11,7 @@ entries up-front, so later entries can reference earlier creates before they're 
 import json
 import uuid as _uuid_mod
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from fastapi import APIRouter, Body
 from fastapi.responses import JSONResponse
@@ -30,7 +30,7 @@ def _now() -> str:
     return datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-def _parse_url(url: str) -> Tuple[str, Optional[str]]:
+def _parse_url(url: str) -> tuple[str, str | None]:
     """(resource_type, resource_id_or_None) — strips ?query and _history suffix."""
     path = url.split('?')[0].strip('/')
     parts = path.split('/')
@@ -39,8 +39,8 @@ def _parse_url(url: str) -> Tuple[str, Optional[str]]:
     return rt, rid
 
 
-def _parse_qs(qs: str) -> Dict[str, str]:
-    out: Dict[str, str] = {}
+def _parse_qs(qs: str) -> dict[str, str]:
+    out: dict[str, str] = {}
     for kv in (qs or '').split('&'):
         if '=' in kv:
             k, v = kv.split('=', 1)
@@ -48,7 +48,7 @@ def _parse_qs(qs: str) -> Dict[str, str]:
     return out
 
 
-def _resolve_refs(obj: Any, id_map: Dict[str, str]) -> Any:
+def _resolve_refs(obj: Any, id_map: dict[str, str]) -> Any:
     """Replace urn:uuid:... placeholders with ResourceType/id strings."""
     if not id_map:
         return obj
@@ -61,8 +61,8 @@ def _resolve_refs(obj: Any, id_map: Dict[str, str]) -> Any:
     return obj
 
 
-def _ok(status: str, location: str = None, etag: str = None, resource: Dict = None) -> Dict:
-    entry: Dict[str, Any] = {"response": {"status": status}}
+def _ok(status: str, location: str | None = None, etag: str | None = None, resource: dict | None = None) -> dict:
+    entry: dict[str, Any] = {"response": {"status": status}}
     if location:
         entry["response"]["location"] = location
     if etag:
@@ -72,7 +72,7 @@ def _ok(status: str, location: str = None, etag: str = None, resource: Dict = No
     return entry
 
 
-def _err(status: str, diag: str) -> Dict:
+def _err(status: str, diag: str) -> dict:
     return {
         "response": {"status": status},
         "resource": {
@@ -86,7 +86,7 @@ def _err(status: str, diag: str) -> Dict:
 # Raw DB helpers (use a provided asyncpg connection — for transaction mode)
 # ---------------------------------------------------------------------------
 
-async def _get_raw(conn, resource_id: str) -> Optional[Dict]:
+async def _get_raw(conn, resource_id: str) -> dict | None:
     """Read resource with meta computed from resource_versions — mirrors DatabaseManager.get_resource."""
     row = await conn.fetchrow("""
         SELECT fr.data, fr.updated_at,
@@ -103,7 +103,7 @@ async def _get_raw(conn, resource_id: str) -> Optional[Dict]:
     return data
 
 
-async def _create_raw(conn, rt: str, data: Dict) -> Tuple[str, str]:
+async def _create_raw(conn, rt: str, data: dict) -> tuple[str, str]:
     """Insert resource; mutates data to add meta. Returns (resource_id, versionId)."""
     rid = data.get('id') or str(_uuid_mod.uuid4())
     data['id'] = rid
@@ -129,7 +129,7 @@ async def _create_raw(conn, rt: str, data: Dict) -> Tuple[str, str]:
     return rid, '1'
 
 
-async def _update_raw(conn, rid: str, data: Dict) -> str:
+async def _update_raw(conn, rid: str, data: dict) -> str:
     """Update resource; mutates data to add meta. Returns new versionId string."""
     row = await conn.fetchrow(
         "SELECT MAX(version_number) AS v FROM resource_versions WHERE resource_id = $1", rid
@@ -165,11 +165,11 @@ async def _update_raw(conn, rid: str, data: Dict) -> str:
 
 async def _do_entry(
     full_url: str,
-    resource: Dict,
-    req: Dict,
-    id_map: Dict[str, str],
+    resource: dict,
+    req: dict,
+    id_map: dict[str, str],
     conn=None,          # asyncpg connection for transaction mode; None = auto-acquire
-) -> Tuple[Dict, Optional[Tuple]]:
+) -> tuple[dict, tuple | None]:
     """
     Process one bundle entry.
     Returns (response_entry_dict, post_action_or_None).
@@ -277,7 +277,7 @@ async def _do_entry(
 # Post-commit side effects (ES index + cache invalidation)
 # ---------------------------------------------------------------------------
 
-async def _after_write(post_actions: List[Tuple]) -> None:
+async def _after_write(post_actions: list[tuple]) -> None:
     for action, rt, rid, data in post_actions:
         try:
             if action in ('create', 'update') and data:
@@ -288,7 +288,7 @@ async def _after_write(post_actions: List[Tuple]) -> None:
                 await state.search_engine.delete_resource(rid)
                 await state.cache.invalidate_pattern(f"{rt}:{rid}:*")
                 await state.cache.invalidate_pattern(f"{rt}:*")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass  # ES/cache failures don't fail the committed write
 
 
@@ -296,12 +296,12 @@ async def _after_write(post_actions: List[Tuple]) -> None:
 # ID pre-pass for urn:uuid: reference resolution
 # ---------------------------------------------------------------------------
 
-def _pre_assign_ids(entries: List[Dict]) -> Dict[str, str]:
+def _pre_assign_ids(entries: list[dict]) -> dict[str, str]:
     """
     For every POST entry with a urn:uuid: fullUrl, ensure the resource has an 'id'
     and map fullUrl → ResourceType/id in id_map so later entries can reference it.
     """
-    id_map: Dict[str, str] = {}
+    id_map: dict[str, str] = {}
     for entry in entries:
         req = entry.get('request', {})
         full_url = entry.get('fullUrl', '')
@@ -320,7 +320,7 @@ def _pre_assign_ids(entries: List[Dict]) -> Dict[str, str]:
 # ---------------------------------------------------------------------------
 
 @router.post("/")
-async def process_bundle(bundle: Dict[str, Any] = Body(...)):
+async def process_bundle(bundle: dict[str, Any] = Body(...)):  # noqa: B008
     if bundle.get('resourceType') != 'Bundle':
         return JSONResponse(status_code=400, content={
             "resourceType": "OperationOutcome",
@@ -336,13 +336,13 @@ async def process_bundle(bundle: Dict[str, Any] = Body(...)):
                        "diagnostics": f"Unsupported Bundle.type '{bundle_type}'. Use 'batch' or 'transaction'."}],
         })
 
-    entries: List[Dict] = bundle.get('entry') or []
+    entries: list[dict] = bundle.get('entry') or []
     id_map = _pre_assign_ids(entries)
 
     # ------------------------------------------------------------------ batch
     if bundle_type == 'batch':
-        response_entries: List[Dict] = []
-        post_actions: List[Tuple] = []
+        response_entries: list[dict] = []
+        post_actions: list[tuple] = []
         for entry in entries:
             try:
                 result, action = await _do_entry(
@@ -354,7 +354,7 @@ async def process_bundle(bundle: Dict[str, Any] = Body(...)):
                 response_entries.append(result)
                 if action:
                     post_actions.append(action)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 response_entries.append(_err("500 Internal Server Error", str(exc)))
 
         await _after_write(post_actions)
@@ -367,35 +367,34 @@ async def process_bundle(bundle: Dict[str, Any] = Body(...)):
     response_entries = []
     post_actions = []
     try:
-        async with state.db.pool.acquire() as conn:
-            async with conn.transaction():
-                for entry in entries:
-                    result, action = await _do_entry(
-                        entry.get('fullUrl', ''),
-                        entry.get('resource') or {},
-                        entry.get('request') or {},
-                        id_map,
-                        conn=conn,
+        async with state.db.pool.acquire() as conn, conn.transaction():
+            for entry in entries:
+                result, action = await _do_entry(
+                    entry.get('fullUrl', ''),
+                    entry.get('resource') or {},
+                    entry.get('request') or {},
+                    id_map,
+                    conn=conn,
+                )
+                status_code = int(
+                    (result.get('response', {}).get('status') or '500').split()[0]
+                )
+                if status_code >= 400:
+                    diag = (
+                        result.get('resource', {})
+                        .get('issue', [{}])[0]
+                        .get('diagnostics', 'entry failed')
                     )
-                    status_code = int(
-                        (result.get('response', {}).get('status') or '500').split()[0]
-                    )
-                    if status_code >= 400:
-                        diag = (
-                            result.get('resource', {})
-                            .get('issue', [{}])[0]
-                            .get('diagnostics', 'entry failed')
-                        )
-                        raise ValueError(f"{result['response']['status']}: {diag}")
-                    response_entries.append(result)
-                    if action:
-                        post_actions.append(action)
+                    raise ValueError(f"{result['response']['status']}: {diag}")
+                response_entries.append(result)
+                if action:
+                    post_actions.append(action)
     except ValueError as exc:
         return JSONResponse(status_code=400, content={
             "resourceType": "OperationOutcome",
             "issue": [{"severity": "error", "code": "processing", "diagnostics": str(exc)}],
         })
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return JSONResponse(status_code=500, content={
             "resourceType": "OperationOutcome",
             "issue": [{"severity": "fatal", "code": "exception", "diagnostics": str(exc)}],

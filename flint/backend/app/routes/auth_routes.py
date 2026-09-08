@@ -45,7 +45,7 @@ _REALM_PATH = urlparse(OIDC_ISSUER_URL).path.rstrip("/") if OIDC_ISSUER_URL else
 
 
 @router.post("/token", summary="Obtain a Bearer token (built-in JWT)")
-async def get_token(form_data: OAuth2PasswordRequestForm = Depends()):
+async def get_token(form_data: OAuth2PasswordRequestForm = Depends()):  # noqa: B008
     """
     OAuth2 Resource Owner Password Credentials grant.
     Only available when ENABLE_AUTH=true and OIDC_ISSUER_URL is not set.
@@ -208,7 +208,7 @@ async def token_proxy(request: Request):
             for claim in ("patient", "fhirUser"):
                 if claim in jwt_claims and claim not in token_body:
                     token_body[claim] = jwt_claims[claim]
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
 
     return JSONResponse(content=token_body, headers=_TOKEN_HEADERS)

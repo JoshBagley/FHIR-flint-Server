@@ -13,38 +13,43 @@ Key Features:
 - Automated concept mapping
 """
 
-from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import JSONResponse, Response
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any, Literal
+import asyncio
+import json
+import logging
+import os
+import sys
+import time
+import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from enum import Enum
-from contextlib import asynccontextmanager
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
-import uuid
-import hashlib
-from collections import defaultdict
-import asyncio
+from typing import Any, Literal
+
 import asyncpg
-from elasticsearch import AsyncElasticsearch
 import redis.asyncio as redis
-import json
-import os
-import time
-import logging
-import sys
-from email.utils import formatdate
+from elasticsearch import AsyncElasticsearch
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from pydantic import BaseModel
+
 from app import state
-from app.fhir_utils import (
-    REQUEST_COUNT, REQUEST_DURATION, RESOURCE_COUNT, RATE_LIMIT_EXCEEDED,
-    _fhir_issue_code, _fhir_response, _check_etag, _bundle_links
-)
 from app.capability import RESOURCE_REGISTRY
+from app.fhir_utils import (
+    RATE_LIMIT_EXCEEDED,
+    REQUEST_COUNT,
+    REQUEST_DURATION,
+    RESOURCE_COUNT,
+    _bundle_links,
+    _check_etag,
+    _fhir_issue_code,
+    _fhir_response,
+)
+from app.routes.ai_assist import router as ai_router
 from app.routes.fhir_operations import router as fhir_operations_router
 from app.routes.sdo_search import router as sdo_router
-from app.routes.ai_assist import router as ai_router
 
 # Logging
 logging.basicConfig(
@@ -73,42 +78,42 @@ class ResourceStatus(str, Enum):
 
 
 class ContactPoint(BaseModel):
-    system: Optional[str] = None
-    value: Optional[str] = None
-    use: Optional[str] = None
+    system: str | None = None
+    value: str | None = None
+    use: str | None = None
 
 
 class ContactDetail(BaseModel):
-    name: Optional[str] = None
-    telecom: Optional[List[ContactPoint]] = []
+    name: str | None = None
+    telecom: list[ContactPoint] | None = []
 
 
 class Coding(BaseModel):
-    system: Optional[str] = None
-    version: Optional[str] = None
-    code: Optional[str] = None
-    display: Optional[str] = None
-    userSelected: Optional[bool] = None
+    system: str | None = None
+    version: str | None = None
+    code: str | None = None
+    display: str | None = None
+    userSelected: bool | None = None
 
 
 class CodeableConcept(BaseModel):
-    coding: Optional[List[Coding]] = []
-    text: Optional[str] = None
+    coding: list[Coding] | None = []
+    text: str | None = None
 
 
 class Identifier(BaseModel):
-    system: Optional[str] = None
-    value: Optional[str] = None
-    use: Optional[str] = None
+    system: str | None = None
+    value: str | None = None
+    use: str | None = None
 
 
 class Meta(BaseModel):
-    versionId: Optional[str] = None
-    lastUpdated: Optional[datetime] = None
-    source: Optional[str] = None
-    profile: Optional[List[str]] = []
-    security: Optional[List[Coding]] = []
-    tag: Optional[List[Coding]] = []
+    versionId: str | None = None
+    lastUpdated: datetime | None = None
+    source: str | None = None
+    profile: list[str] | None = []
+    security: list[Coding] | None = []
+    tag: list[Coding] | None = []
 
 
 class Narrative(BaseModel):
@@ -118,189 +123,189 @@ class Narrative(BaseModel):
 
 class ValueSetConcept(BaseModel):
     code: str
-    display: Optional[str] = None
-    designation: Optional[List[Dict[str, Any]]] = []
+    display: str | None = None
+    designation: list[dict[str, Any]] | None = []
 
 
 class ValueSetInclude(BaseModel):
-    system: Optional[str] = None
-    version: Optional[str] = None
-    concept: Optional[List[ValueSetConcept]] = []
-    filter: Optional[List[Dict[str, Any]]] = []
-    valueSet: Optional[List[str]] = []
+    system: str | None = None
+    version: str | None = None
+    concept: list[ValueSetConcept] | None = []
+    filter: list[dict[str, Any]] | None = []
+    valueSet: list[str] | None = []
 
 
 class ValueSetCompose(BaseModel):
-    lockedDate: Optional[str] = None
-    inactive: Optional[bool] = None
-    include: List[ValueSetInclude] = []
-    exclude: Optional[List[ValueSetInclude]] = []
+    lockedDate: str | None = None
+    inactive: bool | None = None
+    include: list[ValueSetInclude] = []
+    exclude: list[ValueSetInclude] | None = []
 
 
 class ValueSetExpansionContains(BaseModel):
-    system: Optional[str] = None
-    abstract: Optional[bool] = None
-    inactive: Optional[bool] = None
-    version: Optional[str] = None
-    code: Optional[str] = None
-    display: Optional[str] = None
-    designation: Optional[List[Dict[str, Any]]] = []
-    contains: Optional[List['ValueSetExpansionContains']] = []
+    system: str | None = None
+    abstract: bool | None = None
+    inactive: bool | None = None
+    version: str | None = None
+    code: str | None = None
+    display: str | None = None
+    designation: list[dict[str, Any]] | None = []
+    contains: list['ValueSetExpansionContains'] | None = []
 
 
 class ValueSetExpansion(BaseModel):
-    identifier: Optional[str] = None
+    identifier: str | None = None
     timestamp: datetime
-    total: Optional[int] = None
-    offset: Optional[int] = None
-    parameter: Optional[List[Dict[str, Any]]] = []
-    contains: Optional[List[ValueSetExpansionContains]] = []
+    total: int | None = None
+    offset: int | None = None
+    parameter: list[dict[str, Any]] | None = []
+    contains: list[ValueSetExpansionContains] | None = []
 
 
 class ValueSet(BaseModel):
     resourceType: Literal["ValueSet"] = "ValueSet"
-    id: Optional[str] = None
-    meta: Optional[Meta] = None
-    implicitRules: Optional[str] = None
-    language: Optional[str] = None
-    text: Optional[Narrative] = None
-    url: Optional[str] = None
-    identifier: Optional[List[Identifier]] = []
-    version: Optional[str] = None
-    name: Optional[str] = None
-    title: Optional[str] = None
+    id: str | None = None
+    meta: Meta | None = None
+    implicitRules: str | None = None
+    language: str | None = None
+    text: Narrative | None = None
+    url: str | None = None
+    identifier: list[Identifier] | None = []
+    version: str | None = None
+    name: str | None = None
+    title: str | None = None
     status: ResourceStatus
-    experimental: Optional[bool] = None
-    date: Optional[str] = None
-    publisher: Optional[str] = None
-    contact: Optional[List[ContactDetail]] = []
-    description: Optional[str] = None
-    useContext: Optional[List[Dict[str, Any]]] = []
-    jurisdiction: Optional[List[CodeableConcept]] = []
-    immutable: Optional[bool] = None
-    purpose: Optional[str] = None
-    copyright: Optional[str] = None
-    compose: Optional[ValueSetCompose] = None
-    expansion: Optional[ValueSetExpansion] = None
-    extension: Optional[List[Dict[str, Any]]] = []
+    experimental: bool | None = None
+    date: str | None = None
+    publisher: str | None = None
+    contact: list[ContactDetail] | None = []
+    description: str | None = None
+    useContext: list[dict[str, Any]] | None = []
+    jurisdiction: list[CodeableConcept] | None = []
+    immutable: bool | None = None
+    purpose: str | None = None
+    copyright: str | None = None
+    compose: ValueSetCompose | None = None
+    expansion: ValueSetExpansion | None = None
+    extension: list[dict[str, Any]] | None = []
 
 
 class CodeSystemProperty(BaseModel):
     code: str
-    uri: Optional[str] = None
-    description: Optional[str] = None
+    uri: str | None = None
+    description: str | None = None
     type: Literal["code", "Coding", "string", "integer", "boolean", "dateTime", "decimal"]
 
 
 class CodeSystemConceptProperty(BaseModel):
     code: str
-    valueCode: Optional[str] = None
-    valueCoding: Optional[Coding] = None
-    valueString: Optional[str] = None
-    valueInteger: Optional[int] = None
-    valueBoolean: Optional[bool] = None
-    valueDateTime: Optional[datetime] = None
-    valueDecimal: Optional[float] = None
+    valueCode: str | None = None
+    valueCoding: Coding | None = None
+    valueString: str | None = None
+    valueInteger: int | None = None
+    valueBoolean: bool | None = None
+    valueDateTime: datetime | None = None
+    valueDecimal: float | None = None
 
 
 class CodeSystemConceptDesignation(BaseModel):
-    language: Optional[str] = None
-    use: Optional[Coding] = None
+    language: str | None = None
+    use: Coding | None = None
     value: str
 
 
 class CodeSystemConcept(BaseModel):
     code: str
-    display: Optional[str] = None
-    definition: Optional[str] = None
-    designation: Optional[List[CodeSystemConceptDesignation]] = []
-    property: Optional[List[CodeSystemConceptProperty]] = []
-    concept: Optional[List['CodeSystemConcept']] = []
+    display: str | None = None
+    definition: str | None = None
+    designation: list[CodeSystemConceptDesignation] | None = []
+    property: list[CodeSystemConceptProperty] | None = []
+    concept: list['CodeSystemConcept'] | None = []
 
 
 class CodeSystem(BaseModel):
     resourceType: Literal["CodeSystem"] = "CodeSystem"
-    id: Optional[str] = None
-    meta: Optional[Meta] = None
-    url: Optional[str] = None
-    identifier: Optional[List[Identifier]] = []
-    version: Optional[str] = None
-    name: Optional[str] = None
-    title: Optional[str] = None
+    id: str | None = None
+    meta: Meta | None = None
+    url: str | None = None
+    identifier: list[Identifier] | None = []
+    version: str | None = None
+    name: str | None = None
+    title: str | None = None
     status: ResourceStatus
-    experimental: Optional[bool] = None
-    date: Optional[str] = None
-    publisher: Optional[str] = None
-    contact: Optional[List[ContactDetail]] = []
-    description: Optional[str] = None
-    useContext: Optional[List[Dict[str, Any]]] = []
-    jurisdiction: Optional[List[CodeableConcept]] = []
-    purpose: Optional[str] = None
-    copyright: Optional[str] = None
-    caseSensitive: Optional[bool] = None
-    valueSet: Optional[str] = None
-    hierarchyMeaning: Optional[Literal["grouped-by", "is-a", "part-of", "classified-with"]] = None
-    compositional: Optional[bool] = None
-    versionNeeded: Optional[bool] = None
+    experimental: bool | None = None
+    date: str | None = None
+    publisher: str | None = None
+    contact: list[ContactDetail] | None = []
+    description: str | None = None
+    useContext: list[dict[str, Any]] | None = []
+    jurisdiction: list[CodeableConcept] | None = []
+    purpose: str | None = None
+    copyright: str | None = None
+    caseSensitive: bool | None = None
+    valueSet: str | None = None
+    hierarchyMeaning: Literal["grouped-by", "is-a", "part-of", "classified-with"] | None = None
+    compositional: bool | None = None
+    versionNeeded: bool | None = None
     content: Literal["not-present", "example", "fragment", "complete", "supplement"]
-    supplements: Optional[str] = None
-    count: Optional[int] = None
-    filter: Optional[List[Dict[str, Any]]] = []
-    property: Optional[List[CodeSystemProperty]] = []
-    concept: Optional[List[CodeSystemConcept]] = []
-    extension: Optional[List[Dict[str, Any]]] = []
+    supplements: str | None = None
+    count: int | None = None
+    filter: list[dict[str, Any]] | None = []
+    property: list[CodeSystemProperty] | None = []
+    concept: list[CodeSystemConcept] | None = []
+    extension: list[dict[str, Any]] | None = []
 
 
 class ConceptMapGroupElementTarget(BaseModel):
-    code: Optional[str] = None
-    display: Optional[str] = None
+    code: str | None = None
+    display: str | None = None
     equivalence: Literal[
         "relatedto", "equivalent", "equal", "wider", "subsumes",
         "narrower", "specializes", "inexact", "unmatched", "disjoint"
     ] = "equivalent"
-    comment: Optional[str] = None
-    dependsOn: Optional[List[Dict[str, Any]]] = []
-    product: Optional[List[Dict[str, Any]]] = []
+    comment: str | None = None
+    dependsOn: list[dict[str, Any]] | None = []
+    product: list[dict[str, Any]] | None = []
 
 
 class ConceptMapGroupElement(BaseModel):
-    code: Optional[str] = None
-    display: Optional[str] = None
-    target: Optional[List[ConceptMapGroupElementTarget]] = []
+    code: str | None = None
+    display: str | None = None
+    target: list[ConceptMapGroupElementTarget] | None = []
 
 
 class ConceptMapGroup(BaseModel):
-    source: Optional[str] = None
-    sourceVersion: Optional[str] = None
-    target: Optional[str] = None
-    targetVersion: Optional[str] = None
-    element: List[ConceptMapGroupElement] = []
-    unmapped: Optional[Dict[str, Any]] = None
+    source: str | None = None
+    sourceVersion: str | None = None
+    target: str | None = None
+    targetVersion: str | None = None
+    element: list[ConceptMapGroupElement] = []
+    unmapped: dict[str, Any] | None = None
 
 
 class ConceptMap(BaseModel):
     resourceType: Literal["ConceptMap"] = "ConceptMap"
-    id: Optional[str] = None
-    meta: Optional[Meta] = None
-    url: Optional[str] = None
-    identifier: Optional[List[Identifier]] = []
-    version: Optional[str] = None
-    name: Optional[str] = None
-    title: Optional[str] = None
+    id: str | None = None
+    meta: Meta | None = None
+    url: str | None = None
+    identifier: list[Identifier] | None = []
+    version: str | None = None
+    name: str | None = None
+    title: str | None = None
     status: ResourceStatus
-    experimental: Optional[bool] = None
-    date: Optional[str] = None
-    publisher: Optional[str] = None
-    contact: Optional[List[ContactDetail]] = []
-    description: Optional[str] = None
-    purpose: Optional[str] = None
-    copyright: Optional[str] = None
-    sourceUri: Optional[str] = None
-    sourceCanonical: Optional[str] = None
-    targetUri: Optional[str] = None
-    targetCanonical: Optional[str] = None
-    group: Optional[List[ConceptMapGroup]] = []
-    extension: Optional[List[Dict[str, Any]]] = []
+    experimental: bool | None = None
+    date: str | None = None
+    publisher: str | None = None
+    contact: list[ContactDetail] | None = []
+    description: str | None = None
+    purpose: str | None = None
+    copyright: str | None = None
+    sourceUri: str | None = None
+    sourceCanonical: str | None = None
+    targetUri: str | None = None
+    targetCanonical: str | None = None
+    group: list[ConceptMapGroup] | None = []
+    extension: list[dict[str, Any]] | None = []
 
 
 # ============================================================================
@@ -310,7 +315,7 @@ class ConceptMap(BaseModel):
 class DatabaseManager:
     def __init__(self, dsn: str):
         self.dsn = dsn
-        self.pool: Optional[asyncpg.Pool] = None
+        self.pool: Any = None
 
     async def connect(self):
         self.pool = await asyncpg.create_pool(self.dsn, min_size=10, max_size=50, command_timeout=60)
@@ -452,13 +457,13 @@ class DatabaseManager:
                 ALTER TABLE sync_log ADD COLUMN IF NOT EXISTS dry_run BOOLEAN DEFAULT FALSE;
             """)
 
-    def _extract_source(self, data: Dict[str, Any]) -> str:
+    def _extract_source(self, data: dict[str, Any]) -> str:
         for ext in data.get('extension', []):
             if ext.get('url') == 'http://flint.local/StructureDefinition/source':
                 return ext.get('valueCode', 'internal')
         return 'internal'
 
-    async def create_resource(self, resource_type: str, data: Dict[str, Any], user: str = "system") -> str:
+    async def create_resource(self, resource_type: str, data: dict[str, Any], user: str = "system") -> str:
         resource_id = data.get('id', str(uuid.uuid4()))
         data['id'] = resource_id
         source = self._extract_source(data)
@@ -483,7 +488,7 @@ class DatabaseManager:
 
         return resource_id
 
-    async def update_resource(self, resource_id: str, data: Dict[str, Any], user: str = "system") -> bool:
+    async def update_resource(self, resource_id: str, data: dict[str, Any], user: str = "system") -> bool:
         async with self.pool.acquire() as conn:
             version_row = await conn.fetchrow("""
                 SELECT MAX(version_number) as max_version FROM resource_versions WHERE resource_id = $1
@@ -547,7 +552,7 @@ class DatabaseManager:
             affected = int(result.split()[-1]) if result and result.split() else 0
             return affected > 0
 
-    async def get_audit_log(self, resource_id: str) -> List[Dict]:
+    async def get_audit_log(self, resource_id: str) -> list[dict]:
         async with self.pool.acquire() as conn:
             rows = await conn.fetch("""
                 SELECT id, resource_id, resource_type, action, actor, timestamp, summary
@@ -563,7 +568,7 @@ class DatabaseManager:
                 'summary': row['summary'],
             } for row in rows]
 
-    async def get_resource(self, resource_id: str, version: Optional[int] = None) -> Optional[Dict]:
+    async def get_resource(self, resource_id: str, version: int | None = None) -> dict | None:
         async with self.pool.acquire() as conn:
             if version:
                 row = await conn.fetchrow("""
@@ -588,7 +593,7 @@ class DatabaseManager:
             meta['lastUpdated'] = row['updated_at'].strftime('%Y-%m-%dT%H:%M:%SZ')
             return data
 
-    async def search_resources(self, resource_type: str, params: Dict[str, Any], summary: bool = False, archived_only: bool = False, limit: int = 20, offset: int = 0, sort: Optional[str] = None) -> tuple[int, List[Dict]]:
+    async def search_resources(self, resource_type: str, params: dict[str, Any], summary: bool = False, archived_only: bool = False, limit: int = 20, offset: int = 0, sort: str | None = None) -> tuple[int, list[dict]]:
         archived_condition = "archived = TRUE" if archived_only else "archived = FALSE"
         conditions = ["resource_type = $1", archived_condition]
         values = [resource_type]
@@ -622,8 +627,7 @@ class DatabaseManager:
             # some importers store "urn:oid:{oid}", others store the bare OID.
             # Also match CodeSystems where the OID is embedded in the url field.
             ident_val = params['identifier']
-            if ident_val.startswith('urn:oid:'):
-                ident_val = ident_val[len('urn:oid:'):]
+            ident_val = ident_val.removeprefix('urn:oid:')
             conditions.append(f"""(
                 EXISTS (
                     SELECT 1
@@ -729,17 +733,17 @@ class DatabaseManager:
     async def search_resources_ex(
         self,
         resource_type: str,
-        base_params: Dict[str, Any],
-        extra_condition_pairs: List[tuple],
+        base_params: dict[str, Any],
+        extra_condition_pairs: list[tuple],
         summary: bool = False,
         archived_only: bool = False,
         limit: int = 20,
         offset: int = 0,
-        sort: Optional[str] = None,
-    ) -> tuple[int, List[Dict]]:
+        sort: str | None = None,
+    ) -> tuple[int, list[dict]]:
         archived_condition = "archived = TRUE" if archived_only else "archived = FALSE"
         conditions = ["resource_type = $1", archived_condition]
-        values = [resource_type]
+        values: list[Any] = [resource_type]
         param_idx = 2
 
         if 'name' in base_params:
@@ -761,8 +765,7 @@ class DatabaseManager:
             param_idx += 1
         if 'identifier' in base_params:
             ident_val = base_params['identifier']
-            if ident_val.startswith('urn:oid:'):
-                ident_val = ident_val[len('urn:oid:'):]
+            ident_val = ident_val.removeprefix('urn:oid:')
             conditions.append(f"EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) AS ident WHERE ident->>'value' = ${param_idx} OR ident->>'value' = 'urn:oid:' || ${param_idx})")
             values.append(ident_val)
             param_idx += 1
@@ -805,7 +808,7 @@ class DatabaseManager:
             rows = await conn.fetch(data_query, *values, limit, offset)
             return int(total), [json.loads(row['data']) for row in rows]
 
-    async def get_version_history(self, resource_id: str) -> List[Dict]:
+    async def get_version_history(self, resource_id: str) -> list[dict]:
         async with self.pool.acquire() as conn:
             rows = await conn.fetch("""
                 SELECT version_number, data, created_at, created_by, change_summary
@@ -823,12 +826,12 @@ class DatabaseManager:
     async def get_type_history(
         self,
         resource_type: str,
-        since: Optional[str] = None,
+        since: str | None = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> tuple[int, List[Dict]]:
+    ) -> tuple[int, list[dict]]:
         conditions = ["r.resource_type = $1"]
-        values: List[Any] = [resource_type]
+        values: list[Any] = [resource_type]
         idx = 2
         if since:
             conditions.append(f"rv.created_at > ${idx}::timestamp")
@@ -850,11 +853,11 @@ class DatabaseManager:
 
     async def get_system_history(
         self,
-        since: Optional[str] = None,
+        since: str | None = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> tuple[int, List[Dict]]:
-        values: List[Any] = []
+    ) -> tuple[int, list[dict]]:
+        values: list[Any] = []
         idx = 1
         since_clause = ""
         if since:
@@ -875,7 +878,7 @@ class DatabaseManager:
         return int(total), [self._history_entry(row) for row in rows]
 
     @staticmethod
-    def _history_entry(row) -> Dict:
+    def _history_entry(row) -> dict:
         data = json.loads(row['data'])
         rt = row['resource_type']
         rid = row['resource_id']
@@ -897,8 +900,8 @@ class DatabaseManager:
 # ============================================================================
 
 class SearchEngine:
-    def __init__(self, hosts: List[str]):
-        self.es: Optional[AsyncElasticsearch] = None
+    def __init__(self, hosts: list[str]):
+        self.es: Any = None
         self.hosts = hosts
 
     async def connect(self):
@@ -946,7 +949,7 @@ class SearchEngine:
         if not await self.es.indices.exists(index="fhir_resources"):
             await self.es.indices.create(index="fhir_resources", body=index_settings)
 
-    async def index_resource(self, resource: Dict[str, Any]):
+    async def index_resource(self, resource: dict[str, Any]):
         raw_name = resource.get("name")
         name_str = raw_name if isinstance(raw_name, str) else None
         doc = {
@@ -963,10 +966,10 @@ class SearchEngine:
     async def delete_resource(self, resource_id: str):
         try:
             await self.es.delete(index="fhir_resources", id=resource_id)
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass  # Not indexed or already removed — not an error
 
-    def _extract_concepts(self, resource: Dict) -> List[Dict]:
+    def _extract_concepts(self, resource: dict) -> list[dict]:
         concepts = []
         if resource.get("resourceType") == "ValueSet":
             for include in resource.get("compose", {}).get("include", []):
@@ -977,7 +980,7 @@ class SearchEngine:
                 concepts.append({"code": concept.get("code"), "display": concept.get("display")})
         return concepts
 
-    async def search(self, query: str, resource_type: Optional[str] = None) -> List[Dict]:
+    async def search(self, query: str, resource_type: str | None = None) -> list[dict]:
         must_clauses = [{
             "multi_match": {
                 "query": query,
@@ -990,7 +993,7 @@ class SearchEngine:
         if resource_type:
             must_clauses.append({"term": {"resourceType": resource_type}})
 
-        result = await self.es.search(
+        result = await self.es.search(  # type: ignore[call-arg]
             index="fhir_resources",
             body={"query": {"bool": {"must": must_clauses}}, "size": 50}
         )
@@ -1004,7 +1007,7 @@ class SearchEngine:
 class CacheManager:
     def __init__(self, redis_url: str):
         self.redis_url = redis_url
-        self.redis_client: Optional[redis.Redis] = None
+        self.redis_client: Any = None
 
     async def connect(self):
         self.redis_client = await redis.from_url(self.redis_url)
@@ -1013,11 +1016,11 @@ class CacheManager:
         if self.redis_client:
             await self.redis_client.close()
 
-    async def get(self, key: str) -> Optional[Dict]:
+    async def get(self, key: str) -> dict | None:
         value = await self.redis_client.get(key)
         return json.loads(value) if value else None
 
-    async def set(self, key: str, value: Dict, ttl: int = 3600):
+    async def set(self, key: str, value: dict, ttl: int = 3600):
         await self.redis_client.setex(key, ttl, json.dumps(value))
 
     async def delete(self, key: str):
@@ -1098,40 +1101,53 @@ app.include_router(fhir_operations_router)
 app.include_router(sdo_router)
 app.include_router(ai_router)
 
-from app.routes.admin import router as admin_router  # noqa: E402
+from app.routes.admin import router as admin_router
+
 app.include_router(admin_router)
 
-from app.routes.admin_users import router as admin_users_router  # noqa: E402
+from app.routes.admin_users import router as admin_users_router
+
 app.include_router(admin_users_router)
 
-from app.routes.mcp_chat import router as mcp_chat_router  # noqa: E402
+from app.routes.mcp_chat import router as mcp_chat_router
+
 app.include_router(mcp_chat_router)
 
-from app.routes.auth_routes import router as auth_router, well_known_router as auth_well_known_router  # noqa: E402
+from jose import JWTError
+
 from app.auth import (
     ENABLE_AUTH as _AUTH_ENABLED,
-    decode_token, has_fhir_scope,
-    get_roles, check_role_scope_compatibility, get_patient_context, get_clinician_id,
 )
-from jose import JWTError
+from app.auth import (
+    check_role_scope_compatibility,
+    decode_token,
+    get_clinician_id,
+    get_patient_context,
+    get_roles,
+    has_fhir_scope,
+)
+from app.routes.auth_routes import router as auth_router
+from app.routes.auth_routes import well_known_router as auth_well_known_router
+
 app.include_router(auth_router)
 app.include_router(auth_well_known_router)
 
-from app.routes.clinical import routers as clinical_routers  # noqa: E402
-from app.routes.administrative import routers as administrative_routers  # noqa: E402
-from app.routes.medications import routers as medication_routers  # noqa: E402
-from app.routes.prior_auth import routers as prior_auth_routers  # noqa: E402
+from app.routes.administrative import routers as administrative_routers
+from app.routes.clinical import routers as clinical_routers
+from app.routes.medications import routers as medication_routers
+from app.routes.prior_auth import routers as prior_auth_routers
 
-for _router in clinical_routers + administrative_routers + medication_routers + prior_auth_routers:
+for _router in clinical_routers + administrative_routers + medication_routers + prior_auth_routers:  # type: ignore[has-type]
     app.include_router(_router)
 
-from app.routes.bulk_export import router as bulk_export_router  # noqa: E402
+from app.routes.bulk_export import router as bulk_export_router
+
 app.include_router(bulk_export_router)
 
 # StructureDefinition (P2.6 prep — CRUD so US Core profiles can be stored)
-from app.models.conformance import StructureDefinition  # noqa: E402
-from app.routes.resource_factory import create_resource_router  # noqa: E402
-from app.capability import register_resource  # noqa: E402
+from app.capability import register_resource
+from app.models.conformance import StructureDefinition
+from app.routes.resource_factory import create_resource_router
 
 _sd_router = create_resource_router("StructureDefinition", StructureDefinition, search_hook=None)
 app.include_router(_sd_router)
@@ -1156,7 +1172,8 @@ register_resource({
     ],
 })
 
-from app.routes.bundle import router as bundle_router  # noqa: E402
+from app.routes.bundle import router as bundle_router
+
 app.include_router(bundle_router)
 
 
@@ -1198,7 +1215,7 @@ async def rate_limit_middleware(request: Request, call_next):
         count = await state.cache.redis_client.incr(key)
         if count == 1:
             await state.cache.redis_client.expire(key, 60)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return await call_next(request)
 
     remaining = max(0, limit - count)
@@ -1274,6 +1291,7 @@ _SMART_PUBLIC_PREFIXES = ("/auth/", "/docs", "/redoc", "/openapi", "/static")
 async def smart_auth_middleware(request: Request, call_next):
     """SMART on FHIR scope enforcement. Only active when ENABLE_AUTH=true."""
     if not _AUTH_ENABLED:
+        request.state.fhir_roles = ["fhir-admin"]
         return await call_next(request)
     if request.method == "OPTIONS":
         return await call_next(request)
@@ -1332,7 +1350,7 @@ async def smart_auth_middleware(request: Request, call_next):
     scopes = set((payload.get("scope") or "").split())
     only_patient_scope = (
         any(s.startswith("patient/") for s in scopes)
-        and not any(s.startswith("user/") or s.startswith("system/") for s in scopes)
+        and not any(s.startswith(("user/", "system/")) for s in scopes)
     )
     if only_patient_scope and patient_id is None and "fhir-admin" not in roles:
         return JSONResponse(
@@ -1365,7 +1383,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+    logger.error(f"Unhandled exception: {exc!s}")
     return JSONResponse(
         status_code=500,
         content={
@@ -1395,7 +1413,7 @@ async def health_check():
         async with state.db.pool.acquire() as conn:
             await conn.fetchval("SELECT 1")
         status["services"]["database"] = "healthy"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         status["services"]["database"] = f"unhealthy: {e}"
         status["status"] = "degraded"
     try:
@@ -1403,7 +1421,7 @@ async def health_check():
             raise RuntimeError("Search engine not initialised")
         await state.search_engine.es.cluster.health()
         status["services"]["search"] = "healthy"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         status["services"]["search"] = f"unhealthy: {e}"
         status["status"] = "degraded"
     try:
@@ -1411,7 +1429,7 @@ async def health_check():
             raise RuntimeError("Cache not initialised")
         await state.cache.redis_client.ping()
         status["services"]["cache"] = "healthy"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         status["services"]["cache"] = f"unhealthy: {e}"
         status["status"] = "degraded"
     return status
@@ -1431,7 +1449,7 @@ async def readiness_check():
         async with state.db.pool.acquire() as conn:
             await conn.fetchval("SELECT 1")
         services["database"] = "healthy"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         services["database"] = f"unhealthy: {e}"
         degraded = True
 
@@ -1440,7 +1458,7 @@ async def readiness_check():
             raise RuntimeError("Search engine not initialised")
         await state.search_engine.es.cluster.health()
         services["search"] = "healthy"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         services["search"] = f"unhealthy: {e}"
         degraded = True
 
@@ -1449,7 +1467,7 @@ async def readiness_check():
             raise RuntimeError("Cache not initialised")
         await state.cache.redis_client.ping()
         services["cache"] = "healthy"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         services["cache"] = f"unhealthy: {e}"
         degraded = True
 
@@ -1587,7 +1605,7 @@ async def analytics_summary():
 
 
 @app.get("/metadata")
-async def capability_statement(mode: Optional[str] = Query(None)):
+async def capability_statement(mode: str | None = Query(None)):
     if mode == "terminology":
         return JSONResponse(content={
             "resourceType": "TerminologyCapabilities",
@@ -1778,7 +1796,7 @@ async def create_value_set(value_set: ValueSet):
 
 
 @app.get("/ValueSet/{resource_id}")
-async def get_value_set(resource_id: str, version: Optional[int] = None):
+async def get_value_set(resource_id: str, version: int | None = None):
     cache_key = f"ValueSet:{resource_id}:{version or 'latest'}"
     cached = await state.cache.get(cache_key)
     if cached:
@@ -1822,19 +1840,19 @@ async def delete_value_set(resource_id: str):
 @app.get("/ValueSet")
 async def search_value_sets(
     request: Request,
-    name: Optional[str] = Query(None),
-    url: Optional[str] = Query(None),
-    identifier: Optional[str] = Query(None),
-    status: Optional[str] = Query(None),
-    q: Optional[str] = Query(None),
-    context_value_code: Optional[str] = Query(None, alias="context-value-code"),
-    context_type: Optional[str] = Query(None, alias="context-type"),
-    source: Optional[str] = Query(None, description="Filter by import source: hl7 | hl7v2 | vsac | icd9cm | internal | external"),
+    name: str | None = Query(None),
+    url: str | None = Query(None),
+    identifier: str | None = Query(None),
+    status: str | None = Query(None),
+    q: str | None = Query(None),
+    context_value_code: str | None = Query(None, alias="context-value-code"),
+    context_type: str | None = Query(None, alias="context-type"),
+    source: str | None = Query(None, description="Filter by import source: hl7 | hl7v2 | vsac | icd9cm | internal | external"),
     _archived: bool = Query(False, alias="_archived", description="Return archived resources instead of active ones"),
     _summary: bool = Query(False, alias="_summary"),
     _count: int = Query(20, alias="_count", ge=1, le=1000),
     _offset: int = Query(0, alias="_offset", ge=0),
-    _sort: Optional[str] = Query(None, alias="_sort"),
+    _sort: str | None = Query(None, alias="_sort"),
 ):
     if q:
         results = await state.search_engine.search(q, "ValueSet")
@@ -1926,7 +1944,7 @@ async def create_code_system(code_system: CodeSystem):
 
 
 @app.get("/CodeSystem/{resource_id}")
-async def get_code_system(resource_id: str, version: Optional[int] = None):
+async def get_code_system(resource_id: str, version: int | None = None):
     cache_key = f"CodeSystem:{resource_id}:{version or 'latest'}"
     cached = await state.cache.get(cache_key)
     if cached:
@@ -1970,17 +1988,17 @@ async def delete_code_system(resource_id: str):
 @app.get("/CodeSystem")
 async def search_code_systems(
     request: Request,
-    name: Optional[str] = Query(None),
-    url: Optional[str] = Query(None),
-    identifier: Optional[str] = Query(None),
-    status: Optional[str] = Query(None),
-    content: Optional[str] = Query(None),
-    source: Optional[str] = Query(None),
-    q: Optional[str] = Query(None),
+    name: str | None = Query(None),
+    url: str | None = Query(None),
+    identifier: str | None = Query(None),
+    status: str | None = Query(None),
+    content: str | None = Query(None),
+    source: str | None = Query(None),
+    q: str | None = Query(None),
     _summary: bool = Query(False, alias="_summary"),
     _count: int = Query(20, alias="_count", ge=1, le=1000),
     _offset: int = Query(0, alias="_offset", ge=0),
-    _sort: Optional[str] = Query(None, alias="_sort"),
+    _sort: str | None = Query(None, alias="_sort"),
 ):
     if q:
         results = await state.search_engine.search(q, "CodeSystem")
@@ -2052,7 +2070,7 @@ async def create_concept_map(concept_map: ConceptMap):
 
 
 @app.get("/ConceptMap/{resource_id}")
-async def get_concept_map(resource_id: str, version: Optional[int] = None):
+async def get_concept_map(resource_id: str, version: int | None = None):
     cache_key = f"ConceptMap:{resource_id}:{version or 'latest'}"
     cached = await state.cache.get(cache_key)
     if cached:
@@ -2096,13 +2114,13 @@ async def delete_concept_map(resource_id: str):
 @app.get("/ConceptMap")
 async def search_concept_maps(
     request: Request,
-    name: Optional[str] = Query(None),
-    url: Optional[str] = Query(None),
-    status: Optional[str] = Query(None),
-    q: Optional[str] = Query(None),
+    name: str | None = Query(None),
+    url: str | None = Query(None),
+    status: str | None = Query(None),
+    q: str | None = Query(None),
     _count: int = Query(20, alias="_count", ge=1, le=1000),
     _offset: int = Query(0, alias="_offset", ge=0),
-    _sort: Optional[str] = Query(None, alias="_sort"),
+    _sort: str | None = Query(None, alias="_sort"),
 ):
     if q:
         results = await state.search_engine.search(q, "ConceptMap")

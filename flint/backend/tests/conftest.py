@@ -20,6 +20,8 @@ from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 from app import state
+import app.auth as _auth
+import app.main as _main
 
 
 # ---------------------------------------------------------------------------
@@ -349,6 +351,10 @@ class FakeCache:
     def redis_client(self):
         m = AsyncMock()
         m.ping = AsyncMock(return_value=True)
+        m.incr = AsyncMock(return_value=1)
+        m.expire = AsyncMock(return_value=True)
+        m.keys = AsyncMock(return_value=[])
+        m.delete = AsyncMock(return_value=1)
         return m
 
 
@@ -366,16 +372,21 @@ def event_loop():
 
 @pytest_asyncio.fixture(autouse=True)
 async def _inject_fakes():
-    """Replace live service instances with fakes before each test."""
+    """Replace live service instances with fakes before each test; disable auth."""
     state.db = FakeDB()
     state.search_engine = FakeSearchEngine()
     state.cache = FakeCache()
+    # Disable SMART auth so tests can make unauthenticated requests
+    _auth.ENABLE_AUTH = False
+    _main._AUTH_ENABLED = False
 
     yield
 
     state.db = None
     state.search_engine = None
     state.cache = None
+    _auth.ENABLE_AUTH = False
+    _main._AUTH_ENABLED = False
 
 
 @pytest_asyncio.fixture

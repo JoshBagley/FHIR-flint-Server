@@ -1,97 +1,98 @@
-from typing import Optional, List, Any, Dict, Literal
+from typing import Any, Literal
+
 from pydantic import BaseModel
 
-from app.main import Coding, CodeableConcept, Identifier, Meta, ContactPoint
-from app.models.clinical import HumanName, Address, Reference
+from app.main import CodeableConcept, Coding, ContactPoint, Identifier, Meta
+from app.models.clinical import Address, HumanName, Reference
 
 
 class Organization(BaseModel):
     resourceType: Literal["Organization"] = "Organization"
-    id: Optional[str] = None
-    meta: Optional[Meta] = None
-    identifier: Optional[List[Identifier]] = None
-    active: Optional[bool] = None
-    type: Optional[List[CodeableConcept]] = None
-    name: Optional[str] = None
-    alias: Optional[List[str]] = None
-    telecom: Optional[List[ContactPoint]] = None
-    address: Optional[List[Address]] = None
-    partOf: Optional[Reference] = None
-    contact: Optional[List[Dict[str, Any]]] = None
-    endpoint: Optional[List[Reference]] = None
+    id: str | None = None
+    meta: Meta | None = None
+    identifier: list[Identifier] | None = None
+    active: bool | None = None
+    type: list[CodeableConcept] | None = None
+    name: str | None = None
+    alias: list[str] | None = None
+    telecom: list[ContactPoint] | None = None
+    address: list[Address] | None = None
+    partOf: Reference | None = None
+    contact: list[dict[str, Any]] | None = None
+    endpoint: list[Reference] | None = None
 
 
 class Practitioner(BaseModel):
     resourceType: Literal["Practitioner"] = "Practitioner"
-    id: Optional[str] = None
-    meta: Optional[Meta] = None
-    identifier: Optional[List[Identifier]] = None
-    active: Optional[bool] = None
-    name: Optional[List[HumanName]] = None
-    telecom: Optional[List[ContactPoint]] = None
-    address: Optional[List[Address]] = None
-    gender: Optional[str] = None
-    birthDate: Optional[str] = None
-    photo: Optional[List[Dict[str, Any]]] = None
-    qualification: Optional[List[Dict[str, Any]]] = None
-    communication: Optional[List[CodeableConcept]] = None
+    id: str | None = None
+    meta: Meta | None = None
+    identifier: list[Identifier] | None = None
+    active: bool | None = None
+    name: list[HumanName] | None = None
+    telecom: list[ContactPoint] | None = None
+    address: list[Address] | None = None
+    gender: str | None = None
+    birthDate: str | None = None
+    photo: list[dict[str, Any]] | None = None
+    qualification: list[dict[str, Any]] | None = None
+    communication: list[CodeableConcept] | None = None
 
 
 class PractitionerRole(BaseModel):
     resourceType: Literal["PractitionerRole"] = "PractitionerRole"
-    id: Optional[str] = None
-    meta: Optional[Meta] = None
-    identifier: Optional[List[Identifier]] = None
-    active: Optional[bool] = None
-    period: Optional[Dict[str, Any]] = None
-    practitioner: Optional[Reference] = None
-    organization: Optional[Reference] = None
-    code: Optional[List[CodeableConcept]] = None
-    specialty: Optional[List[CodeableConcept]] = None
-    location: Optional[List[Reference]] = None
-    healthcareService: Optional[List[Reference]] = None
-    telecom: Optional[List[ContactPoint]] = None
-    availableTime: Optional[List[Dict[str, Any]]] = None
-    notAvailable: Optional[List[Dict[str, Any]]] = None
-    availabilityExceptions: Optional[str] = None
-    endpoint: Optional[List[Reference]] = None
+    id: str | None = None
+    meta: Meta | None = None
+    identifier: list[Identifier] | None = None
+    active: bool | None = None
+    period: dict[str, Any] | None = None
+    practitioner: Reference | None = None
+    organization: Reference | None = None
+    code: list[CodeableConcept] | None = None
+    specialty: list[CodeableConcept] | None = None
+    location: list[Reference] | None = None
+    healthcareService: list[Reference] | None = None
+    telecom: list[ContactPoint] | None = None
+    availableTime: list[dict[str, Any]] | None = None
+    notAvailable: list[dict[str, Any]] | None = None
+    availabilityExceptions: str | None = None
+    endpoint: list[Reference] | None = None
 
 
 class Endpoint(BaseModel):
     resourceType: Literal["Endpoint"] = "Endpoint"
-    id: Optional[str] = None
-    meta: Optional[Meta] = None
-    identifier: Optional[List[Identifier]] = None
-    status: Optional[str] = None
-    connectionType: Optional[Coding] = None
-    name: Optional[str] = None
-    managingOrganization: Optional[Reference] = None
-    contact: Optional[List[ContactPoint]] = None
-    period: Optional[Dict[str, Any]] = None
-    payloadType: Optional[List[CodeableConcept]] = None
-    payloadMimeType: Optional[List[str]] = None
-    address: Optional[str] = None
-    header: Optional[List[str]] = None
+    id: str | None = None
+    meta: Meta | None = None
+    identifier: list[Identifier] | None = None
+    status: str | None = None
+    connectionType: Coding | None = None
+    name: str | None = None
+    managingOrganization: Reference | None = None
+    contact: list[ContactPoint] | None = None
+    period: dict[str, Any] | None = None
+    payloadType: list[CodeableConcept] | None = None
+    payloadMimeType: list[str] | None = None
+    address: str | None = None
+    header: list[str] | None = None
 
 
 class Location(BaseModel):
     resourceType: Literal["Location"] = "Location"
-    id: Optional[str] = None
-    meta: Optional[Meta] = None
-    identifier: Optional[List[Identifier]] = None
-    status: Optional[str] = None
-    operationalStatus: Optional[Coding] = None
-    name: Optional[str] = None
-    alias: Optional[List[str]] = None
-    description: Optional[str] = None
-    mode: Optional[str] = None
-    type: Optional[List[CodeableConcept]] = None
-    telecom: Optional[List[ContactPoint]] = None
-    address: Optional[Address] = None
-    physicalType: Optional[CodeableConcept] = None
-    position: Optional[Dict[str, Any]] = None
-    managingOrganization: Optional[Reference] = None
-    partOf: Optional[Reference] = None
-    hoursOfOperation: Optional[List[Dict[str, Any]]] = None
-    availabilityExceptions: Optional[str] = None
-    endpoint: Optional[List[Reference]] = None
+    id: str | None = None
+    meta: Meta | None = None
+    identifier: list[Identifier] | None = None
+    status: str | None = None
+    operationalStatus: Coding | None = None
+    name: str | None = None
+    alias: list[str] | None = None
+    description: str | None = None
+    mode: str | None = None
+    type: list[CodeableConcept] | None = None
+    telecom: list[ContactPoint] | None = None
+    address: Address | None = None
+    physicalType: CodeableConcept | None = None
+    position: dict[str, Any] | None = None
+    managingOrganization: Reference | None = None
+    partOf: Reference | None = None
+    hoursOfOperation: list[dict[str, Any]] | None = None
+    availabilityExceptions: str | None = None
+    endpoint: list[Reference] | None = None

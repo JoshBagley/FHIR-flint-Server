@@ -9,14 +9,14 @@ Implements FHIR R4 terminology operations:
 - Analytics
 """
 
-from fastapi import APIRouter, Query, HTTPException, Body, Request
-from typing import Optional, List, Dict, Any
-from datetime import datetime, timezone
 import asyncio
 import hashlib
 import json
 import logging
-import os
+from datetime import datetime, timezone
+from typing import Any
+
+from fastapi import APIRouter, Body, HTTPException, Query, Request
 
 from app import state
 from app.services import external_cs
@@ -32,7 +32,7 @@ router = APIRouter(tags=["FHIR Operations"])
 # normalised to a canonical FHIR URL (e.g. unknown OIDs).
 # Human-readable display names for well-known code systems.
 # Used to enrich expansion.contains with a systemName field.
-_SYSTEM_DISPLAY_NAMES: Dict[str, str] = {
+_SYSTEM_DISPLAY_NAMES: dict[str, str] = {
     # Canonical FHIR URLs
     "http://snomed.info/sct":                                          "SNOMED CT",
     "http://loinc.org":                                                "LOINC",
@@ -82,7 +82,7 @@ _SYSTEM_DISPLAY_NAMES: Dict[str, str] = {
     "urn:oid:1.0.639.3":                           "ISO 639-3 (Language Codes)",
 }
 
-_SYSTEM_URL_TO_SDO: Dict[str, str] = {
+_SYSTEM_URL_TO_SDO: dict[str, str] = {
     # Canonical FHIR URLs
     "http://snomed.info/sct":                      "snomed",
     "http://loinc.org":                            "loinc",
@@ -171,9 +171,9 @@ def _hl7_system_display_name(system: str) -> str:
 
 @router.get("/ValueSet/$expand")
 async def expand_valueset_get(
-    url: Optional[str] = Query(None),
-    valueSetVersion: Optional[str] = Query(None),
-    filter: Optional[str] = Query(None),
+    url: str | None = Query(None),
+    valueSetVersion: str | None = Query(None),
+    filter: str | None = Query(None),
     offset: int = Query(0, ge=0, le=50000),
     count: int = Query(100, ge=1, le=10000)
 ):
@@ -181,7 +181,7 @@ async def expand_valueset_get(
 
 
 @router.post("/ValueSet/$expand")
-async def expand_valueset_post(body: Dict[str, Any] = Body(...)):
+async def expand_valueset_post(body: dict[str, Any] = Body(...)):  # noqa: B008
     params = body.get('parameter', [])
     url = next((p['valueUri'] for p in params if p.get('name') == 'url'), None)
     version = next((p['valueString'] for p in params if p.get('name') == 'valueSetVersion'), None)
@@ -192,10 +192,10 @@ async def expand_valueset_post(body: Dict[str, Any] = Body(...)):
 
 
 async def _get_system_name(
-    system: Optional[str],
-    cache: Dict[str, str],
-    cs: Optional[Dict] = None,
-) -> Optional[str]:
+    system: str | None,
+    cache: dict[str, str],
+    cs: dict | None = None,
+) -> str | None:
     """Resolve a system URI to a human-readable display name.
 
     Resolution order:
@@ -291,13 +291,13 @@ def _url_to_display_name(system: str) -> str:
                 return candidate
         if parsed.netloc:
             return parsed.netloc
-    except Exception:
+    except Exception:  # noqa: BLE001, S110
         pass
 
     return system
 
 
-def _wrap_ecl_expansion(url: str, concepts: list, offset: int, count: int) -> Dict[str, Any]:
+def _wrap_ecl_expansion(url: str, concepts: list, offset: int, count: int) -> dict[str, Any]:
     """Wrap an ECL expansion result in a minimal FHIR ValueSet response."""
     total = len(concepts)
     paginated = concepts[offset:offset + count]
@@ -305,8 +305,8 @@ def _wrap_ecl_expansion(url: str, concepts: list, offset: int, count: int) -> Di
         'resourceType': 'ValueSet',
         'url': url,
         'expansion': {
-            'identifier': hashlib.md5(url.encode()).hexdigest(),
-            'timestamp': datetime.now().isoformat(),
+            'identifier': hashlib.md5(url.encode(), usedforsecurity=False).hexdigest(),  # nosec B324
+            'timestamp': datetime.now(tz=timezone.utc).isoformat(),
             'total': total,
             'offset': offset,
             'contains': paginated
@@ -315,12 +315,12 @@ def _wrap_ecl_expansion(url: str, concepts: list, offset: int, count: int) -> Di
 
 
 async def _perform_expansion(
-    url: Optional[str],
-    version: Optional[str],
-    filter_text: Optional[str],
+    url: str | None,
+    version: str | None,
+    filter_text: str | None,
     offset: int,
     count: int
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if not url:
         raise HTTPException(status_code=400, detail="url parameter is required")
 
@@ -343,7 +343,7 @@ async def _perform_expansion(
                 concepts = await external_cs.expand_snomed_ecl(ecl_expr, filter_text or "", count)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             raise HTTPException(status_code=502, detail=f"SNOMED expansion failed: {e}")
         return _wrap_ecl_expansion(url, concepts, offset, count)
 
@@ -352,8 +352,8 @@ async def _perform_expansion(
         raise HTTPException(status_code=404, detail=f"ValueSet with url {url} not found")
 
     valueset = search_results[0]
-    all_concepts: List[Dict[str, Any]] = []
-    system_name_cache: Dict[str, str] = {}
+    all_concepts: list[dict[str, Any]] = []
+    system_name_cache: dict[str, str] = {}
     compose = valueset.get('compose', {})
 
     for include in compose.get('include', []):
@@ -369,7 +369,7 @@ async def _perform_expansion(
                     (d['value'] for d in concept.get('designation', []) if d.get('value')),
                     None,
                 )
-                c: Dict[str, Any] = {
+                c: dict[str, Any] = {
                     'system': system,
                     'code': concept['code'],
                     'display': preferred or concept.get('display', concept['code']),
@@ -398,7 +398,7 @@ async def _perform_expansion(
                                 'display': item.get('display', item['code']),
                                 'systemName': 'SNOMED CT',
                             })
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         logger.warning("ECL expansion failed [%s]: %s", ecl, e)
         elif system:
             _, cs_results = await state.db.search_resources('CodeSystem', {'url': system})
@@ -467,7 +467,7 @@ async def _perform_expansion(
                             if system_name:
                                 c['systemName'] = system_name
                             all_concepts.append(c)
-                    except Exception:
+                    except Exception:  # noqa: BLE001, S110
                         pass  # tx.fhir.org unavailable — return empty for this system
 
     if filter_text:
@@ -489,8 +489,8 @@ async def _perform_expansion(
         'title': valueset.get('title'),
         'status': valueset.get('status'),
         'expansion': {
-            'identifier': hashlib.md5(f"{url}{version or ''}".encode()).hexdigest(),
-            'timestamp': datetime.now().isoformat(),
+            'identifier': hashlib.md5(f"{url}{version or ''}".encode(), usedforsecurity=False).hexdigest(),  # nosec B324
+            'timestamp': datetime.now(tz=timezone.utc).isoformat(),
             'total': total,
             'offset': offset,
             'contains': paginated
@@ -506,7 +506,7 @@ async def _perform_expansion(
 async def concept_search(
     q: str = Query(..., max_length=500, description="Term to search in concept codes and displays"),
     limit: int = Query(20, ge=1, le=100),
-    ids: Optional[str] = Query(None, description="Comma-separated ValueSet IDs to restrict search to"),
+    ids: str | None = Query(None, description="Comma-separated ValueSet IDs to restrict search to"),
 ):
     """
     Search across stored ValueSets for concepts matching the query term.
@@ -552,7 +552,7 @@ async def concept_search(
     for row in rows:
         raw = row["data"]
         data = raw if isinstance(raw, dict) else json.loads(raw)
-        matched: List[Dict[str, Any]] = []
+        matched: list[dict[str, Any]] = []
 
         for include in data.get("compose", {}).get("include", []):
             system = include.get("system", "")
@@ -566,7 +566,7 @@ async def concept_search(
             code = concept.get("code", "")
             display = concept.get("display", "")
             system = concept.get("system", "")
-            if term in code.lower() or term in display.lower():
+            if term in code.lower() or term in display.lower():  # noqa: SIM102
                 if not any(m["code"] == code for m in matched):
                     matched.append({"code": code, "display": display, "system": system})
 
@@ -607,16 +607,16 @@ async def concept_search(
 
 @router.get("/ValueSet/$validate-code")
 async def validate_code_get(
-    url: Optional[str] = Query(None),
-    code: Optional[str] = Query(None),
-    system: Optional[str] = Query(None),
-    display: Optional[str] = Query(None)
+    url: str | None = Query(None),
+    code: str | None = Query(None),
+    system: str | None = Query(None),
+    display: str | None = Query(None)
 ):
     return await _perform_validation(url, code, system, display)
 
 
 @router.post("/ValueSet/$validate-code")
-async def validate_code_post(body: Dict[str, Any] = Body(...)):
+async def validate_code_post(body: dict[str, Any] = Body(...)):  # noqa: B008
     params = body.get('parameter', [])
     url = next((p['valueUri'] for p in params if p.get('name') == 'url'), None)
     code = next((p['valueCode'] for p in params if p.get('name') == 'code'), None)
@@ -626,11 +626,11 @@ async def validate_code_post(body: Dict[str, Any] = Body(...)):
 
 
 async def _perform_validation(
-    url: Optional[str],
-    code: Optional[str],
-    system: Optional[str],
-    display: Optional[str]
-) -> Dict[str, Any]:
+    url: str | None,
+    code: str | None,
+    system: str | None,
+    display: str | None
+) -> dict[str, Any]:
     if not url or not code:
         raise HTTPException(status_code=400, detail="url and code parameters are required")
 
@@ -672,10 +672,10 @@ async def _perform_validation(
 
 @router.get("/CodeSystem/$validate-code")
 async def cs_validate_code_get(
-    url: Optional[str] = Query(None),
-    code: Optional[str] = Query(None),
-    display: Optional[str] = Query(None),
-    version: Optional[str] = Query(None),
+    url: str | None = Query(None),
+    code: str | None = Query(None),
+    display: str | None = Query(None),
+    version: str | None = Query(None),
 ):
     return await _perform_cs_validation(url, None, code, display, version)
 
@@ -683,8 +683,8 @@ async def cs_validate_code_get(
 @router.get("/CodeSystem/{resource_id}/$validate-code")
 async def cs_validate_code_instance_get(
     resource_id: str,
-    code: Optional[str] = Query(None),
-    display: Optional[str] = Query(None),
+    code: str | None = Query(None),
+    display: str | None = Query(None),
 ):
     cs = await state.db.get_resource(resource_id)
     if not cs:
@@ -693,7 +693,7 @@ async def cs_validate_code_instance_get(
 
 
 @router.post("/CodeSystem/$validate-code")
-async def cs_validate_code_post(body: Dict[str, Any] = Body(...)):
+async def cs_validate_code_post(body: dict[str, Any] = Body(...)):  # noqa: B008
     params = body.get('parameter', [])
     url = next((p.get('valueUri') or p.get('valueString') for p in params if p.get('name') == 'url'), None)
     code = next((p.get('valueCode') or p.get('valueString') for p in params if p.get('name') == 'code'), None)
@@ -703,12 +703,12 @@ async def cs_validate_code_post(body: Dict[str, Any] = Body(...)):
 
 
 async def _perform_cs_validation(
-    url: Optional[str],
-    resource_id: Optional[str],
-    code: Optional[str],
-    display: Optional[str],
-    version: Optional[str],
-) -> Dict[str, Any]:
+    url: str | None,
+    resource_id: str | None,
+    code: str | None,
+    display: str | None,
+    version: str | None,
+) -> dict[str, Any]:
     if not code:
         raise HTTPException(status_code=400, detail="code parameter is required")
     if not url and not resource_id:
@@ -730,7 +730,7 @@ async def _perform_cs_validation(
         None
     )
 
-    parameters: List[Dict] = [
+    parameters: list[dict] = [
         {'name': 'result', 'valueBoolean': True},
     ]
     if found_display:
@@ -749,16 +749,16 @@ async def _perform_cs_validation(
 
 @router.get("/CodeSystem/$lookup")
 async def lookup_code_get(
-    system: Optional[str] = Query(None),
-    code: Optional[str] = Query(None),
-    version: Optional[str] = Query(None),
-    property: Optional[List[str]] = Query(None, description="Properties to return (e.g. parent, child, COMPONENT)")
+    system: str | None = Query(None),
+    code: str | None = Query(None),
+    version: str | None = Query(None),
+    property: list[str] | None = Query(None, description="Properties to return (e.g. parent, child, COMPONENT)")  # noqa: B008
 ):
     return await _perform_lookup(system, code, version, property)
 
 
 @router.post("/CodeSystem/$lookup")
-async def lookup_code_post(body: Dict[str, Any] = Body(...)):
+async def lookup_code_post(body: dict[str, Any] = Body(...)):  # noqa: B008
     params = body.get('parameter', [])
     system = next((p['valueUri'] for p in params if p.get('name') == 'system'), None)
     code = next((p['valueCode'] for p in params if p.get('name') == 'code'), None)
@@ -768,11 +768,11 @@ async def lookup_code_post(body: Dict[str, Any] = Body(...)):
 
 
 async def _perform_lookup(
-    system: Optional[str],
-    code: Optional[str],
-    version: Optional[str],
-    properties: Optional[List[str]] = None
-) -> Dict[str, Any]:
+    system: str | None,
+    code: str | None,
+    version: str | None,
+    properties: list[str] | None = None
+) -> dict[str, Any]:
     if not system or not code:
         raise HTTPException(status_code=400, detail="system and code parameters are required")
 
@@ -839,7 +839,7 @@ async def _perform_lookup(
                         ]
                     })
                 return {'resourceType': 'Parameters', 'parameter': param_list}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning("LOINC property lookup failed [%s]: %s", code, e)
             # Fall through to standard lookup
 
@@ -887,7 +887,7 @@ async def _perform_lookup(
 # ============================================================================
 
 @router.post("/ValueSet/$validate-batch")
-async def validate_batch(body: Dict[str, Any] = Body(...)):
+async def validate_batch(body: dict[str, Any] = Body(...)):  # noqa: B008
     """
     Validate multiple codes in a single request — optimised for HL7 v2 message validation.
 
@@ -929,7 +929,7 @@ async def validate_batch(body: Dict[str, Any] = Body(...)):
     if len(items) > 200:
         raise HTTPException(status_code=400, detail="Maximum 200 items per batch request")
 
-    async def _validate_item(item: Dict[str, Any]) -> Dict[str, Any]:
+    async def _validate_item(item: dict[str, Any]) -> dict[str, Any]:
         code = item.get("code", "").strip()
         system = item.get("system", "").strip() or None
         vs_url = item.get("valueSetUrl", "").strip() or None
@@ -966,8 +966,8 @@ async def validate_batch(body: Dict[str, Any] = Body(...)):
                 return {**base, "result": False, "display": None, "message": "system or valueSetUrl is required"}
         except HTTPException as e:
             return {**base, "result": False, "display": None, "message": e.detail}
-        except Exception as e:
-            return {**base, "result": False, "display": None, "message": f"Validation error: {str(e)}"}
+        except Exception as e:  # noqa: BLE001
+            return {**base, "result": False, "display": None, "message": f"Validation error: {e!s}"}
 
     results = await asyncio.gather(*[_validate_item(item) for item in items])
     results = list(results)
@@ -989,16 +989,16 @@ async def validate_batch(body: Dict[str, Any] = Body(...)):
 
 @router.get("/ConceptMap/$translate")
 async def translate_get(
-    url: Optional[str] = Query(None, description="Canonical URL of the ConceptMap"),
-    system: Optional[str] = Query(None, description="Source code system URL"),
-    code: Optional[str] = Query(None, description="Source code to translate"),
-    target: Optional[str] = Query(None, description="Target code system URL (optional filter)")
+    url: str | None = Query(None, description="Canonical URL of the ConceptMap"),
+    system: str | None = Query(None, description="Source code system URL"),
+    code: str | None = Query(None, description="Source code to translate"),
+    target: str | None = Query(None, description="Target code system URL (optional filter)")
 ):
     return await _perform_translate(url, system, code, target)
 
 
 @router.post("/ConceptMap/$translate")
-async def translate_post(body: Dict[str, Any] = Body(...)):
+async def translate_post(body: dict[str, Any] = Body(...)):  # noqa: B008
     params = body.get('parameter', [])
     url = next((p.get('valueUri') or p.get('valueString') for p in params if p.get('name') == 'url'), None)
     system = next((p.get('valueUri') for p in params if p.get('name') == 'system'), None)
@@ -1008,11 +1008,11 @@ async def translate_post(body: Dict[str, Any] = Body(...)):
 
 
 async def _perform_translate(
-    url: Optional[str],
-    system: Optional[str],
-    code: Optional[str],
-    target: Optional[str]
-) -> Dict[str, Any]:
+    url: str | None,
+    system: str | None,
+    code: str | None,
+    target: str | None
+) -> dict[str, Any]:
     if not code:
         raise HTTPException(status_code=400, detail="code parameter is required")
 
@@ -1025,7 +1025,7 @@ async def _perform_translate(
     }
 
     # --- 1. Search local ConceptMaps ---
-    search_params: Dict[str, Any] = {}
+    search_params: dict[str, Any] = {}
     if url:
         search_params['url'] = url
 
@@ -1071,7 +1071,7 @@ async def _perform_translate(
     if url or (system and code):
         try:
             import aiohttp as _aiohttp
-            params_ext: Dict[str, str] = {'code': code, '_format': 'json'}
+            params_ext: dict[str, str] = {'code': code, '_format': 'json'}
             if url:
                 params_ext['url'] = url
             if system:
@@ -1079,18 +1079,17 @@ async def _perform_translate(
             if target:
                 params_ext['target'] = target
             _timeout = _aiohttp.ClientTimeout(total=15)
-            async with _aiohttp.ClientSession() as session:
-                async with session.get(
-                    'https://tx.fhir.org/r4/ConceptMap/$translate',
-                    params=params_ext,
-                    timeout=_timeout
-                ) as resp:
-                    if resp.status == 200:
-                        data = await resp.json(content_type=None)
-                        ext_params = {p['name']: p for p in data.get('parameter', [])}
-                        if ext_params.get('result', {}).get('valueBoolean'):
-                            return data
-        except Exception as e:
+            async with _aiohttp.ClientSession() as session, session.get(
+                'https://tx.fhir.org/r4/ConceptMap/$translate',
+                params=params_ext,
+                timeout=_timeout
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json(content_type=None)
+                    ext_params = {p['name']: p for p in data.get('parameter', [])}
+                    if ext_params.get('result', {}).get('valueBoolean'):
+                        return data
+        except Exception as e:  # noqa: BLE001
             logger.warning("$translate delegation to tx.fhir.org failed: %s", e)
 
     return no_match
@@ -1102,9 +1101,9 @@ async def _perform_translate(
 
 @router.get("/CodeSystem/$subsumes")
 async def subsumes_get(
-    system: Optional[str] = Query(None, description="Code system URL"),
-    codeA: Optional[str] = Query(None, description="Potentially subsuming code"),
-    codeB: Optional[str] = Query(None, description="Potentially subsumed code")
+    system: str | None = Query(None, description="Code system URL"),
+    codeA: str | None = Query(None, description="Potentially subsuming code"),
+    codeB: str | None = Query(None, description="Potentially subsumed code")
 ):
     return await _perform_subsumes(system, codeA, codeB)
 
@@ -1115,14 +1114,14 @@ async def _subsumes_local(system: str, codeA: str, codeB: str) -> str:
     if not cs_results:
         return 'not-subsumed'
 
-    def _build_ancestor_map(concepts: list, ancestors: set, result: Dict[str, set]):
+    def _build_ancestor_map(concepts: list, ancestors: set, result: dict[str, set]):
         for c in concepts:
             code = c.get('code', '')
             result[code] = set(ancestors)
             if c.get('concept'):
                 _build_ancestor_map(c['concept'], ancestors | {code}, result)
 
-    ancestor_map: Dict[str, set] = {}
+    ancestor_map: dict[str, set] = {}
     _build_ancestor_map(cs_results[0].get('concept', []), set(), ancestor_map)
 
     if codeA == codeB:
@@ -1135,13 +1134,14 @@ async def _subsumes_local(system: str, codeA: str, codeB: str) -> str:
 
 
 async def _perform_subsumes(
-    system: Optional[str],
-    codeA: Optional[str],
-    codeB: Optional[str]
-) -> Dict[str, Any]:
+    system: str | None,
+    codeA: str | None,
+    codeB: str | None
+) -> dict[str, Any]:
     if not system or not codeA or not codeB:
         raise HTTPException(status_code=400, detail="system, codeA, and codeB parameters are required")
 
+    outcome: str | None = None
     try:
         if system == 'http://snomed.info/sct':
             outcome = await external_cs.subsumes_snomed(codeA, codeB)
@@ -1156,7 +1156,7 @@ async def _perform_subsumes(
             outcome = await _subsumes_local(system, codeA, codeB)
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning("$subsumes failed [%s %s/%s]: %s", system, codeA, codeB, e)
         raise HTTPException(status_code=502, detail=f"Subsumption check failed: {e}")
 
@@ -1430,7 +1430,7 @@ async def missing_codesystems():
 @router.get("/_history")
 async def system_history(
     request: Request,
-    _since: Optional[str] = Query(None, alias="_since"),
+    _since: str | None = Query(None, alias="_since"),
     _count: int = Query(20, alias="_count", ge=1, le=1000),
     _offset: int = Query(0, alias="_offset", ge=0),
 ):

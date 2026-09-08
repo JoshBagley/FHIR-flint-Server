@@ -1,15 +1,21 @@
 import json
-from typing import Dict, List, Any, Tuple
+from typing import Any
 
 from fastapi import HTTPException
+
 from app import state
 from app.capability import register_resource
 from app.fhir_utils import _date_condition, _patient_ref, _token_condition
-from app.models.medications import MedicationRequest, Procedure, DiagnosticReport, MedicationDispense
+from app.models.medications import (
+    DiagnosticReport,
+    MedicationDispense,
+    MedicationRequest,
+    Procedure,
+)
 from app.routes.resource_factory import create_resource_router
 
 
-async def _check_codings(coding_list: List[Dict[str, Any]], field: str) -> None:
+async def _check_codings(coding_list: list[dict[str, Any]], field: str) -> None:
     for coding in coding_list:
         system = coding.get("system")
         code = coding.get("code")
@@ -22,7 +28,7 @@ async def _check_codings(coding_list: List[Dict[str, Any]], field: str) -> None:
         if cs.get("content") != "complete":
             continue
 
-        def _find(concepts: List[Dict], target: str) -> bool:
+        def _find(concepts: list[dict], target: str) -> bool:
             for c in concepts:
                 if c.get("code") == target:
                     return True
@@ -37,14 +43,14 @@ async def _check_codings(coding_list: List[Dict[str, Any]], field: str) -> None:
             )
 
 
-async def _medication_validate(data: Dict[str, Any]) -> None:
+async def _medication_validate(data: dict[str, Any]) -> None:
     codings = (data.get("medicationCodeableConcept") or {}).get("coding", [])
     await _check_codings(codings, "MedicationRequest.medicationCodeableConcept")
 
 
-def _medication_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _medication_request_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         vals = [v.strip() for v in qp['status'].split(',')]
         if len(vals) == 1:
@@ -69,9 +75,9 @@ def _medication_request_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any],
     return base, extra
 
 
-def _procedure_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _procedure_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         statuses = [s.strip() for s in qp['status'].split(',')]
         if len(statuses) == 1:
@@ -87,9 +93,9 @@ def _procedure_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tup
     return base, extra
 
 
-def _diagnostic_report_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _diagnostic_report_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
@@ -217,9 +223,9 @@ register_resource({
     ],
 })
 
-def _medication_dispense_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _medication_dispense_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:

@@ -1,12 +1,33 @@
 import asyncio
 import json
-from typing import Dict, List, Any, Tuple
+from typing import Any
 
-from fastapi import HTTPException, Body, Request
+from fastapi import Body, HTTPException, Request
+
 from app import state
 from app.capability import register_resource
-from app.fhir_utils import _date_condition, _extension_date_condition, _patient_ref, _token_condition
-from app.models.clinical import Patient, Observation, Condition, Encounter, AllergyIntolerance, Immunization, CarePlan, CareTeam, Device, DocumentReference, Goal, Specimen, Provenance, RelatedPerson
+from app.fhir_utils import (
+    _date_condition,
+    _extension_date_condition,
+    _patient_ref,
+    _token_condition,
+)
+from app.models.clinical import (
+    AllergyIntolerance,
+    CarePlan,
+    CareTeam,
+    Condition,
+    Device,
+    DocumentReference,
+    Encounter,
+    Goal,
+    Immunization,
+    Observation,
+    Patient,
+    Provenance,
+    RelatedPerson,
+    Specimen,
+)
 from app.routes.resource_factory import create_resource_router
 
 
@@ -15,7 +36,7 @@ from app.routes.resource_factory import create_resource_router
 # Raises 422 only when a system is locally stored as content=complete and the
 # code is explicitly absent. Unknown or stub/fragment systems are skipped.
 # ---------------------------------------------------------------------------
-async def _check_codings(coding_list: List[Dict[str, Any]], field: str) -> None:
+async def _check_codings(coding_list: list[dict[str, Any]], field: str) -> None:
     for coding in coding_list:
         system = coding.get("system")
         code = coding.get("code")
@@ -28,7 +49,7 @@ async def _check_codings(coding_list: List[Dict[str, Any]], field: str) -> None:
         if cs.get("content") != "complete":
             continue
 
-        def _find(concepts: List[Dict], target: str) -> bool:
+        def _find(concepts: list[dict], target: str) -> bool:
             for c in concepts:
                 if c.get("code") == target:
                     return True
@@ -47,9 +68,9 @@ async def _check_codings(coding_list: List[Dict[str, Any]], field: str) -> None:
 # Search hooks
 # ---------------------------------------------------------------------------
 
-def _patient_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _patient_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if '_id' in qp:
         ids = [i.strip() for i in qp['_id'].split(',') if i.strip()]
         if len(ids) == 1:
@@ -105,9 +126,9 @@ def _patient_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple
     return base, extra
 
 
-def _observation_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _observation_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
@@ -130,9 +151,9 @@ def _observation_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[T
     return base, extra
 
 
-def _condition_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _condition_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
@@ -168,9 +189,9 @@ def _condition_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tup
     return base, extra
 
 
-def _encounter_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _encounter_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if '_id' in qp:
         extra.append(("id::text = ??", qp['_id']))
     if 'status' in qp:
@@ -222,9 +243,9 @@ def _encounter_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tup
     return base, extra
 
 
-def _allergy_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _allergy_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'patient' in qp:
         extra.append(("data->'patient'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'clinical-status' in qp:
@@ -239,9 +260,9 @@ def _allergy_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple
     return base, extra
 
 
-def _careteam_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _careteam_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
@@ -260,9 +281,9 @@ def _careteam_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tupl
     return base, extra
 
 
-def _careplan_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _careplan_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
@@ -283,9 +304,9 @@ def _careplan_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tupl
     return base, extra
 
 
-def _immunization_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _immunization_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
@@ -304,12 +325,12 @@ def _immunization_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
 # Validate hooks
 # ---------------------------------------------------------------------------
 
-async def _observation_validate(data: Dict[str, Any]) -> None:
+async def _observation_validate(data: dict[str, Any]) -> None:
     codings = (data.get("code") or {}).get("coding", [])
     await _check_codings(codings, "Observation.code")
 
 
-async def _immunization_validate(data: Dict[str, Any]) -> None:
+async def _immunization_validate(data: dict[str, Any]) -> None:
     codings = (data.get("vaccineCode") or {}).get("coding", [])
     await _check_codings(codings, "Immunization.vaccineCode")
 
@@ -340,18 +361,18 @@ immunization_router = create_resource_router(
 # ---------------------------------------------------------------------------
 
 @patient_router.post("/Patient/$match")
-async def patient_match(request: Request, body: Dict[str, Any] = Body(...)):
+async def patient_match(request: Request, body: dict[str, Any] = Body(...)):  # noqa: B008
     if getattr(request.state, "fhir_patient_id", None):
         raise HTTPException(status_code=403, detail="patient-scoped tokens may not use $match")
     params = {p["name"]: p for p in body.get("parameter", [])}
-    patient_data: Dict[str, Any] = params.get("resource", {}).get("resource") or {}
+    patient_data: dict[str, Any] = params.get("resource", {}).get("resource") or {}
     if not patient_data:
         raise HTTPException(status_code=400, detail="Parameters.resource (Patient) is required")
 
     max_count = int(params.get("count", {}).get("valueInteger", 3))
     only_certain = bool(params.get("onlyCertainMatches", {}).get("valueBoolean", False))
 
-    extra_pairs: List[Tuple[str, Any]] = []
+    extra_pairs: list[tuple[str, Any]] = []
     names = patient_data.get("name", [])
     if names and names[0].get("family"):
         extra_pairs.append((
@@ -377,7 +398,7 @@ async def patient_match(request: Request, body: Dict[str, Any] = Body(...)):
         "Patient", {}, extra_pairs, limit=max_count * 5, offset=0
     )
 
-    def _score(candidate: Dict[str, Any]) -> float:
+    def _score(candidate: dict[str, Any]) -> float:
         s = 0.0
         for ident in identifiers:
             for ci in candidate.get("identifier", []):
@@ -430,7 +451,7 @@ async def patient_match(request: Request, body: Dict[str, Any] = Body(...)):
 # ---------------------------------------------------------------------------
 
 # (resource_type, patient_reference_field)
-_COMPARTMENT_TYPES: List[Tuple[str, str]] = [
+_COMPARTMENT_TYPES: list[tuple[str, str]] = [
     ("Observation",        "data->'subject'->>'reference'"),
     ("Condition",          "data->'subject'->>'reference'"),
     ("Encounter",          "data->'subject'->>'reference'"),
@@ -453,7 +474,7 @@ async def patient_everything(patient_id: str, request: Request):
 
     ref = f"Patient/{patient_id}"
 
-    async def _fetch(rt: str, field: str) -> List[Dict[str, Any]]:
+    async def _fetch(rt: str, field: str) -> list[dict[str, Any]]:
         _, results = await state.db.search_resources_ex(rt, {}, [(f"{field} = ??", ref)], limit=10000, offset=0)
         return results
 
@@ -762,9 +783,9 @@ register_resource({
     ],
 })
 
-def _device_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _device_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         base['status'] = qp['status']
     if 'patient' in qp:
@@ -806,16 +827,16 @@ register_resource({
     ],
 })
 
-def _document_reference_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _document_reference_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         base['status'] = qp['status']
     if '_id' in qp:
         extra.append(("id::text = ??", qp['_id']))
     if 'patient' in qp or 'subject' in qp:
         val = qp.get('patient') or qp.get('subject')
-        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(val)))
+        extra.append(("data->'subject'->>'reference' = ??", _patient_ref(val or "")))
     if 'type' in qp:
         extra.append(_token_condition("data->'type'->'coding'", qp['type']))
     if 'category' in qp:
@@ -872,9 +893,9 @@ register_resource({
     ],
 })
 
-def _goal_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _goal_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'patient' in qp:
         extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'lifecycle-status' in qp:
@@ -923,9 +944,9 @@ register_resource({
     ],
 })
 
-def _specimen_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _specimen_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'patient' in qp:
         extra.append(("data->'subject'->>'reference' = ??", _patient_ref(qp['patient'])))
     if 'status' in qp:
@@ -959,9 +980,9 @@ register_resource({
     ],
 })
 
-def _provenance_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _provenance_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'patient' in qp:
         extra.append((
             "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'target', '[]'::jsonb)) t WHERE t->>'reference' = ??)",
@@ -991,18 +1012,18 @@ register_resource({
     ],
 })
 
-def _related_person_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _related_person_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'patient' in qp:
         extra.append(("data->'patient'->>'reference' = ??", _patient_ref(qp['patient'])))
     if '_id' in qp:
         extra.append(("id::text = ??", qp['_id']))
     if 'name' in qp:
         extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'name', '[]'::jsonb)) n "
+            ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'name', '[]'::jsonb)) n "
             "WHERE n->>'family' ILIKE ?? OR EXISTS ("
-            "SELECT 1 FROM jsonb_array_elements_text(COALESCE(n->'given', '[]'::jsonb)) g WHERE g ILIKE ??))",
+            "SELECT 1 FROM jsonb_array_elements_text(COALESCE(n->'given', '[]'::jsonb)) g WHERE g ILIKE ??))"),
             f"%{qp['name']}%"
         ))
     return base, extra

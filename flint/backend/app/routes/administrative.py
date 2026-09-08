@@ -1,14 +1,20 @@
 import json
-from typing import Dict, List, Any, Tuple
+from typing import Any
 
 from app.capability import register_resource
-from app.models.administrative import Endpoint, Organization, Practitioner, PractitionerRole, Location
+from app.models.administrative import (
+    Endpoint,
+    Location,
+    Organization,
+    Practitioner,
+    PractitionerRole,
+)
 from app.routes.resource_factory import create_resource_router
 
 
-def _organization_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _organization_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'name' in qp:
         # FHIR string search is prefix (starts-with), not contains — prevents cross-matches
         # like "General Hospital" matching "MASSACHUSETTS GENERAL HOSPITAL"
@@ -29,21 +35,21 @@ def _organization_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
         # Excludes 'line' so street names like "75 SPRINGFIELD RD" don't create false matches.
         addr_val = f"{qp['address'].lower()}%"
         extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'address', '[]'::jsonb)) a "
+            ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'address', '[]'::jsonb)) a "
             "WHERE lower(COALESCE(a->>'city','')) LIKE ?? "
             "OR lower(COALESCE(a->>'state','')) LIKE ?? "
             "OR lower(COALESCE(a->>'postalCode','')) LIKE ?? "
             "OR lower(COALESCE(a->>'country','')) LIKE ?? "
             "OR lower(COALESCE(a->>'district','')) LIKE ?? "
-            "OR lower(COALESCE(a->>'text','')) LIKE ??)",
+            "OR lower(COALESCE(a->>'text','')) LIKE ??)"),
             [addr_val] * 6,
         ))
     return base, extra
 
 
-def _practitioner_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _practitioner_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if '_id' in qp:
         extra.append(("data->>'id' = ??", qp['_id']))
     if 'name' in qp:
@@ -51,10 +57,10 @@ def _practitioner_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
         # (the name DB column is not populated for Practitioners seeded via direct SQL)
         name_val = f"{qp['name'].lower()}%"
         extra.append((
-            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'name', '[]'::jsonb)) n "
+            ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'name', '[]'::jsonb)) n "
             "WHERE lower(COALESCE(n->>'family','')) LIKE ?? "
             "OR lower(COALESCE(n->>'text','')) LIKE ?? "
-            "OR EXISTS (SELECT 1 FROM jsonb_array_elements_text(COALESCE(n->'given', '[]'::jsonb)) g WHERE lower(g) LIKE ??))",
+            "OR EXISTS (SELECT 1 FROM jsonb_array_elements_text(COALESCE(n->'given', '[]'::jsonb)) g WHERE lower(g) LIKE ??))"),
             [name_val] * 3,
         ))
     if 'family' in qp:
@@ -72,8 +78,8 @@ def _practitioner_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
         if '|' in ident:
             sys_part, _, val_part = ident.partition('|')
             extra.append((
-                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) ident "
-                "WHERE ident->>'system' = ?? AND ident->>'value' = ??)",
+                ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'identifier', '[]'::jsonb)) ident "
+                "WHERE ident->>'system' = ?? AND ident->>'value' = ??)"),
                 [sys_part, val_part],
             ))
         else:
@@ -86,9 +92,9 @@ def _practitioner_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[
     return base, extra
 
 
-def _practitioner_role_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _practitioner_role_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'practitioner' in qp:
         extra.append(("data->'practitioner'->>'reference' = ??", qp['practitioner']))
     if 'organization' in qp:
@@ -104,22 +110,22 @@ def _practitioner_role_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], 
             sys_part, _, code_part = spec_val.partition('|')
             obj = {k: v for k, v in [("system", sys_part), ("code", code_part)] if v}
             extra.append((
-                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'specialty', '[]'::jsonb)) t, "
-                "jsonb_array_elements(COALESCE(t->'coding', '[]'::jsonb)) c WHERE c @> ??::jsonb)",
+                ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'specialty', '[]'::jsonb)) t, "
+                "jsonb_array_elements(COALESCE(t->'coding', '[]'::jsonb)) c WHERE c @> ??::jsonb)"),
                 json.dumps(obj)
             ))
         else:
             extra.append((
-                "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'specialty', '[]'::jsonb)) t, "
-                "jsonb_array_elements(COALESCE(t->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
+                ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(data->'specialty', '[]'::jsonb)) t, "
+                "jsonb_array_elements(COALESCE(t->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)"),
                 spec_val
             ))
     return base, extra
 
 
-def _location_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _location_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'name' in qp:
         base['name'] = qp['name']
     if 'identifier' in qp:
@@ -282,9 +288,9 @@ register_resource({
     ],
 })
 
-def _endpoint_search_hook(qp: Dict[str, str]) -> Tuple[Dict[str, Any], List[Tuple[str, Any]]]:
-    base: Dict[str, Any] = {}
-    extra: List[Tuple[str, Any]] = []
+def _endpoint_search_hook(qp: dict[str, str]) -> tuple[dict[str, Any], list[tuple[str, Any]]]:
+    base: dict[str, Any] = {}
+    extra: list[tuple[str, Any]] = []
     if 'status' in qp:
         base['status'] = qp['status']
     if 'organization' in qp:

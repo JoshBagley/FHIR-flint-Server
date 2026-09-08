@@ -9,6 +9,7 @@ These endpoints expose their status for monitoring.
 """
 
 import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app import state

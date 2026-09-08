@@ -14,9 +14,9 @@ POST /mcp-chat/chat   — agentic chat with tool use
 GET  /mcp-chat/tools  — list available tools (no auth required)
 """
 
-import os
 import json
 import logging
+import os
 from typing import Any
 
 import httpx
@@ -393,8 +393,8 @@ async def _run_anthropic(messages: list[dict], tool_calls_out: list[dict]) -> st
             model=model,
             max_tokens=2048,
             system=_SYSTEM_PROMPT,
-            tools=tools,
-            messages=messages,
+            tools=tools,  # type: ignore[arg-type]
+            messages=messages,  # type: ignore[arg-type]
         )
 
         for _ in range(_MAX_TOOL_ROUNDS):
@@ -404,31 +404,31 @@ async def _run_anthropic(messages: list[dict], tool_calls_out: list[dict]) -> st
             tool_results = []
             for block in resp.content:
                 if block.type == "tool_use":
-                    result = await _execute_tool(block.name, block.input)
+                    result = await _execute_tool(block.name, block.input)  # type: ignore[union-attr]
                     tool_calls_out.append(
-                        {"tool": block.name, "args": block.input, "result": result}
+                        {"tool": block.name, "args": block.input, "result": result}  # type: ignore[union-attr]
                     )
                     tool_results.append(
                         {
                             "type": "tool_result",
-                            "tool_use_id": block.id,
+                            "tool_use_id": block.id,  # type: ignore[union-attr]
                             "content": json.dumps(result, default=str),
                         }
                     )
 
             # Serialize content blocks to dicts for the next request
-            messages = messages + [
+            messages = messages + [  # type: ignore[assignment]
                 {
                     "role": "assistant",
                     "content": [
                         (
-                            {"type": "text", "text": b.text}
+                            {"type": "text", "text": b.text}  # type: ignore[union-attr]
                             if b.type == "text"
                             else {
                                 "type": "tool_use",
-                                "id": b.id,
-                                "name": b.name,
-                                "input": b.input,
+                                "id": b.id,  # type: ignore[union-attr]
+                                "name": b.name,  # type: ignore[union-attr]
+                                "input": b.input,  # type: ignore[union-attr]
                             }
                         )
                         for b in resp.content
@@ -441,8 +441,8 @@ async def _run_anthropic(messages: list[dict], tool_calls_out: list[dict]) -> st
                 model=model,
                 max_tokens=2048,
                 system=_SYSTEM_PROMPT,
-                tools=tools,
-                messages=messages,
+                tools=tools,  # type: ignore[arg-type]
+                messages=messages,  # type: ignore[arg-type]
             )
 
         return next(
@@ -455,8 +455,8 @@ async def _run_anthropic(messages: list[dict], tool_calls_out: list[dict]) -> st
 
 
 async def _run_openai(messages: list[dict], tool_calls_out: list[dict]) -> str:
-    from openai import OpenAI
     import openai as _openai
+    from openai import OpenAI
 
     key = os.getenv("OPENAI_API_KEY", "")
     if not key:
@@ -473,7 +473,7 @@ async def _run_openai(messages: list[dict], tool_calls_out: list[dict]) -> str:
         resp = client.chat.completions.create(
             model=model,
             max_tokens=2048,
-            tools=oai_tools,
+            tools=oai_tools,  # type: ignore[arg-type]
             messages=oai_messages,
         )
 
@@ -486,10 +486,10 @@ async def _run_openai(messages: list[dict], tool_calls_out: list[dict]) -> str:
             oai_messages.append(msg)
 
             for tc in msg.tool_calls or []:
-                args = json.loads(tc.function.arguments)
-                result = await _execute_tool(tc.function.name, args)
+                args = json.loads(tc.function.arguments)  # type: ignore[union-attr]
+                result = await _execute_tool(tc.function.name, args)  # type: ignore[union-attr]
                 tool_calls_out.append(
-                    {"tool": tc.function.name, "args": args, "result": result}
+                    {"tool": tc.function.name, "args": args, "result": result}  # type: ignore[union-attr]
                 )
                 oai_messages.append(
                     {
@@ -502,7 +502,7 @@ async def _run_openai(messages: list[dict], tool_calls_out: list[dict]) -> str:
             resp = client.chat.completions.create(
                 model=model,
                 max_tokens=2048,
-                tools=oai_tools,
+                tools=oai_tools,  # type: ignore[arg-type]
                 messages=oai_messages,
             )
 

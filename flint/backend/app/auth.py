@@ -37,11 +37,11 @@ SMART scope enforcement (when ENABLE_AUTH=true):
   Wildcard patterns (*.* and /ResourceType.read etc.) are also matched.
 """
 
-import os
 import logging
+import os
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from fastapi import Depends, Header, HTTPException
@@ -71,7 +71,7 @@ _bearer_scheme = HTTPBearer(auto_error=False)
 # ── Built-in user store (demo/testing only) ───────────────────────────────────
 # In a full production deployment these would come from the database.
 
-_BUILTIN_USERS: Dict[str, Dict[str, Any]] = {
+_BUILTIN_USERS: dict[str, dict[str, Any]] = {
     AUTH_USERNAME: {
         "password": AUTH_PASSWORD,
         "roles": ["admin"],
@@ -80,11 +80,11 @@ _BUILTIN_USERS: Dict[str, Dict[str, Any]] = {
 
 # ── JWKS cache (external OIDC only) ──────────────────────────────────────────
 
-_jwks_cache: Optional[Dict[str, Any]] = None
+_jwks_cache: dict[str, Any] | None = None
 _jwks_cache_time: float = 0.0
 
 
-async def _get_jwks() -> Dict[str, Any]:
+async def _get_jwks() -> dict[str, Any]:
     global _jwks_cache, _jwks_cache_time
     now = time.monotonic()
     if _jwks_cache and (now - _jwks_cache_time) < JWKS_CACHE_TTL_SECONDS:
@@ -102,7 +102,7 @@ async def _get_jwks() -> Dict[str, Any]:
 
 # ── Token creation (built-in JWT) ─────────────────────────────────────────────
 
-def create_access_token(subject: str, roles: List[str]) -> str:
+def create_access_token(subject: str, roles: list[str]) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=AUTH_TOKEN_EXPIRE_MINUTES)
     return jwt.encode(
         {"sub": subject, "roles": roles, "exp": expire, "iss": "flint"},
@@ -111,7 +111,7 @@ def create_access_token(subject: str, roles: List[str]) -> str:
     )
 
 
-def verify_builtin_credentials(username: str, password: str) -> Optional[Dict[str, Any]]:
+def verify_builtin_credentials(username: str, password: str) -> dict[str, Any] | None:
     """Return user dict if credentials are valid, None otherwise."""
     if not AUTH_PASSWORD:
         return None
@@ -123,7 +123,7 @@ def verify_builtin_credentials(username: str, password: str) -> Optional[Dict[st
 
 # ── SMART scope helpers ───────────────────────────────────────────────────────
 
-async def decode_token(token: str) -> Dict[str, Any]:
+async def decode_token(token: str) -> dict[str, Any]:
     """Decode a JWT and return the payload. Raises JWTError on failure (not HTTPException)."""
     if OIDC_ISSUER_URL:
         jwks = await _get_jwks()
@@ -135,7 +135,7 @@ async def decode_token(token: str) -> Dict[str, Any]:
         return payload
 
 
-def get_roles(token_payload: Dict[str, Any]) -> List[str]:
+def get_roles(token_payload: dict[str, Any]) -> list[str]:
     """Extract FHIR realm roles from a Keycloak or built-in JWT token.
 
     Keycloak places realm roles at realm_access.roles.
@@ -147,7 +147,7 @@ def get_roles(token_payload: Dict[str, Any]) -> List[str]:
     return list(token_payload.get("roles") or [])
 
 
-def check_role_scope_compatibility(roles: List[str], token_payload: Dict[str, Any]) -> Optional[str]:
+def check_role_scope_compatibility(roles: list[str], token_payload: dict[str, Any]) -> str | None:
     """Return an error string if the role+scope combination is not permitted, else None.
 
     fhir-patient   → only patient/* scopes allowed
@@ -164,7 +164,7 @@ def check_role_scope_compatibility(roles: List[str], token_payload: Dict[str, An
     return None
 
 
-def _extract_fhir_id(fhir_user: str, resource_type: str) -> Optional[str]:
+def _extract_fhir_id(fhir_user: str, resource_type: str) -> str | None:
     """Extract bare UUID from a relative or absolute FHIR reference.
 
     Handles both relative ("Patient/uuid") and absolute
@@ -182,7 +182,7 @@ def _extract_fhir_id(fhir_user: str, resource_type: str) -> Optional[str]:
     return None
 
 
-def get_clinician_id(token_payload: Dict[str, Any]) -> Optional[str]:
+def get_clinician_id(token_payload: dict[str, Any]) -> str | None:
     """Return the bare Practitioner UUID for fhir-clinician tokens, else None.
 
     Used by Option B panel filtering in resource_factory._search/_read.
@@ -207,7 +207,7 @@ def get_clinician_id(token_payload: Dict[str, Any]) -> Optional[str]:
     return _extract_fhir_id(fhir_user, "Practitioner")
 
 
-def get_patient_context(token_payload: Dict[str, Any]) -> Optional[str]:
+def get_patient_context(token_payload: dict[str, Any]) -> str | None:
     """Return the bare patient UUID if this token is patient-scoped, else None.
 
     Returns None (no filtering) for admin/clinician tokens with broad access.
@@ -218,14 +218,14 @@ def get_patient_context(token_payload: Dict[str, Any]) -> Optional[str]:
     if "fhir-admin" in roles:
         return None
     scopes = set((token_payload.get("scope") or "").split())
-    has_broad = any(s.startswith("user/") or s.startswith("system/") for s in scopes)
+    has_broad = any(s.startswith(("user/", "system/")) for s in scopes)
     if "fhir-clinician" in roles and has_broad:
         return None
     fhir_user = (token_payload.get("fhirUser") or "").strip()
     return _extract_fhir_id(fhir_user, "Patient")
 
 
-def has_fhir_scope(token_payload: Dict[str, Any], method: str) -> bool:
+def has_fhir_scope(token_payload: dict[str, Any], method: str) -> bool:
     """Return True if the token's scopes grant access for the given HTTP method.
 
     Recognises both SMART v1 and v2 scope patterns:
@@ -270,8 +270,8 @@ async def require_api_key(x_api_key: str = Header(default="")) -> None:
 
 
 async def require_auth(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer_scheme),
-) -> Optional[Dict[str, Any]]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),  # noqa: B008
+) -> dict[str, Any] | None:
     """Validate Bearer token. Returns decoded payload or None when ENABLE_AUTH=false."""
     if not ENABLE_AUTH:
         return None
@@ -310,8 +310,8 @@ async def require_auth(
 
 async def require_access(
     x_api_key: str = Header(default=""),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer_scheme),
-) -> Optional[Dict[str, Any]]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),  # noqa: B008
+) -> dict[str, Any] | None:
     """
     Single dependency for protected routers (/admin, /ai).
 

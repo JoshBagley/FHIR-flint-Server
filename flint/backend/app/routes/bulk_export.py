@@ -8,13 +8,14 @@ Endpoints:
   GET  /bulk/{job_id}/{file} — NDJSON file download
   DELETE /jobs/{id}          — cancel in-progress export
 """
-import asyncio
+import asyncio  # noqa: I001
 import json
 import os
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+
+import aiofiles
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -41,13 +42,13 @@ _PATIENT_COMPARTMENT = [
 ]
 
 # job_id → asyncio.Task (in-memory, for cancellation)
-_tasks: Dict[str, asyncio.Task] = {}
+_tasks: dict[str, asyncio.Task] = {}
 
 
-async def _run_export(job_id: str, types: List[str], since: Optional[str], base_url: str) -> None:
+async def _run_export(job_id: str, types: list[str], since: str | None, base_url: str) -> None:
     job_dir = _EXPORT_DIR / job_id
     job_dir.mkdir(parents=True, exist_ok=True)
-    output: List[Dict] = []
+    output: list[dict] = []
 
     try:
         extra = []
@@ -59,13 +60,13 @@ async def _run_export(job_id: str, types: List[str], since: Optional[str], base_
             offset = 0
             file_path = job_dir / f"{rt}.ndjson"
 
-            with open(file_path, "w") as f:
+            async with aiofiles.open(file_path, "w") as f:
                 while True:
                     total, results = await state.db.search_resources_ex(
                         rt, {}, extra, limit=500, offset=offset
                     )
                     for r in results:
-                        f.write(json.dumps(r) + "\n")
+                        await f.write(json.dumps(r) + "\n")
                         count += 1
                     offset += 500
                     if offset >= total:
@@ -80,14 +81,14 @@ async def _run_export(job_id: str, types: List[str], since: Optional[str], base_
             else:
                 file_path.unlink(missing_ok=True)
 
-        update: Dict = {
+        update: dict = {
             "status": "complete",
             "output": output,
             "transactionTime": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
     except asyncio.CancelledError:
         update = {"status": "cancelled", "output": output}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         update = {"status": "failed", "error": [{"type": "OperationOutcome", "url": str(e)}]}
 
     job = await state.cache.get(f"bulk:job:{job_id}") or {}
@@ -96,7 +97,7 @@ async def _run_export(job_id: str, types: List[str], since: Optional[str], base_
     _tasks.pop(job_id, None)
 
 
-async def _kickoff(request: Request, types: List[str], since: Optional[str]) -> Response:
+async def _kickoff(request: Request, types: list[str], since: str | None) -> Response:
     job_id = str(uuid.uuid4())
     base_url = str(request.base_url).rstrip("/")
 
@@ -122,10 +123,13 @@ async def _kickoff(request: Request, types: List[str], since: Optional[str]) -> 
 @router.get("/$export")
 async def system_export(
     request: Request,
-    _type: Optional[str] = Query(None, alias="_type"),
-    _since: Optional[str] = Query(None, alias="_since"),
-    _outputFormat: Optional[str] = Query(None, alias="_outputFormat"),
+    _type: str | None = Query(None, alias="_type"),
+    _since: str | None = Query(None, alias="_since"),
+    _outputFormat: str | None = Query(None, alias="_outputFormat"),
 ):
+    roles = getattr(request.state, "fhir_roles", [])
+    if "fhir-admin" not in roles:
+        raise HTTPException(status_code=403, detail="System-level $export requires fhir-admin role")
     if _outputFormat and "ndjson" not in _outputFormat.lower() and "json" not in _outputFormat.lower():
         raise HTTPException(status_code=400, detail=f"Unsupported _outputFormat: {_outputFormat}")
     types = [t.strip() for t in _type.split(",")] if _type else list(_ALL_TYPES)
@@ -138,9 +142,9 @@ async def system_export(
 @router.get("/Patient/$export")
 async def patient_export(
     request: Request,
-    _type: Optional[str] = Query(None, alias="_type"),
-    _since: Optional[str] = Query(None, alias="_since"),
-    _outputFormat: Optional[str] = Query(None, alias="_outputFormat"),
+    _type: str | None = Query(None, alias="_type"),
+    _since: str | None = Query(None, alias="_since"),
+    _outputFormat: str | None = Query(None, alias="_outputFormat"),
 ):
     if _outputFormat and "ndjson" not in _outputFormat.lower() and "json" not in _outputFormat.lower():
         raise HTTPException(status_code=400, detail=f"Unsupported _outputFormat: {_outputFormat}")

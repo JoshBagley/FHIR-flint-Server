@@ -13,20 +13,20 @@ POST /ai/map        — suggest cross-system code mappings
 Returns HTTP 503 if the configured provider's API key is missing.
 """
 
-import os
-import re
+import asyncio
 import json
 import logging
-import asyncio
-from typing import Optional
+import os
+import re
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from app.services import external_cs
 from app import state
 from app.auth import require_access
+from app.services import external_cs
 
 router = APIRouter(prefix="/ai", tags=["AI Assistant"], dependencies=[Depends(require_access)])
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ def _complete(prompt: str, max_tokens: int = 2048) -> str:
                 max_tokens=max_tokens,
                 messages=[{"role": "user", "content": prompt}],
             )
-            return msg.content[0].text
+            return msg.content[0].text  # type: ignore[union-attr]
         except anthropic.APIError as e:
             raise HTTPException(status_code=502, detail=f"Anthropic API error: {e.message}") from e
 
@@ -75,12 +75,12 @@ def _complete(prompt: str, max_tokens: int = 2048) -> str:
                 status_code=503,
                 detail="AI provider 'openai' requires OPENAI_API_KEY in your .env file.",
             )
-        from openai import OpenAI
         import openai as _openai
+        from openai import OpenAI
         model = os.getenv("OPENAI_MODEL", "gpt-4o")
-        client = OpenAI(api_key=key)
+        client = OpenAI(api_key=key)  # type: ignore[assignment]
         try:
-            resp = client.chat.completions.create(
+            resp = client.chat.completions.create(  # type: ignore[attr-defined]
                 model=model,
                 max_tokens=max_tokens,
                 messages=[{"role": "user", "content": prompt}],
@@ -130,9 +130,9 @@ def _complete_chat(system: str, messages: list[dict], max_tokens: int = 2048) ->
                 model=model,
                 max_tokens=max_tokens,
                 system=system,
-                messages=messages,
+                messages=messages,  # type: ignore[arg-type]
             )
-            return msg.content[0].text
+            return msg.content[0].text  # type: ignore[union-attr]
         except anthropic.APIError as e:
             raise HTTPException(status_code=502, detail=f"Anthropic API error: {e.message}") from e
 
@@ -140,12 +140,12 @@ def _complete_chat(system: str, messages: list[dict], max_tokens: int = 2048) ->
         key = os.getenv("OPENAI_API_KEY", "")
         if not key:
             raise HTTPException(status_code=503, detail="AI provider 'openai' requires OPENAI_API_KEY in your .env file.")
-        from openai import OpenAI
         import openai as _openai
+        from openai import OpenAI
         model = os.getenv("OPENAI_MODEL", "gpt-4o")
-        client = OpenAI(api_key=key)
+        client = OpenAI(api_key=key)  # type: ignore[assignment]
         try:
-            resp = client.chat.completions.create(
+            resp = client.chat.completions.create(  # type: ignore[attr-defined]
                 model=model,
                 max_tokens=max_tokens,
                 messages=[{"role": "system", "content": system}] + messages,
@@ -189,8 +189,7 @@ def _parse_json_response(raw: str) -> dict:
     if text.startswith("```"):
         parts = text.split("```")
         text = parts[1] if len(parts) > 1 else text
-        if text.startswith("json"):
-            text = text[4:]
+        text = text.removeprefix("json")
     return json.loads(text.strip())
 
 
@@ -206,7 +205,7 @@ class SuggestRequest(BaseModel):
 
 class DescribeRequest(BaseModel):
     codes: list[dict]
-    context: Optional[str] = None
+    context: str | None = None
 
 
 class MapRequest(BaseModel):
@@ -221,21 +220,21 @@ class MapSaveRequest(BaseModel):
     target_system: str       # SDO id e.g. "icd10cm", "snomed", "rxnorm"
     name: str                # machine-readable UpperCamelCase name
     title: str               # human-readable title
-    description: Optional[str] = None
-    purpose: Optional[str] = None
+    description: str | None = None
+    purpose: str | None = None
     status: str = "draft"
 
 
 def _sdo_id_to_url(sdo_id: str) -> str:
     """Resolve an SDO short-id to its canonical FHIR system URL."""
-    info = next((s for s in external_cs.list_systems() if s["id"] == sdo_id), {})
+    info: dict[str, Any] = next((s for s in external_cs.list_systems() if s["id"] == sdo_id), {})
     return info.get("url", sdo_id)
 
 
 class ValidateValueSetRequest(BaseModel):
     codes: list[dict] = []          # inline code list: [{code, system, display?, systemName?}]
-    valueset_id: Optional[str] = None  # pull codes from a stored ValueSet instead
-    context: Optional[str] = None   # optional free-text context for the AI narrative
+    valueset_id: str | None = None  # pull codes from a stored ValueSet instead
+    context: str | None = None   # optional free-text context for the AI narrative
 
 
 class ChatTurn(BaseModel):
@@ -245,7 +244,7 @@ class ChatTurn(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: list[ChatTurn]
-    valueset_context: Optional[dict] = None
+    valueset_context: dict | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -285,7 +284,7 @@ async def suggest_codes(req: SuggestRequest):
                 external_cs.search(sys_id, req.description, req.limit),
                 timeout=8.0,
             )
-        except (asyncio.TimeoutError, Exception) as e:
+        except (asyncio.TimeoutError, Exception) as e:  # noqa: BLE001
             logger.warning("SDO search timed out / failed [%s]: %s", sys_id, e)
             return []
 
@@ -351,7 +350,7 @@ Respond ONLY with valid JSON in this exact structure (no markdown, no explanatio
             "notes": "AI response parse error — returning raw search results.",
         }
     except Exception as e:
-        logger.error("Unexpected error in /ai/suggest: %s", e, exc_info=True)
+        logger.error("Unexpected error in /ai/suggest: %s", e, exc_info=True)  # noqa: G201
         raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e
 
     # Validate every suggestion against the live terminology server.
@@ -406,7 +405,7 @@ Respond ONLY with valid JSON (no markdown, no explanation outside the JSON):
         logger.warning("Failed to parse AI describe response: %s", e)
         return {"notes": "AI response parse error."}
     except Exception as e:
-        logger.error("Unexpected error in /ai/describe: %s", e, exc_info=True)
+        logger.error("Unexpected error in /ai/describe: %s", e, exc_info=True)  # noqa: G201
         raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e
 
 
@@ -427,7 +426,7 @@ async def map_codes(req: MapRequest):
         if isinstance(r, list):
             target_candidates.extend(r)
 
-    sys_info = next(
+    sys_info: dict[str, Any] = next(
         (s for s in external_cs.list_systems() if s["id"] == req.target_system), {}
     )
     target_name = sys_info.get("name", req.target_system)
@@ -476,7 +475,7 @@ Respond ONLY with valid JSON (no markdown, no explanation outside the JSON):
         logger.warning("Failed to parse AI map response: %s", e)
         return {"mappings": [], "notes": "AI response parse error."}
     except Exception as e:
-        logger.error("Unexpected error in /ai/map: %s", e, exc_info=True)
+        logger.error("Unexpected error in /ai/map: %s", e, exc_info=True)  # noqa: G201
         raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e
 
 
@@ -546,7 +545,7 @@ async def _find_alternative_codes(entry: dict) -> dict:
             external_cs.search(sdo_id, query, 3), timeout=5.0
         )
         return {**entry, "alternatives": results[:3]}
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {**entry, "alternatives": []}
 
 
@@ -609,7 +608,7 @@ async def _lookup_codes_in_text(text: str) -> list[dict]:
             if result and result.get("display"):
                 return {"code": code, "system": url,
                         "systemName": system_name, "display": result["display"]}
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
         return None
 
@@ -641,7 +640,7 @@ async def _validate_suggested_code(entry: dict) -> dict:
                 "caveats": "Code not found in Flint FHIR server — verify before use.",
                 "validated": False,
             }
-    except Exception:
+    except Exception:  # noqa: BLE001, S110
         pass
     return {**entry, "validated": None}
 
@@ -761,7 +760,7 @@ Respond ONLY with valid JSON — no markdown, no text outside the JSON:
     try:
         raw = _complete(prompt, max_tokens=2048)
         ai_review = _parse_json_response(raw)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning("AI narrative failed in /ai/validate-valueset: %s", e)
         ai_review = {
             "summary": f"{len(passed)} of {len(codes)} codes confirmed valid. {len(failed)} not found. {len(unvalidatable)} could not be checked (system not connected).",
@@ -890,7 +889,7 @@ Current ValueSet being built:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("Unexpected error in /ai/chat: %s", e, exc_info=True)
+        logger.error("Unexpected error in /ai/chat: %s", e, exc_info=True)  # noqa: G201
         raise HTTPException(status_code=502, detail=f"AI provider error: {e}") from e
 
     # Extract and strip <suggested_codes> blocks

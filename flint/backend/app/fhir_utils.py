@@ -1,8 +1,9 @@
 import json
 import os
-from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime, timezone
 from email.utils import formatdate
+from typing import Any
+
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Histogram
@@ -40,7 +41,7 @@ def _patient_ref(value: str) -> str:
     return value
 
 
-def _date_condition(field_expr: str, value: str) -> Tuple[str, str]:
+def _date_condition(field_expr: str, value: str) -> tuple[str, str]:
     """Return (sql_fragment, date_value) respecting FHIR date prefix operators."""
     for prefix, op in _DATE_PREFIXES.items():
         if value.startswith(prefix):
@@ -48,7 +49,7 @@ def _date_condition(field_expr: str, value: str) -> Tuple[str, str]:
     return (f"{field_expr} = ??", value)
 
 
-def _extension_date_condition(ext_url: str, value: str) -> Tuple[str, Any]:
+def _extension_date_condition(ext_url: str, value: str) -> tuple[str, Any]:
     """Return (sql_fragment, values) for a date search on a FHIR extension's valueDateTime."""
     for prefix, op in _DATE_PREFIXES.items():
         if value.startswith(prefix):
@@ -62,7 +63,7 @@ def _extension_date_condition(ext_url: str, value: str) -> Tuple[str, Any]:
     )
 
 
-def _token_condition(json_path: str, value: str) -> Tuple[str, str]:
+def _token_condition(json_path: str, value: str) -> tuple[str, str]:
     """Return (sql_fragment, json_value) for FHIR token search against a coding array.
 
     Handles both 'code' and 'system|code' formats using JSONB containment (@>).
@@ -83,7 +84,7 @@ def _fhir_issue_code(status_code: int) -> str:
     }.get(status_code, "processing")
 
 
-def _check_etag(request: Request, existing: Dict) -> None:
+def _check_etag(request: Request, existing: dict) -> None:
     if_match = request.headers.get('If-Match')
     if not if_match:
         if os.environ.get("REQUIRE_IF_MATCH", "false").lower() == "true":
@@ -95,12 +96,12 @@ def _check_etag(request: Request, existing: Dict) -> None:
         raise HTTPException(status_code=412, detail=f"Version conflict: server has version {current_vid}, client sent {if_match}")
 
 
-def _bundle_links(request: Request, total: int, count: int, offset: int) -> List[Dict]:
+def _bundle_links(request: Request, total: int, count: int, offset: int) -> list[dict]:
     base = str(request.url).split('?')[0]
     params = dict(request.query_params)
     params.pop('_offset', None)
 
-    def link(rel: str, off: int) -> Dict:
+    def link(rel: str, off: int) -> dict:
         p = {**params, '_count': str(count), '_offset': str(off)}
         qs = '&'.join(f"{k}={v}" for k, v in p.items())
         return {'relation': rel, 'url': f"{base}?{qs}"}
@@ -114,8 +115,8 @@ def _bundle_links(request: Request, total: int, count: int, offset: int) -> List
     return links
 
 
-def _fhir_response(resource: Dict, status_code: int = 200, extra_headers: Optional[Dict] = None, request: Optional[Request] = None) -> JSONResponse:
-    headers: Dict[str, str] = {"Content-Type": "application/fhir+json"}
+def _fhir_response(resource: dict, status_code: int = 200, extra_headers: dict | None = None, request: Request | None = None) -> JSONResponse:
+    headers: dict[str, str] = {"Content-Type": "application/fhir+json"}
     meta = resource.get('meta', {})
     if vid := meta.get('versionId'):
         headers['ETag'] = f'W/"{vid}"'

@@ -7,9 +7,11 @@ GET /sdo/lookup           — look up a single code
 """
 
 import re
+
 from fastapi import APIRouter, HTTPException, Query
-from app.services import external_cs
+
 from app import state
+from app.services import external_cs
 
 # Patterns that indicate the query is a code, not a text term.
 # When matched, /sdo/search tries $lookup first before falling back to text search.
@@ -154,7 +156,7 @@ async def snomed_children(
         result = await external_cs.get_snomed_children(concept_id, edition)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=502, detail=f"SNOMED hierarchy lookup failed: {e}")
     return result
 

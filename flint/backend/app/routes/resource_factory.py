@@ -2,40 +2,40 @@
 Generic FHIR resource router factory.
 Generates standard CRUD + history + versioned read + audit routes for any resource type.
 """
-from typing import Callable, Dict, List, Optional, Any, Tuple, Type, Set
-from urllib.parse import parse_qs
 import copy
 import hashlib
 import json
 import logging
 import re
+from collections.abc import Callable
+from typing import Any
+from urllib.parse import parse_qs
 
 import aiohttp
 import jsonpatch
 from fastapi import APIRouter, Body, HTTPException, Query, Request
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ValidationError
 
 from app import state
-from app.fhir_utils import _check_etag, _bundle_links, _fhir_response, RESOURCE_COUNT
+from app.fhir_utils import RESOURCE_COUNT, _bundle_links, _check_etag, _fhir_response
 
 logger = logging.getLogger(__name__)
 
 # SearchHook signature: (query_params_dict) -> (base_params, extra_condition_pairs)
 SearchHook = Callable[
-    [Dict[str, str]],
-    Tuple[Dict[str, Any], List[Tuple[str, Any]]]
+    [dict[str, str]],
+    tuple[dict[str, Any], list[tuple[str, Any]]]
 ]
 
 # ValidateHook: async callable receiving the resource dict; raises HTTPException to reject.
-ValidateHook = Callable[[Dict[str, Any]], Any]
+ValidateHook = Callable[[dict[str, Any]], Any]
 
 # IncludeConfig: maps _include param value → (reference_field_name, target_resource_type)
-IncludeConfig = Dict[str, Tuple[str, str]]
+IncludeConfig = dict[str, tuple[str, str]]
 
 # Global reference map used by _include and _revinclude across all resource types.
 # Key: "{SourceType}:{searchParam}"  Value: (python_field, sql_json_path)
-_INCLUDE_REFERENCE_MAP: Dict[str, Tuple[str, str]] = {
+_INCLUDE_REFERENCE_MAP: dict[str, tuple[str, str]] = {
     "Observation:subject":           ("subject",       "data->'subject'->>'reference'"),
     "Observation:encounter":         ("encounter",     "data->'encounter'->>'reference'"),
     "Condition:subject":             ("subject",       "data->'subject'->>'reference'"),
@@ -61,7 +61,7 @@ _INCLUDE_REFERENCE_MAP: Dict[str, Tuple[str, str]] = {
 
 # Maps resource types in the patient compartment to their SQL filter path and Python accessor.
 # sql_path=None means the filter is on the resource's own 'id' field (Patient itself).
-_PATIENT_COMPARTMENT: Dict[str, Tuple[Optional[str], Callable[[Dict[str, Any]], Optional[str]]]] = {
+_PATIENT_COMPARTMENT: dict[str, tuple[str | None, Callable[[dict[str, Any]], str | None]]] = {
     "Patient":            (None,                                   lambda r: r.get("id")),
     "Observation":        ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
     "Condition":          ("data->'subject'->>'reference'",        lambda r: (r.get("subject") or {}).get("reference")),
@@ -89,7 +89,7 @@ _PATIENT_COMPARTMENT: Dict[str, Tuple[Optional[str], Callable[[Dict[str, Any]], 
 # ---------------------------------------------------------------------------
 
 # Maps (LinkedType, refParam) -> SQL path in linked resource referencing the outer resource.
-_HAS_BACK_REF: Dict[Tuple[str, str], str] = {
+_HAS_BACK_REF: dict[tuple[str, str], str] = {
     ("Observation",        "patient"):      "lnk.data->'subject'->>'reference'",
     ("Observation",        "subject"):      "lnk.data->'subject'->>'reference'",
     ("Observation",        "encounter"):    "lnk.data->'encounter'->>'reference'",
@@ -112,7 +112,7 @@ _HAS_BACK_REF: Dict[Tuple[str, str], str] = {
 }
 
 # Maps (LinkedType, searchParam) -> SQL condition with ?? placeholder (lnk. prefix).
-_HAS_CONDITION: Dict[Tuple[str, str], str] = {
+_HAS_CONDITION: dict[tuple[str, str], str] = {
     ("Observation",        "code"):            "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'code'->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
     ("Observation",        "category"):        "EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(lnk.data->'category', '[]'::jsonb)) cat, jsonb_array_elements(COALESCE(cat->'coding', '[]'::jsonb)) c WHERE c->>'code' = ??)",
     ("Observation",        "status"):          "lnk.data->>'status' = ??",
@@ -138,7 +138,7 @@ _HAS_CONDITION: Dict[Tuple[str, str], str] = {
 # ---------------------------------------------------------------------------
 
 # Maps (SourceType, refParam) -> (targetType, sql_ref_path_in_source).
-_CHAIN_REF: Dict[Tuple[str, str], Tuple[str, str]] = {
+_CHAIN_REF: dict[tuple[str, str], tuple[str, str]] = {
     ("Observation",        "patient"):      ("Patient",      "data->'subject'->>'reference'"),
     ("Observation",        "subject"):      ("Patient",      "data->'subject'->>'reference'"),
     ("Observation",        "encounter"):    ("Encounter",    "data->'encounter'->>'reference'"),
@@ -164,7 +164,7 @@ _CHAIN_REF: Dict[Tuple[str, str], Tuple[str, str]] = {
 
 # Maps (targetType, targetSearchParam) -> (sql_condition_with_??, value_transform).
 # sql_condition uses tgt. prefix; value_transform is applied to the raw param value before binding.
-_CHAIN_TARGET_CONDITION: Dict[Tuple[str, str], Tuple[str, Callable[[str], str]]] = {
+_CHAIN_TARGET_CONDITION: dict[tuple[str, str], tuple[str, Callable[[str], str]]] = {
     ("Patient",      "name"):       ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'name', '[]'::jsonb)) n WHERE n->>'family' ILIKE ?? OR n->>'text' ILIKE ??)", lambda v: f"%{v}%"),
     ("Patient",      "family"):     ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'name', '[]'::jsonb)) n WHERE n->>'family' ILIKE ??)", lambda v: f"%{v}%"),
     ("Patient",      "given"):      ("EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(tgt.data->'name', '[]'::jsonb)) n, jsonb_array_elements_text(COALESCE(n->'given', '[]'::jsonb)) g WHERE g ILIKE ??)", lambda v: f"%{v}%"),
@@ -179,9 +179,9 @@ _CHAIN_TARGET_CONDITION: Dict[Tuple[str, str], Tuple[str, Callable[[str], str]]]
 }
 
 
-def _build_has_conditions(rt: str, query_params: Dict[str, str]) -> List[Tuple[str, Any]]:
+def _build_has_conditions(rt: str, query_params: dict[str, str]) -> list[tuple[str, Any]]:
     """Build EXISTS conditions for _has reverse-chained search params."""
-    pairs: List[Tuple[str, Any]] = []
+    pairs: list[tuple[str, Any]] = []
     for key, value in query_params.items():
         if not key.startswith("_has:"):
             continue
@@ -204,9 +204,9 @@ def _build_has_conditions(rt: str, query_params: Dict[str, str]) -> List[Tuple[s
     return pairs
 
 
-def _build_chained_conditions(rt: str, query_params: Dict[str, str]) -> List[Tuple[str, Any]]:
+def _build_chained_conditions(rt: str, query_params: dict[str, str]) -> list[tuple[str, Any]]:
     """Build EXISTS conditions for chained search params (e.g., patient.family=Jones)."""
-    pairs: List[Tuple[str, Any]] = []
+    pairs: list[tuple[str, Any]] = []
     for key, value in query_params.items():
         if key.startswith("_") or "." not in key:
             continue
@@ -234,7 +234,7 @@ def _build_chained_conditions(rt: str, query_params: Dict[str, str]) -> List[Tup
 # US Core must-support element checks (P2.6)
 # ---------------------------------------------------------------------------
 
-_US_CORE_MUST_SUPPORT: Dict[str, List[Tuple[str, Callable[[Dict[str, Any]], bool]]]] = {
+_US_CORE_MUST_SUPPORT: dict[str, list[tuple[str, Callable[[dict[str, Any]], bool]]]] = {
     "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient": [
         ("Patient.identifier",            lambda r: bool(r.get("identifier"))),
         ("Patient.identifier.system",     lambda r: all(bool(i.get("system")) for i in (r.get("identifier") or []))),
@@ -290,7 +290,7 @@ _US_CORE_MUST_SUPPORT: Dict[str, List[Tuple[str, Callable[[Dict[str, Any]], bool
 }
 
 
-def _owns_resource(rt: str, resource: Dict[str, Any], patient_id: str) -> bool:
+def _owns_resource(rt: str, resource: dict[str, Any], patient_id: str) -> bool:
     """Return True if the resource belongs to the given patient."""
     compartment = _PATIENT_COMPARTMENT.get(rt)
     if not compartment:
@@ -301,10 +301,10 @@ def _owns_resource(rt: str, resource: Dict[str, Any], patient_id: str) -> bool:
 
 
 # Resource types scoped to the clinician's organization membership.
-_ORG_SCOPED: Set[str] = {"Organization", "Practitioner", "PractitionerRole", "Location"}
+_ORG_SCOPED: set[str] = {"Organization", "Practitioner", "PractitionerRole", "Location"}
 
 
-async def _get_panel_patient_refs(clinician_id: str) -> List[str]:
+async def _get_panel_patient_refs(clinician_id: str) -> list[str]:
     gp_filter = json.dumps([{"reference": f"Practitioner/{clinician_id}"}])
     _, results = await state.db.search_resources_ex(
         "Patient", {}, [("data->'generalPractitioner' @> ??::jsonb", gp_filter)],
@@ -313,7 +313,7 @@ async def _get_panel_patient_refs(clinician_id: str) -> List[str]:
     return [f"Patient/{r['id']}" for r in results if r.get("id")]
 
 
-async def _check_clinician_panel(rt: str, resource: Dict[str, Any], clinician_id: str) -> None:
+async def _check_clinician_panel(rt: str, resource: dict[str, Any], clinician_id: str) -> None:
     """Raise 403 if the clinician is not authorized for the patient linked to this resource."""
     if rt == "Patient":
         gp_list = resource.get("generalPractitioner") or []
@@ -337,15 +337,15 @@ async def _check_clinician_panel(rt: str, resource: Dict[str, Any], clinician_id
             raise HTTPException(status_code=403, detail="This patient is not in your panel")
 
 
-async def _get_clinician_org_context(clinician_id: str) -> Dict[str, List[str]]:
+async def _get_clinician_org_context(clinician_id: str) -> dict[str, list[str]]:
     """Return org_refs and loc_refs from the clinician's PractitionerRoles."""
     _, roles = await state.db.search_resources_ex(
         "PractitionerRole", {},
         [("data->'practitioner'->>'reference' = ??", f"Practitioner/{clinician_id}")],
         limit=100, offset=0,
     )
-    org_refs: List[str] = []
-    loc_refs: List[str] = []
+    org_refs: list[str] = []
+    loc_refs: list[str] = []
     for role in roles:
         org_ref = (role.get("organization") or {}).get("reference")
         if org_ref:
@@ -357,7 +357,7 @@ async def _get_clinician_org_context(clinician_id: str) -> Dict[str, List[str]]:
     return {"org_refs": list(set(org_refs)), "loc_refs": list(set(loc_refs))}
 
 
-async def _get_org_practitioner_refs(org_refs: List[str]) -> List[str]:
+async def _get_org_practitioner_refs(org_refs: list[str]) -> list[str]:
     """Return all practitioner refs with a PractitionerRole in any of the given orgs."""
     if not org_refs:
         return []
@@ -366,10 +366,11 @@ async def _get_org_practitioner_refs(org_refs: List[str]) -> List[str]:
         [("data->'organization'->>'reference' = ANY(??)", org_refs)],
         limit=10000, offset=0,
     )
-    return list({(role.get("practitioner") or {}).get("reference") for role in roles} - {None})
+    refs = {(role.get("practitioner") or {}).get("reference") for role in roles}
+    return [r for r in refs if r is not None]
 
 
-async def _check_clinician_org_access(rt: str, resource: Dict[str, Any], clinician_id: str) -> None:
+async def _check_clinician_org_access(rt: str, resource: dict[str, Any], clinician_id: str) -> None:
     """Raise 403 if the resource is outside the clinician's organization scope."""
     ctx = await _get_clinician_org_context(clinician_id)
     org_refs = ctx["org_refs"]
@@ -400,10 +401,10 @@ async def _check_clinician_org_access(rt: str, resource: Dict[str, Any], clinici
 # Supported path patterns: Resource.field, Resource.field[n], Resource.a.b[n].c
 # ---------------------------------------------------------------------------
 
-def _split_fhirpath(path: str) -> List[str]:
+def _split_fhirpath(path: str) -> list[str]:
     """Split a FHIRPath string by '.' while respecting parentheses."""
-    segs: List[str] = []
-    cur: List[str] = []
+    segs: list[str] = []
+    cur: list[str] = []
     depth = 0
     for ch in path:
         if ch == "(":
@@ -419,13 +420,13 @@ def _split_fhirpath(path: str) -> List[str]:
     return segs
 
 
-def _parse_seg(seg: str) -> Tuple[str, Optional[int]]:
+def _parse_seg(seg: str) -> tuple[str, int | None]:
     """Parse 'name[3]' → ('name', 3).  'name' → ('name', None)."""
     m = re.match(r"^(\w+)\[(\d+)\]$", seg)
     return (m.group(1), int(m.group(2))) if m else (seg, None)
 
 
-def _navigate_to(obj: Dict[str, Any], path: str, resource_type: str) -> Any:
+def _navigate_to(obj: dict[str, Any], path: str, resource_type: str) -> Any:
     """Return the object at the END of path (inclusive of last segment)."""
     segs = _split_fhirpath(path)
     if segs and segs[0] == resource_type:
@@ -443,7 +444,7 @@ def _navigate_to(obj: Dict[str, Any], path: str, resource_type: str) -> Any:
     return current
 
 
-def _fhirpath_resolve(obj: Dict[str, Any], path: str, resource_type: str) -> Tuple[Any, str, Optional[int]]:
+def _fhirpath_resolve(obj: dict[str, Any], path: str, resource_type: str) -> tuple[Any, str, int | None]:
     """
     Navigate path and return (parent_container, field_name, array_index).
     The target is parent_container[field_name]  or  parent_container[field_name][array_index].
@@ -467,7 +468,7 @@ def _fhirpath_resolve(obj: Dict[str, Any], path: str, resource_type: str) -> Tup
     return current, last_name, last_idx
 
 
-def _get_part_value(part: Dict[str, Any]) -> Any:
+def _get_part_value(part: dict[str, Any]) -> Any:
     """Extract value from a Parameters.parameter.part — returns the first value[x] field."""
     for k, v in part.items():
         if k.startswith("value"):
@@ -475,15 +476,15 @@ def _get_part_value(part: Dict[str, Any]) -> Any:
     return None
 
 
-def _parse_fhirpath_patch_params(body: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _parse_fhirpath_patch_params(body: dict[str, Any]) -> list[dict[str, Any]]:
     """Parse a FHIR Parameters resource into a flat list of operation dicts."""
     if body.get("resourceType") != "Parameters":
         raise ValueError("FHIRPath Patch body must be a Parameters resource with resourceType='Parameters'")
-    operations: List[Dict[str, Any]] = []
+    operations: list[dict[str, Any]] = []
     for param in body.get("parameter", []):
         if param.get("name") != "operation":
             continue
-        op: Dict[str, Any] = {}
+        op: dict[str, Any] = {}
         for part in param.get("part", []):
             pname = part.get("name")
             if pname == "type":
@@ -506,7 +507,7 @@ def _parse_fhirpath_patch_params(body: Dict[str, Any]) -> List[Dict[str, Any]]:
     return operations
 
 
-def _apply_fhirpath_operations(resource: Dict[str, Any], operations: List[Dict[str, Any]]) -> Dict[str, Any]:
+def _apply_fhirpath_operations(resource: dict[str, Any], operations: list[dict[str, Any]]) -> dict[str, Any]:
     """Apply a list of parsed FHIRPath Patch operations to a deep copy of resource."""
     result = copy.deepcopy(resource)
     rt = result.get("resourceType", "")
@@ -564,11 +565,11 @@ def _apply_fhirpath_operations(resource: Dict[str, Any], operations: List[Dict[s
 
 def create_resource_router(
     resource_type: str,
-    model_class: Type[BaseModel],
-    search_hook: Optional[SearchHook] = None,
+    model_class: type[BaseModel],
+    search_hook: SearchHook | None = None,
     allow_archive: bool = False,
-    validate_hook: Optional[ValidateHook] = None,
-    include_config: Optional[IncludeConfig] = None,
+    validate_hook: ValidateHook | None = None,
+    include_config: IncludeConfig | None = None,
 ) -> APIRouter:
     router = APIRouter(tags=[resource_type])
     rt = resource_type
@@ -577,9 +578,9 @@ def create_resource_router(
     # Helpers
     # ------------------------------------------------------------------
 
-    async def _run_search(qp: Dict[str, str], limit: int, offset: int) -> Tuple[int, List[Dict]]:
-        base_params: Dict[str, Any] = {}
-        extra_pairs: List[Tuple[str, Any]] = []
+    async def _run_search(qp: dict[str, str], limit: int, offset: int) -> tuple[int, list[dict]]:
+        base_params: dict[str, Any] = {}
+        extra_pairs: list[tuple[str, Any]] = []
         if search_hook:
             base_params, extra_pairs = search_hook(qp)
         return await state.db.search_resources_ex(rt, base_params, extra_pairs, limit=limit, offset=offset)
@@ -588,15 +589,16 @@ def create_resource_router(
     # Standard CRUD
     # ------------------------------------------------------------------
 
-    async def _create(request: Request, resource: model_class):
+    async def _create(request: Request, resource: model_class):  # type: ignore[valid-type]
         patient_id = getattr(request.state, "fhir_patient_id", None)
         if patient_id and rt in _PATIENT_COMPARTMENT:
-            data_check = resource.model_dump(mode='json', exclude_none=True, by_alias=True)
+            data_check = resource.model_dump(mode='json', exclude_none=True, by_alias=True)  # type: ignore[attr-defined]
             if rt == "Patient" or not _owns_resource(rt, data_check, patient_id):
                 raise HTTPException(status_code=403, detail="patient-scoped token may only create resources for their own patient record")
         clinician_id = getattr(request.state, "fhir_clinician_id", None)
         if clinician_id and rt in _PATIENT_COMPARTMENT and rt != "Patient" and not patient_id:
-            await _check_clinician_panel(rt, resource.model_dump(mode='json', exclude_none=True, by_alias=True), clinician_id)
+            _res_data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)  # type: ignore[attr-defined]
+            await _check_clinician_panel(rt, _res_data, clinician_id)
         # Conditional create: If-None-Exist header
         if_none_exist = request.headers.get("If-None-Exist")
         if if_none_exist and search_hook:
@@ -607,7 +609,7 @@ def create_resource_router(
             if total > 1:
                 raise HTTPException(status_code=412, detail="Conditional create matched multiple resources")
 
-        data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)
+        data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)  # type: ignore[attr-defined]
         data['resourceType'] = rt
         if validate_hook:
             await validate_hook(data)
@@ -636,7 +638,7 @@ def create_resource_router(
             await _check_clinician_org_access(rt, resource, clinician_id)
         return _fhir_response(resource)
 
-    async def _update(request: Request, resource_id: str, resource: model_class):
+    async def _update(request: Request, resource_id: str, resource: model_class):  # type: ignore[valid-type]
         existing = await state.db.get_resource(resource_id)
         if not existing:
             raise HTTPException(status_code=404, detail=f"{rt}/{resource_id} not found")
@@ -647,7 +649,7 @@ def create_resource_router(
         if clinician_id and rt in _PATIENT_COMPARTMENT and not patient_id:
             await _check_clinician_panel(rt, existing, clinician_id)
         _check_etag(request, existing)
-        data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)
+        data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)  # type: ignore[attr-defined]
         data['id'] = resource_id
         data['resourceType'] = rt
         if validate_hook:
@@ -659,16 +661,12 @@ def create_resource_router(
         return _fhir_response(await state.db.get_resource(resource_id), request=request)
 
     async def _delete(resource_id: str, request: Request):
+        roles = getattr(request.state, "fhir_roles", [])
+        if "fhir-admin" not in roles:
+            raise HTTPException(status_code=403, detail="DELETE requires fhir-admin role")
         existing = await state.db.get_resource(resource_id)
         if not existing:
             raise HTTPException(status_code=404, detail=f"{rt}/{resource_id} not found")
-        patient_id = getattr(request.state, "fhir_patient_id", None)
-        if patient_id and rt in _PATIENT_COMPARTMENT:
-            if rt == "Patient" or not _owns_resource(rt, existing, patient_id):
-                raise HTTPException(status_code=403, detail="Access to this resource is not permitted")
-        clinician_id = getattr(request.state, "fhir_clinician_id", None)
-        if clinician_id and rt in _PATIENT_COMPARTMENT and not patient_id:
-            await _check_clinician_panel(rt, existing, clinician_id)
         await state.db.delete_resource(resource_id)
         await state.search_engine.delete_resource(resource_id)
         await state.cache.invalidate_pattern(f"{rt}:{resource_id}:*")
@@ -693,7 +691,7 @@ def create_resource_router(
         content_type = request.headers.get("content-type", "")
         try:
             body = json.loads(await request.body())
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             raise HTTPException(status_code=400, detail=f"Invalid JSON body: {exc}")
 
         if "application/fhir+json" in content_type:
@@ -731,7 +729,7 @@ def create_resource_router(
     # P2.2 — Conditional update / delete
     # ------------------------------------------------------------------
 
-    async def _conditional_update(request: Request, resource: model_class):
+    async def _conditional_update(request: Request, resource: model_class):  # type: ignore[valid-type]
         qp = {k: v for k, v in request.query_params.items() if not k.startswith('_')}
         if not qp:
             raise HTTPException(status_code=400, detail="Conditional update requires search parameters in the URL")
@@ -742,7 +740,7 @@ def create_resource_router(
         if total == 1:
             resource_id = results[0].get('id')
             _check_etag(request, results[0])
-            data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)
+            data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)  # type: ignore[attr-defined]
             data['id'] = resource_id
             data['resourceType'] = rt
             if validate_hook:
@@ -753,7 +751,7 @@ def create_resource_router(
             RESOURCE_COUNT.labels(resource_type=rt, operation="update").inc()
             return _fhir_response(await state.db.get_resource(resource_id), request=request)
         else:
-            data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)
+            data = resource.model_dump(mode='json', exclude_none=True, by_alias=True)  # type: ignore[attr-defined]
             data['resourceType'] = rt
             if validate_hook:
                 await validate_hook(data)
@@ -767,7 +765,7 @@ def create_resource_router(
     async def _conditional_delete(request: Request):
         if not request.query_params:
             raise HTTPException(status_code=400, detail="Conditional delete requires search parameters in the URL")
-        total, results = await _run_search(dict(request.query_params), limit=1000, offset=0)
+        _total, results = await _run_search(dict(request.query_params), limit=1000, offset=0)
         for r in results:
             rid = r.get('id')
             if rid:
@@ -785,12 +783,12 @@ def create_resource_router(
         request: Request,
         _count: int = Query(20, alias="_count", ge=1, le=1000),
         _offset: int = Query(0, alias="_offset", ge=0),
-        _sort: Optional[str] = Query(None, alias="_sort"),
-        _include: Optional[str] = Query(None, alias="_include"),
-        _revinclude: Optional[str] = Query(None, alias="_revinclude"),
+        _sort: str | None = Query(None, alias="_sort"),
+        _include: str | None = Query(None, alias="_include"),
+        _revinclude: str | None = Query(None, alias="_revinclude"),
     ):
-        base_params: Dict[str, Any] = {}
-        extra_pairs: List[Tuple[str, Any]] = []
+        base_params: dict[str, Any] = {}
+        extra_pairs: list[tuple[str, Any]] = []
         if search_hook:
             base_params, extra_pairs = search_hook(dict(request.query_params))
         extra_pairs = list(extra_pairs) + _build_has_conditions(rt, dict(request.query_params)) + _build_chained_conditions(rt, dict(request.query_params))
@@ -871,7 +869,7 @@ def create_resource_router(
             rt, base_params, extra_pairs,
             limit=_count, offset=_offset, sort=_sort
         )
-        entries: List[Dict[str, Any]] = [{"resource": r} for r in results]
+        entries: list[dict[str, Any]] = [{"resource": r} for r in results]
         seen: set = set()  # shared across _include and _include:iterate
 
         # _include: resolve forward references from the primary result set
@@ -880,7 +878,7 @@ def create_resource_router(
             ref_info = _INCLUDE_REFERENCE_MAP.get(include_key)
             if not ref_info and include_config and _include in include_config:
                 field, _ = include_config[_include]
-                ref_info = (field, None)
+                ref_info = (field, None)  # type: ignore[assignment]
             if ref_info:
                 py_field = ref_info[0]
                 for r in results:
@@ -911,7 +909,7 @@ def create_resource_router(
                 py_field = iter_info[0]
                 frontier = [e["resource"] for e in entries]
                 for _ in range(3):
-                    next_frontier: List[Dict[str, Any]] = []
+                    next_frontier: list[dict[str, Any]] = []
                     for r in frontier:
                         ref_obj = r.get(py_field)
                         if isinstance(ref_obj, dict):
@@ -951,6 +949,9 @@ def create_resource_router(
                     for r in rev_results:
                         rid = r.get("id")
                         if rid and rid not in seen_rev:
+                            # Patient-scoped tokens must not see rev-included resources outside their compartment
+                            if patient_id and rev_type in _PATIENT_COMPARTMENT and not _owns_resource(rev_type, r, patient_id):
+                                continue
                             seen_rev.add(rid)
                             entries.append({"search": {"mode": "include"}, "resource": r})
 
@@ -970,10 +971,10 @@ def create_resource_router(
         form = await request.form()
         # Merge URL query params (rare but allowed) with body params; body takes precedence.
         merged = dict(request.query_params)
-        merged.update({k: v for k, v in form.multi_items()})
+        merged.update({k: v for k, v in form.multi_items()})  # type: ignore[misc]
 
-        base_params: Dict[str, Any] = {}
-        extra_pairs: List[Tuple[str, Any]] = []
+        base_params: dict[str, Any] = {}
+        extra_pairs: list[tuple[str, Any]] = []
         if search_hook:
             base_params, extra_pairs = search_hook(merged)
         extra_pairs = list(extra_pairs) + _build_has_conditions(rt, merged) + _build_chained_conditions(rt, merged)
@@ -1012,7 +1013,7 @@ def create_resource_router(
         total, results = await state.db.search_resources_ex(
             rt, base_params, extra_pairs, limit=_count, offset=_offset, sort=_sort
         )
-        entries: List[Dict[str, Any]] = [{"resource": r} for r in results]
+        entries: list[dict[str, Any]] = [{"resource": r} for r in results]
 
         if _revinclude and results:
             rev_info = _INCLUDE_REFERENCE_MAP.get(_revinclude)
@@ -1042,7 +1043,7 @@ def create_resource_router(
 
     async def _type_history(
         request: Request,
-        _since: Optional[str] = Query(None, alias="_since"),
+        _since: str | None = Query(None, alias="_since"),
         _count: int = Query(20, alias="_count", ge=1, le=1000),
         _offset: int = Query(0, alias="_offset", ge=0),
     ):
@@ -1072,11 +1073,11 @@ def create_resource_router(
     # ------------------------------------------------------------------
 
     async def _validate(
-        body: Dict[str, Any] = Body(...),
-        profile: Optional[str] = Query(None),
+        body: dict[str, Any] = Body(...),  # noqa: B008
+        profile: str | None = Query(None),
     ):
         # Local structural validation via Pydantic
-        local_issues: List[Dict[str, Any]] = []
+        local_issues: list[dict[str, Any]] = []
         try:
             model_class(**body)
         except ValidationError as exc:
@@ -1091,7 +1092,7 @@ def create_resource_router(
             ]
 
         # US Core must-support checks (local, fast — only for known US Core profiles)
-        us_core_issues: List[Dict[str, Any]] = []
+        us_core_issues: list[dict[str, Any]] = []
         if profile and profile in _US_CORE_MUST_SUPPORT:
             for element_expr, check_fn in _US_CORE_MUST_SUPPORT[profile]:
                 if not check_fn(body):
@@ -1103,7 +1104,7 @@ def create_resource_router(
                     })
 
         # Profile validation via tx.fhir.org (only when ?profile= is provided)
-        profile_issues: List[Dict[str, Any]] = []
+        profile_issues: list[dict[str, Any]] = []
         if profile:
             body_json = json.dumps(body, sort_keys=True)
             cache_key = f"validate:{rt}:{profile}:{hashlib.sha256(body_json.encode()).hexdigest()}"
@@ -1113,7 +1114,7 @@ def create_resource_router(
             else:
                 try:
                     timeout = aiohttp.ClientTimeout(total=15)
-                    async with aiohttp.ClientSession() as session:
+                    async with aiohttp.ClientSession() as session:  # noqa: SIM117
                         async with session.post(
                             f"https://tx.fhir.org/r4/{rt}/$validate",
                             json=body,
@@ -1130,7 +1131,7 @@ def create_resource_router(
                         if i.get("severity") in ("error", "warning")
                     ]
                     await state.cache.set(cache_key, profile_issues, ttl=3600)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.warning("tx.fhir.org profile validation failed: %s", e)
                     profile_issues = [{
                         "severity": "warning",
