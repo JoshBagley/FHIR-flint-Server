@@ -9,7 +9,7 @@
 services:
   postgres:
     ports:
-      - "5432:5432"   # expose for local DB clients (TablePlus, DBeaver, etc.)
+      - "5433:5432"   # expose for local DB clients (TablePlus, DBeaver, etc.) — 5432 used by Conduit
 
   elasticsearch:
     ports:
@@ -17,7 +17,7 @@ services:
 
   redis:
     ports:
-      - "6379:6379"   # expose for local Redis CLI
+      - "6380:6379"   # expose for local Redis CLI (6379 used by Conduit)
 
   backend:
     # Hot-reload + single worker for dev; volume mounts for live code changes

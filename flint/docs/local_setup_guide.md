@@ -60,8 +60,8 @@ docker compose ps
 | **Grafana** | http://localhost:3001 | Metrics dashboards |
 | **Prometheus** | http://localhost:9090 | Raw metrics |
 | **Elasticsearch** | http://localhost:9200 | Search engine API |
-| **PostgreSQL** | localhost:5432 | Direct DB access |
-| **Redis** | localhost:6379 | Cache / queue |
+| **PostgreSQL** | localhost:5433 | Direct DB access |
+| **Redis** | localhost:6380 | Cache / queue |
 
 ---
 

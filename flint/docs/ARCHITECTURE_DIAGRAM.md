@@ -188,9 +188,9 @@ graph TB
 | Nginx (entry point) | 80 |
 | Vite dev server | 5173 |
 | FastAPI backend | 8000 |
-| PostgreSQL | 5432 |
+| PostgreSQL | 5433 |
 | Elasticsearch | 9200 |
-| Redis | 6379 |
+| Redis | 6380 |
 | Grafana | 3001 |
 | Prometheus | 9090 |
 | Loki | 3100 |

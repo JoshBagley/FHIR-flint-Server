@@ -77,13 +77,16 @@ docker compose up -d
 | 80 | Nginx (primary entry point) |
 | 8000 | FastAPI backend |
 | 5173 | Vite frontend dev server |
-| 5432 | PostgreSQL |
+| 5433 | PostgreSQL |
 | 9200 | Elasticsearch |
-| 6379 | Redis |
+| 6380 | Redis |
 | 3001 | Grafana dashboards |
 | 9090 | Prometheus metrics |
 | 3100 | Loki log aggregation |
+| 8081 | Keycloak (SMART on FHIR auth) |
 | 8181 | Adminer database UI |
+
+> **Local development note:** Several host ports are remapped to avoid conflicts with Conduit and Waypoint running locally: PostgreSQL → **5433** (default 5432), Redis → **6380** (default 6379), Keycloak → **8081** (default 8080). Internal Docker networking is unaffected. These ports may need to be restored to their defaults in a deployed environment.
 
 ## Observability
 

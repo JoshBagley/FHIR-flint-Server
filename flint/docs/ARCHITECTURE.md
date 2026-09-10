@@ -153,9 +153,9 @@ Config: `loki/loki-config.yml`, `promtail/promtail-config.yml`
 | 80 | Nginx | Primary entry point |
 | 8000 | Backend | Direct FastAPI access |
 | 5173 | Frontend | Vite dev server |
-| 5432 | PostgreSQL | Direct DB access |
+| 5433 | PostgreSQL | Direct DB access (mapped from 5432 internally) |
 | 9200 | Elasticsearch | REST API |
-| 6379 | Redis | CLI / direct access |
+| 6380 | Redis | CLI / direct access (mapped from 6379 internally) |
 | 8181 | Adminer | Database browser UI |
 | 3001 | Grafana | Metrics + log dashboards |
 | 9090 | Prometheus | Metrics scrape UI |

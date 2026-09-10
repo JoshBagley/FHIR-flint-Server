@@ -166,12 +166,13 @@ This file provides context and working conventions for Claude Code when operatin
 | Frontend (Vite dev) | http://localhost:5173 | Direct Vite HMR server |
 | Backend API | http://localhost:8000 | FastAPI; also at `/` via Nginx |
 | API Docs (Swagger) | http://localhost:8000/docs | Auto-generated OpenAPI |
-| PostgreSQL | localhost:5432 | DB: `flint`, User: `flint` |
+| PostgreSQL | localhost:5433 | DB: `flint`, User: `flint` (host port; internal stays 5432) |
 | Elasticsearch | http://localhost:9200 | |
-| Redis | localhost:6379 | |
+| Redis | localhost:6380 | Host port (6380 avoids conflict with Conduit; internal stays 6379) |
 | Grafana | http://localhost:3001 | Metrics + log dashboards (admin/admin) |
 | Prometheus | http://localhost:9090 | Metrics scraper |
 | Loki | http://localhost:3100 | Log aggregation API |
+| Keycloak | http://localhost:8081 | SMART on FHIR auth (8081 avoids conflict with Conduit; restore to 8080 for deployment) |
 | Adminer (DB UI) | http://localhost:8181 | Lightweight PostgreSQL browser |
 | Kibana | http://localhost:5601 | Elasticsearch browser |
 
